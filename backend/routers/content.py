@@ -2395,3 +2395,95 @@ async def mirror_wp_imported_images(
         "limit": limit,
         "has_more": len(items) == limit,
     }
+
+
+@content_router.post("/admin/cleanup-none-images")
+async def cleanup_none_image_paths(
+    request: Request,
+    dry_run: bool = True,
+    current_user: dict = Depends(require_editor_or_admin),
+):
+    """Find legacy ``content_items`` whose featured/external image URL still
+    points at a corrupt ``/None/`` or ``/None_`` S3 path (caused by an old
+    upload bug that has since been fixed). Clears those URL fields so the
+    public API falls back to the next available image source.
+
+    Scoped to the editor's main site (or team when no site header is set).
+    Pass ``dry_run=false`` to actually persist the cleanup; default is a
+    safe preview that only reports counts/IDs.
+    """
+    main_site_id = await get_main_site_id_from_header(request)
+    pattern = {"$regex": "/None[/_]"}
+    or_clauses = [
+        {"featured_image.s3_url": pattern},
+        {"featured_image.url": pattern},
+        {"featured_image_url": pattern},
+        {"image_url": pattern},
+        {"cover_image_url": pattern},
+        {"external_featured_image": pattern},
+        {"imported_image_url": pattern},
+    ]
+    q: dict = {"$or": or_clauses}
+    if main_site_id:
+        q["main_site_id"] = main_site_id
+    elif current_user.get("team_id"):
+        q["team_id"] = current_user.get("team_id")
+
+    cursor = db.content_items.find(q, {
+        "_id": 0, "id": 1, "title": 1,
+        "featured_image": 1, "featured_image_url": 1,
+        "image_url": 1, "cover_image_url": 1,
+        "external_featured_image": 1, "imported_image_url": 1,
+    })
+    affected: list[dict] = []
+    updated = 0
+    async for item in cursor:
+        unset_fields: dict = {}
+        fi = item.get("featured_image") or {}
+        if isinstance(fi, dict):
+            s3u = fi.get("s3_url") or ""
+            u = fi.get("url") or ""
+            if "/None/" in s3u or "/None_" in s3u or "/None/" in u or "/None_" in u:
+                # Drop the whole broken featured_image dict so the public
+                # serializer falls back to the next URL source / inline.
+                unset_fields["featured_image"] = ""
+        for k in ("featured_image_url", "image_url", "cover_image_url",
+                  "external_featured_image", "imported_image_url"):
+            v = item.get(k) or ""
+            if "/None/" in v or "/None_" in v:
+                unset_fields[k] = ""
+        if not unset_fields:
+            continue
+        affected.append({
+            "id": item["id"],
+            "title": item.get("title") or "",
+            "cleared_fields": list(unset_fields.keys()),
+        })
+        if not dry_run:
+            await db.content_items.update_one(
+                {"id": item["id"]},
+                {"$unset": unset_fields,
+                 "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}},
+            )
+            updated += 1
+
+    if not dry_run and updated:
+        await log_action(
+            action=f"Cleared /None/ image refs on {updated} content items",
+            category="content",
+            user_id=current_user['id'],
+            user_name=current_user.get('name'),
+            user_email=current_user.get('email'),
+            team_id=current_user.get('team_id'),
+            main_site_id=main_site_id,
+            ip_address=get_client_ip(request),
+            target_type="cleanup_none_images",
+            details={"updated": updated, "ids": [a["id"] for a in affected[:50]]},
+        )
+
+    return {
+        "dry_run": dry_run,
+        "matched": len(affected),
+        "updated": updated,
+        "items": affected[:200],
+    }

@@ -1,6 +1,20 @@
 # Changelog
 
 
+## 2026-06-27 — P0 verify + S3 `/None/` cleanup admin endpoint
+
+### P0 verify — Public News API & Liveblog ended state
+- Re-tested gemelde regressie ("via de api geeft die nog niks") tegen production: `GET https://clr.koodh.com/api/news/articles/dit-is-dag-1-op-genk-on-stage-2026` retourneert nu correct `is_liveblog=false`, `liveblog_ended_at=2026-06-27T12:34:05Z` en 5 published `liveblog_entries` met images/videos.
+- Polling endpoint `…/liveblog` levert dezelfde entries (newest first). Geen code-fix nodig — de reeds-gemergde Liveblog-fix was ondertussen via VDC live gegaan.
+
+### S3 `/None/` cleanup admin endpoint
+- **Nieuw**: `POST /api/content/admin/cleanup-none-images?dry_run=true|false` (require_editor_or_admin, main-site scoped via `X-Main-Site-ID`).
+- Vindt `content_items` waarvan `featured_image.s3_url|url`, `featured_image_url`, `image_url`, `cover_image_url`, `external_featured_image` of `imported_image_url` nog naar een corrupt `/None/`-pad wijst.
+- `dry_run=true` (default) → returnt count + lijst (id/title/cleared_fields), geen DB-mutatie. `dry_run=false` → `$unset`'t alleen de corrupte velden; public serializer valt terug op de volgende beschikbare bron (legacy URLs, inline `<img>`).
+- Audit-log entry `cleanup_none_images` met IDs van max 50 cleared items.
+- VDC auto-deploy ingediend → deployment `c3080c3e-3049-4f0f-b684-f1952bcaf583`, pending approval.
+
+
 ## 2026-06-07 — Image Copyright / Attribution enforcement (P0)
 
 ### Why
