@@ -421,6 +421,17 @@ async def update_content_item(
     changes = get_field_changes(content, update_dict)
     
     update_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+
+    # When the editor re-enables the liveblog flag, reset the activity
+    # timestamp so the 12h-archive heuristic doesn't immediately flip it
+    # off again based on stale data from a previous session. Also clear
+    # the archive marker so the LIVE badge returns.
+    if (
+        content_data.is_liveblog is True
+        and not content.get("is_liveblog")
+    ):
+        update_dict["liveblog_last_activity_at"] = update_dict["updated_at"]
+        update_dict["liveblog_ended_at"] = None
     # Track who made the last edit (only when actual content fields change, not e.g. automatic status flips)
     if changes:
         update_dict["last_edited_by"] = current_user['id']

@@ -309,12 +309,16 @@ const EntryCard = ({ entry, canEdit, onEdit, onDelete, onTogglePublish }) => {
         </div>
       )}
       {(entry.videos || []).length > 0 && (
-        <div className="space-y-2 mt-3">
+        <div className="space-y-2 mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
           {entry.videos.map((v, i) => (
             v.embed_html ? (
-              <div key={i} className="aspect-video w-full" dangerouslySetInnerHTML={{ __html: v.embed_html }} />
+              <div
+                key={i}
+                className="aspect-video w-full max-w-md rounded overflow-hidden bg-black [&>iframe]:w-full [&>iframe]:h-full [&>iframe]:block"
+                dangerouslySetInnerHTML={{ __html: v.embed_html }}
+              />
             ) : v.url ? (
-              <video key={i} src={v.url} controls className="w-full rounded" />
+              <video key={i} src={v.url} controls className="w-full max-w-md rounded aspect-video bg-black" />
             ) : null
           ))}
         </div>
@@ -419,15 +423,18 @@ const EntryEditor = ({ draft, setDraft, onSave, onCancel, contentId, headers, sa
         <div className="mb-3 space-y-2">
           <Label className="text-xs">Photos with rights *</Label>
           {draft.images.map((img, i) => (
-            <div key={i} className="border border-zinc-200 rounded-md p-2 flex gap-3 bg-white" data-testid={`liveblog-img-row-${i}`}>
-              <img src={img.url} alt="" className="w-20 h-20 object-cover rounded flex-shrink-0" />
-              <div className="flex-1 grid grid-cols-2 gap-2">
+            <div key={i} className="border border-zinc-200 rounded-md p-2 flex flex-col sm:flex-row gap-3 bg-white" data-testid={`liveblog-img-row-${i}`}>
+              <div className="flex items-start gap-2">
+                <img src={img.url} alt="" className="w-20 h-20 object-cover rounded flex-shrink-0" />
+                <button onClick={() => removeImage(i)} className="sm:hidden text-zinc-400 hover:text-red-600 p-1" aria-label="Remove image"><X className="w-4 h-4" /></button>
+              </div>
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2 min-w-0">
                 <Input placeholder="Source / agency *" value={img.credit} onChange={(e) => updateImage(i, { credit: e.target.value })} className="text-xs" data-testid={`liveblog-img-credit-${i}`} />
                 <Input placeholder="Photographer" value={img.photographer} onChange={(e) => updateImage(i, { photographer: e.target.value })} className="text-xs" data-testid={`liveblog-img-photographer-${i}`} />
                 <Input placeholder="License" value={img.license} onChange={(e) => updateImage(i, { license: e.target.value })} className="text-xs" data-testid={`liveblog-img-license-${i}`} />
                 <Input placeholder="Source URL" value={img.source_url} onChange={(e) => updateImage(i, { source_url: e.target.value })} className="text-xs" data-testid={`liveblog-img-source-${i}`} />
               </div>
-              <button onClick={() => removeImage(i)} className="text-zinc-400 hover:text-red-600 p-1"><X className="w-4 h-4" /></button>
+              <button onClick={() => removeImage(i)} className="hidden sm:block text-zinc-400 hover:text-red-600 p-1 self-start"><X className="w-4 h-4" /></button>
             </div>
           ))}
         </div>
