@@ -72,6 +72,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from '../components/ui/dialog';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
@@ -504,6 +505,25 @@ const ContentDetailPage = () => {
   // ── Image rights / inline attribution ────────────────────────────────
   const [imageRights, setImageRights] = useState({ images: [], featured: null, missing: 0, total: 0, all_credited: true });
   const [showRightsModal, setShowRightsModal] = useState(false);
+  const [endLiveblogOpen, setEndLiveblogOpen] = useState(false);
+  const [endingLiveblog, setEndingLiveblog] = useState(false);
+
+  const endLiveblog = async (deleteEntries) => {
+    setEndingLiveblog(true);
+    try {
+      const res = await axios.post(
+        `${API}/content/${contentId}/liveblog/end?delete_entries=${deleteEntries}`,
+        {},
+      );
+      setContent((prev) => ({ ...prev, ...res.data }));
+      toast.success(deleteEntries ? 'Liveblog ended, entries deleted' : 'Liveblog ended — entries kept');
+      setEndLiveblogOpen(false);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Could not end liveblog');
+    } finally {
+      setEndingLiveblog(false);
+    }
+  };
   const [rightsAutoOpenedFor, setRightsAutoOpenedFor] = useState(null); // contentId where popup already auto-opened
 
   const fetchImageRights = useCallback(async () => {
@@ -787,33 +807,7 @@ const ContentDetailPage = () => {
               <button
                 type="button"
                 data-testid="end-liveblog-btn"
-                onClick={async () => {
-                  const keep = window.confirm(
-                    'End liveblog?\n\n' +
-                    'OK = Keep entries (article keeps the timeline visible without LIVE badge)\n' +
-                    'Cancel = open a follow-up prompt to choose deleting entries'
-                  );
-                  let deleteEntries = false;
-                  if (!keep) {
-                    const wipe = window.confirm(
-                      'Delete all liveblog entries permanently?\n\n' +
-                      'OK = Yes, wipe everything (cannot be undone)\n' +
-                      'Cancel = Abort, do nothing'
-                    );
-                    if (!wipe) return;
-                    deleteEntries = true;
-                  }
-                  try {
-                    const res = await axios.post(
-                      `${API}/content/${contentId}/liveblog/end?delete_entries=${deleteEntries}`,
-                      {},
-                    );
-                    setContent((prev) => ({ ...prev, ...res.data }));
-                    toast.success(deleteEntries ? 'Liveblog ended, entries deleted' : 'Liveblog ended — entries kept');
-                  } catch (err) {
-                    toast.error(err.response?.data?.detail || 'Could not end liveblog');
-                  }
-                }}
+                onClick={() => setEndLiveblogOpen(true)}
                 title="End liveblog"
                 className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border border-zinc-300 bg-white text-zinc-600 hover:bg-zinc-50"
               >
@@ -1442,14 +1436,18 @@ const ContentDetailPage = () => {
               `}</style>
             </div>
 
-            {/* Liveblog timeline — visible only when this article is flagged as a liveblog */}
-            {content.is_liveblog && (
+            {/* Liveblog timeline — visible when actively a liveblog
+                OR when it was a liveblog (so archived entries remain
+                visible under the article, in Clara and on the public API). */}
+            {(content.is_liveblog || content.liveblog_ended_at) && (
               <div className="mt-6">
                 <LiveblogPanel
                   contentId={contentId}
                   mainSiteId={parentMainSite?.id || ''}
                   token={token}
-                  canEdit={isEditor}
+                  canEdit={isEditor && content.is_liveblog}
+                  ended={!content.is_liveblog && !!content.liveblog_ended_at}
+                  endedAt={content.liveblog_ended_at}
                 />
               </div>
             )}
@@ -2003,6 +2001,58 @@ const ContentDetailPage = () => {
         onSaved={handleRightsSaved}
         API={API}
       />
+
+      <Dialog open={endLiveblogOpen} onOpenChange={setEndLiveblogOpen}>
+        <DialogContent className="bg-white text-zinc-900 max-w-md" data-testid="end-liveblog-dialog">
+          <DialogHeader>
+            <DialogTitle className="text-zinc-900 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-red-500" />
+              End liveblog
+            </DialogTitle>
+            <DialogDescription className="text-zinc-500 text-sm">
+              Stop the live updates for this article. Pick whether the entries should remain visible
+              as a static timeline under the article, or be permanently deleted.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 mt-2">
+            <button
+              type="button"
+              data-testid="end-liveblog-keep"
+              disabled={endingLiveblog}
+              onClick={() => endLiveblog(false)}
+              className="w-full text-left border border-zinc-200 hover:border-zinc-400 rounded-lg p-3 transition disabled:opacity-50"
+            >
+              <div className="text-sm font-semibold text-zinc-900">Keep entries</div>
+              <div className="text-xs text-zinc-500 mt-0.5">
+                The article keeps showing the timeline; only the LIVE badge and auto-update disappear.
+              </div>
+            </button>
+            <button
+              type="button"
+              data-testid="end-liveblog-delete"
+              disabled={endingLiveblog}
+              onClick={() => endLiveblog(true)}
+              className="w-full text-left border border-red-200 hover:border-red-400 bg-red-50/40 rounded-lg p-3 transition disabled:opacity-50"
+            >
+              <div className="text-sm font-semibold text-red-700">Delete all entries</div>
+              <div className="text-xs text-red-600/80 mt-0.5">
+                Permanently wipes every timeline entry on this article. Cannot be undone.
+              </div>
+            </button>
+          </div>
+          <DialogFooter className="mt-3">
+            <Button
+              variant="ghost"
+              onClick={() => setEndLiveblogOpen(false)}
+              disabled={endingLiveblog}
+              className="text-zinc-500"
+              data-testid="end-liveblog-cancel"
+            >
+              Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -35,7 +35,7 @@ const WS_BASE = process.env.REACT_APP_BACKEND_URL?.replace(/^https/, 'wss').repl
 const emptyImage = { url: '', key: '', credit: '', photographer: '', license: '', source_url: '' };
 const emptyVideo = { url: '', key: '', embed_code: '' };
 
-const LiveblogPanel = ({ contentId, mainSiteId, token, canEdit }) => {
+const LiveblogPanel = ({ contentId, mainSiteId, token, canEdit, ended = false, endedAt = null }) => {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -185,11 +185,18 @@ const LiveblogPanel = ({ contentId, mainSiteId, token, canEdit }) => {
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div>
           <h2 className="text-lg font-bold text-zinc-900 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" /> Liveblog timeline
+            {ended ? (
+              <span className="w-2 h-2 rounded-full bg-zinc-400" />
+            ) : (
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+            )}
+            {ended ? 'Liveblog timeline (ended)' : 'Liveblog timeline'}
             <span className="text-xs font-normal text-zinc-400">({entries.length})</span>
           </h2>
           <div className="text-xs text-zinc-400 flex items-center gap-2 mt-0.5">
-            {wsConnected ? (
+            {ended ? (
+              <><RefreshCcw className="w-3 h-3 text-zinc-400" /> Archived{endedAt ? ` · ended ${(() => { try { return format(parseISO(endedAt), 'd MMM yyyy · HH:mm'); } catch { return endedAt; } })()}` : ''}</>
+            ) : wsConnected ? (
               <><Wifi className="w-3 h-3 text-emerald-500" /> Real-time collaboration on</>
             ) : wsFailed ? (
               <><RefreshCcw className="w-3 h-3 text-zinc-400" /> Live polling (every 15s)</>
@@ -199,7 +206,7 @@ const LiveblogPanel = ({ contentId, mainSiteId, token, canEdit }) => {
             {presence.length > 0 && <span>· {presence.length} editor{presence.length === 1 ? '' : 's'} viewing</span>}
           </div>
         </div>
-        {canEdit && (
+        {canEdit && !ended && (
           <Button onClick={startNew} className="bg-red-500 hover:bg-red-600 text-white" data-testid="liveblog-new-entry-btn">
             <Plus className="w-4 h-4 mr-1.5" /> Add timeline entry
           </Button>
