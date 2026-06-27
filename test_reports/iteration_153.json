@@ -1,0 +1,38 @@
+{
+  "summary": "Iteration 153 — Backend-only testing of the liveblog auto-publish fix. Wrote /app/backend/tests/test_liveblog_publish_flow.py covering all 7 review-request scenarios in 8 pytest cases: (1) POST entry with no `publish` field → published=true (auto-publish default), (2) POST with publish=false → published=false, (3) image with empty credit forces published=false even with publish=true, (4) image WITH credit auto-publishes, (5) POST publish-drafts publishes valid drafts, skips entries with missing credit, returns {published, skipped_missing_rights, published_ids, skipped_ids}, (6) auto-published entry appears in GET /api/news/articles/{id}.liveblog_entries[] and GET /api/news/articles/{id}/liveblog.entries[] with created_by stripped, (7) drafts visible to admin GET /api/content/{id}/liveblog/entries but NOT in either public news endpoint, (8) regression — POST /api/content/{id}/liveblog/entries/{eid}/publish still returns 409 when image credit is empty. All 8 tests PASSED in 15.8s.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_liveblog_publish_flow.py",
+    "/app/test_reports/pytest/liveblog_publish_flow.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "routers/liveblog.py create_entry — auto-publish defaulting via `wants_publish = True if payload.publish is None else bool(payload.publish)` is correct and backwards-compatible with legacy clients that omit the field. Good.",
+    "Image-rights gate `_entry_image_missing` checks only `credit` (not photographer/license), matching the publish_entry single endpoint. Consistent behaviour across single-publish and bulk-publish.",
+    "publish-drafts endpoint correctly broadcasts each newly-published entry over the websocket so connected editors see the LIVE badge flip — nice touch.",
+    "Minor DRY: the `rights_missing` check on entry create duplicates `_entry_image_missing` logic on dict vs list-of-models. Could call the shared helper after `model_dump()` to avoid drift.",
+    "LiveblogEntryUpdate does NOT expose a `publish` field, so editors can only flip published state via the dedicated publish/unpublish endpoints — correct, but worth confirming the frontend doesn't try to PUT publish:false thinking it will work.",
+    "news_public._maybe_archive_liveblog 6h vs 12h: the file's docstring at line 459 says 'last 12 hours' but the helper uses `timedelta(hours=6)` — docstring drift, not a functional bug."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_liveblog_publish_flow.py (new)"
+  ],
+  "success_rate": {
+    "backend": "100% (8/8)",
+    "frontend": "not tested (backend-only request)"
+  },
+  "test_credentials": "admkoodh@koodh.com / KYLovie13monx",
+  "seed_data_creation": "Created one TEST_Liveblog_* content_item per pytest module run, flipped is_liveblog=true via PUT, then forced status=published / approval_status=approved directly in Mongo (the task description explicitly allowed this since publish-clara requires a featured image with rights). All entries + the article are torn down via the module-scoped fixture, so no leftover test data.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Regression suite for this feature lives at /app/backend/tests/test_liveblog_publish_flow.py and uses MongoClient directly to (a) force a test article into the publicly-visible state without uploading a featured image and (b) verify DB persistence after create / publish-drafts. Re-run with: `cd /app/backend && pytest tests/test_liveblog_publish_flow.py -v`. The admin user `admkoodh@koodh.com` has no 2FA on the preview env — if 2FA gets enabled later the login fixture will pytest.skip rather than fail.",
+  "rca of the issue": "Original bug: editors saved liveblog entries but readers never saw them because (a) create_entry hard-coded published=false and (b) public News endpoints filter `published: True`. Fix verified: default publish flag flipped to true, opt-in draft via `publish: false`, image-rights gate kept intact, and a new `/publish-drafts` bulk endpoint cleans up legacy drafts. All three publish paths (single create, single publish endpoint, bulk publish-drafts) consistently enforce the same `credit-required` rule via `_entry_image_missing`."
+}

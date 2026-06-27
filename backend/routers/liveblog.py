@@ -134,16 +134,25 @@ async def create_entry(
 ):
     await _load_article(content_id, request, current_user)
     now = datetime.now(timezone.utc).isoformat()
+    # Auto-publish on create unless the editor explicitly asked for a
+    # draft (legacy clients never sent ``publish``, so default to True
+    # — this matches the "Save = goes live" mental model that's been
+    # reported by editors). Image-rights gate still applies: any photo
+    # without ``credit`` forces the entry to draft.
+    images_payload = [i.model_dump() for i in (payload.images or [])]
+    wants_publish = True if payload.publish is None else bool(payload.publish)
+    rights_missing = any(not (img.get("credit") or "").strip() for img in images_payload)
+    is_published = wants_publish and not rights_missing
     doc = {
         "id": str(uuid4()),
         "content_id": content_id,
         "title": (payload.title or "").strip(),
         "body": payload.body or "",
         "timestamp": payload.timestamp or now,
-        "images": [i.model_dump() for i in (payload.images or [])],
+        "images": images_payload,
         "videos": [v.model_dump() for v in (payload.videos or [])],
-        "published": False,
-        "published_at": None,
+        "published": is_published,
+        "published_at": now if is_published else None,
         "created_at": now,
         "updated_at": now,
         "created_by": current_user.get("id"),
@@ -251,6 +260,52 @@ async def unpublish_entry(
     out = serialize_entry(refreshed)
     await _broadcast(content_id, "entry_unpublished", {"entry": out})
     return out
+
+
+@liveblog_router.post("/{content_id}/liveblog/publish-drafts")
+async def publish_all_drafts(
+    content_id: str,
+    request: Request,
+    current_user: dict = Depends(require_editor_or_admin),
+):
+    """Mark every draft entry on this article as published in one go —
+    used by the "Publish all drafts" button in the editor when the
+    timeline was originally saved with the old draft-by-default flow.
+
+    Skips entries that still have an image without ``credit`` set (image
+    rights enforcement). Returns counts so the UI can toast a summary.
+    """
+    await _load_article(content_id, request, current_user)
+    now = datetime.now(timezone.utc).isoformat()
+    drafts_cur = db.liveblog_entries.find(
+        {"content_id": content_id, "published": {"$ne": True}}
+    )
+    published_ids: list[str] = []
+    skipped_ids: list[str] = []
+    async for entry in drafts_cur:
+        if _entry_image_missing(entry):
+            skipped_ids.append(entry["id"])
+            continue
+        await db.liveblog_entries.update_one(
+            {"id": entry["id"]},
+            {"$set": {"published": True, "published_at": now, "updated_at": now}},
+        )
+        published_ids.append(entry["id"])
+
+    if published_ids:
+        await _touch_article_activity(content_id)
+        # Push each one so connected editors see the LIVE badge flip.
+        for eid in published_ids:
+            doc = await db.liveblog_entries.find_one({"id": eid})
+            if doc:
+                await _broadcast(content_id, "entry_published", {"entry": serialize_entry(doc)})
+
+    return {
+        "published": len(published_ids),
+        "skipped_missing_rights": len(skipped_ids),
+        "published_ids": published_ids,
+        "skipped_ids": skipped_ids,
+    }
 
 
 # ── Media uploads ────────────────────────────────────────────────────────

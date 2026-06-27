@@ -43,6 +43,7 @@ class LiveblogEntryCreate(BaseModel):
     timestamp: Optional[str] = None  # ISO datetime — defaults to now
     images: Optional[List[LiveblogImage]] = None
     videos: Optional[List[LiveblogVideo]] = None
+    publish: Optional[bool] = None   # default true on create; set false for explicit draft
 
 
 class LiveblogEntryUpdate(BaseModel):

@@ -130,18 +130,29 @@ const LiveblogPanel = ({ contentId, mainSiteId, token, canEdit, ended = false, e
   const saveEntry = async (draft) => {
     setCreating(true);
     try {
+      const rightsMissing = (draft.images || []).some((i) => !(i.credit || '').trim());
       const payload = {
         title: (draft.title || '').trim(),
         body: draft.body || '',
         timestamp: draft.timestamp || new Date().toISOString(),
         images: draft.images || [],
         videos: draft.videos || [],
+        publish: !rightsMissing,  // auto-publish unless image rights still missing
       };
       let res;
       if (draft.id === '__new__') {
         res = await axios.post(`${API}/content/${contentId}/liveblog/entries`, payload, { headers });
       } else {
         res = await axios.put(`${API}/content/${contentId}/liveblog/entries/${draft.id}`, payload, { headers });
+        // PUT doesn't change publish state — if rights are now filled and the
+        // entry was still draft, flip it live so editors don't have to click
+        // the separate publish button.
+        if (!rightsMissing && !res.data.published) {
+          try {
+            const pub = await axios.post(`${API}/content/${contentId}/liveblog/entries/${res.data.id}/publish`, {}, { headers });
+            res = pub;
+          } catch { /* leave as draft if rights endpoint rejects */ }
+        }
       }
       // WS will also push, but apply locally for instant feedback
       setEntries((prev) => {
@@ -150,11 +161,32 @@ const LiveblogPanel = ({ contentId, mainSiteId, token, canEdit, ended = false, e
         return next.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
       });
       setEditing(null);
-      toast.success('Entry saved (draft)');
+      if (res.data.published) {
+        toast.success('Entry is live on the public site');
+      } else {
+        toast.success('Saved as draft — vul image-rechten in om live te zetten');
+      }
     } catch (e) {
       toast.error(e.response?.data?.detail || 'Save failed');
     } finally {
       setCreating(false);
+    }
+  };
+
+  const publishAllDrafts = async () => {
+    try {
+      const r = await axios.post(`${API}/content/${contentId}/liveblog/publish-drafts`, {}, { headers });
+      const { published, skipped_missing_rights } = r.data || {};
+      if (published > 0) {
+        toast.success(`${published} entry${published === 1 ? '' : 's'} live gezet`);
+      } else if (skipped_missing_rights > 0) {
+        toast.error(`${skipped_missing_rights} entries hebben nog geen image-rechten — vul die eerst in`);
+      } else {
+        toast.info('Geen drafts om te publiceren');
+      }
+      fetchEntries();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Publish-all failed');
     }
   };
 
@@ -207,9 +239,21 @@ const LiveblogPanel = ({ contentId, mainSiteId, token, canEdit, ended = false, e
           </div>
         </div>
         {canEdit && !ended && (
-          <Button onClick={startNew} className="bg-red-500 hover:bg-red-600 text-white" data-testid="liveblog-new-entry-btn">
-            <Plus className="w-4 h-4 mr-1.5" /> Add timeline entry
-          </Button>
+          <div className="flex items-center gap-2">
+            {entries.some((e) => !e.published) && (
+              <Button
+                onClick={publishAllDrafts}
+                variant="outline"
+                className="border-amber-300 text-amber-700 hover:bg-amber-50"
+                data-testid="liveblog-publish-all-drafts-btn"
+              >
+                <Send className="w-4 h-4 mr-1.5" /> Publiceer alle drafts
+              </Button>
+            )}
+            <Button onClick={startNew} className="bg-red-500 hover:bg-red-600 text-white" data-testid="liveblog-new-entry-btn">
+              <Plus className="w-4 h-4 mr-1.5" /> Add timeline entry
+            </Button>
+          </div>
         )}
       </div>
 
@@ -478,8 +522,8 @@ const EntryEditor = ({ draft, setDraft, onSave, onCancel, contentId, headers, sa
 
         <div className="ml-auto flex items-center gap-2">
           <Button variant="ghost" onClick={onCancel} disabled={saving} className="text-zinc-500" data-testid="liveblog-cancel-btn">Cancel</Button>
-          <Button onClick={() => onSave(draft)} disabled={saving} className="bg-zinc-900 text-white hover:bg-zinc-800" data-testid="liveblog-save-btn">
-            {saving ? 'Saving…' : 'Save as draft'}
+          <Button onClick={() => onSave(draft)} disabled={saving} className="bg-red-500 text-white hover:bg-red-600" data-testid="liveblog-save-btn">
+            {saving ? 'Saving…' : ((draft.images || []).some((i) => !(i.credit || '').trim()) ? 'Save as draft' : 'Save & publish')}
           </Button>
         </div>
       </div>
