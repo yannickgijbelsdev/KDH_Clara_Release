@@ -140,4 +140,6 @@ class ContentItemResponse(BaseModel):
     image_attributions: Optional[dict] = None  # URL → { credit, photographer, license, source_url }
     missing_image_attributions: Optional[bool] = None  # set by list / detail endpoints
     is_liveblog: Optional[bool] = False
+    liveblog_ended_at: Optional[str] = None
+    liveblog_entry_count: Optional[int] = None
     publish_statuses: List[ContentPublishStatusWithImage] = []

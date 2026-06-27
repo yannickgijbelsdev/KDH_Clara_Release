@@ -293,11 +293,24 @@ async def get_content_items(
             p["featured_image"] = fi
             pub_lookup.setdefault(cid, []).append(p)
         
+        # Pre-fetch published liveblog entry counts in one aggregation so
+        # the Content Library can show a LIVE / ENDED badge per article.
+        liveblog_ids = [i["id"] for i in items if i.get("is_liveblog") or i.get("liveblog_ended_at")]
+        lb_counts: dict[str, int] = {}
+        if liveblog_ids:
+            pipeline = [
+                {"$match": {"content_id": {"$in": liveblog_ids}, "published": True}},
+                {"$group": {"_id": "$content_id", "n": {"$sum": 1}}},
+            ]
+            async for row in db.liveblog_entries.aggregate(pipeline):
+                lb_counts[row["_id"]] = row["n"]
+
         for item in items:
             item["publish_statuses"] = pub_lookup.get(item["id"], [])
             # Flag articles whose inline body images miss credit info so the
             # Content Library can render a warning icon next to them.
             item["missing_image_attributions"] = _content_has_missing_image_attribution(item)
+            item["liveblog_entry_count"] = lb_counts.get(item["id"], 0)
         
         return items
         

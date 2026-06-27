@@ -825,6 +825,29 @@ const ContentLibraryPage = () => {
                         <h3 className="text-lg font-semibold text-zinc-900 group-hover:text-rose-400 transition-colors">
                           {item.title}
                         </h3>
+                        {item.is_liveblog && (
+                          <span
+                            data-testid={`liveblog-live-${item.id}`}
+                            title="This article is a live liveblog"
+                            className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-red-100 text-red-700 border border-red-200 font-bold"
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                            LIVE
+                            {item.liveblog_entry_count > 0 && (
+                              <span className="font-normal opacity-70">· {item.liveblog_entry_count}</span>
+                            )}
+                          </span>
+                        )}
+                        {!item.is_liveblog && item.liveblog_ended_at && (item.liveblog_entry_count > 0) && (
+                          <span
+                            data-testid={`liveblog-ended-${item.id}`}
+                            title={`Liveblog ended at ${item.liveblog_ended_at}`}
+                            className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 border border-zinc-200"
+                          >
+                            Liveblog ended
+                            <span className="font-normal opacity-70">· {item.liveblog_entry_count}</span>
+                          </span>
+                        )}
                         {item.missing_image_attributions && (
                           <span
                             data-testid={`missing-rights-${item.id}`}
