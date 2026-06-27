@@ -1,18 +1,35 @@
 # Changelog
 
 
-## 2026-06-27 — P0 verify + S3 `/None/` cleanup admin endpoint
+## 2026-06-27 — Liveblog Save-as-draft root cause + auto-publish fix (P0)
 
-### P0 verify — Public News API & Liveblog ended state
-- Re-tested gemelde regressie ("via de api geeft die nog niks") tegen production: `GET https://clr.koodh.com/api/news/articles/dit-is-dag-1-op-genk-on-stage-2026` retourneert nu correct `is_liveblog=false`, `liveblog_ended_at=2026-06-27T12:34:05Z` en 5 published `liveblog_entries` met images/videos.
-- Polling endpoint `…/liveblog` levert dezelfde entries (newest first). Geen code-fix nodig — de reeds-gemergde Liveblog-fix was ondertussen via VDC live gegaan.
+### Root cause
+Editors meldden dat de public News API niets toonde van entries die ze net hadden gesaved. Oorzaak: `POST /api/content/{id}/liveblog/entries` hardcodeerde `published=false` en de public endpoints filteren strict op `published=true`. Mentaal model van editors ("save = live") matchte niet met implementatie ("save = draft, klik dan Send icon om live te zetten").
 
-### S3 `/None/` cleanup admin endpoint
-- **Nieuw**: `POST /api/content/admin/cleanup-none-images?dry_run=true|false` (require_editor_or_admin, main-site scoped via `X-Main-Site-ID`).
-- Vindt `content_items` waarvan `featured_image.s3_url|url`, `featured_image_url`, `image_url`, `cover_image_url`, `external_featured_image` of `imported_image_url` nog naar een corrupt `/None/`-pad wijst.
-- `dry_run=true` (default) → returnt count + lijst (id/title/cleared_fields), geen DB-mutatie. `dry_run=false` → `$unset`'t alleen de corrupte velden; public serializer valt terug op de volgende beschikbare bron (legacy URLs, inline `<img>`).
-- Audit-log entry `cleanup_none_images` met IDs van max 50 cleared items.
-- VDC auto-deploy ingediend → deployment `c3080c3e-3049-4f0f-b684-f1952bcaf583`, pending approval.
+### Backend
+- `routers/liveblog.py.create_entry`: nieuwe entries krijgen nu standaard `published=true` (tenzij body `publish: false` meegeeft). Image-rechten-gate blijft van kracht: zodra één foto geen `credit` heeft, wordt entry forced naar draft.
+- Nieuw endpoint `POST /api/content/{id}/liveblog/publish-drafts` (editor/admin): publiceert in één keer alle drafts met geldige image rights, slaat entries met ontbrekende credits over. Returnt `{published, skipped_missing_rights, published_ids, skipped_ids}` en broadcast per published entry een `entry_published` WS-event.
+- `models/liveblog.py.LiveblogEntryCreate`: nieuw optioneel `publish: Optional[bool]` veld (default `None` → backend treats as `True`).
+
+### Frontend
+- `LiveblogPanel.js.saveEntry`: stuurt `publish: !rightsMissing` mee; bij PUT-update flipt 'm via `/publish` endpoint als rechten nu compleet zijn. Toast nu Nederlands: "Entry is live op de website" of "Saved als draft — vul image-rechten in om live te zetten".
+- Toolbar krijgt amber "Publiceer alle drafts"-knop wanneer er nog drafts staan (`liveblog-publish-all-drafts-btn`).
+- Editor save-knop label switcht tussen "Save & publish" en "Save as draft" afhankelijk van of image rights compleet zijn.
+
+### Tests
+- `backend/tests/test_liveblog_publish_flow.py` — 8 pytest cases, 100% green (15.8s): auto-publish default, expliciete draft override, image-rights gate (single + bulk), public news endpoints zien wel/geen drafts, regressie op single publish endpoint 409.
+
+### Deploy
+- VDC auto-deploy: `f2fece6b-f2bd-4871-94c8-845496e4ecb1` (pending approval).
+
+
+## 2026-06-27 — S3 `/None/` cleanup admin endpoint
+
+### New
+- `POST /api/content/admin/cleanup-none-images?dry_run=true|false` (editor/admin, main-site scoped). Wist alleen velden die nog naar corrupt `/None/` of `/None_` paden wijzen op `featured_image{.s3_url,.url}`, `featured_image_url`, `image_url`, `cover_image_url`, `external_featured_image`, `imported_image_url`. Dry run by default; audit log bij echte cleanup.
+
+### Deploy
+- VDC: `c3080c3e-3049-4f0f-b684-f1952bcaf583` (pending approval).
 
 
 ## 2026-06-07 — Image Copyright / Attribution enforcement (P0)
