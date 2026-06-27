@@ -83,6 +83,36 @@ async def _broadcast(content_id: str, event: str, payload: dict):
         pass  # broadcast failure must never break the API call
 
 
+# ── Manually end the liveblog ────────────────────────────────────────────
+@liveblog_router.post("/{content_id}/liveblog/end")
+async def end_liveblog(
+    content_id: str,
+    request: Request,
+    delete_entries: bool = False,
+    current_user: dict = Depends(require_editor_or_admin),
+):
+    """Editor manually ends the liveblog. Two modes:
+
+    * ``delete_entries=false`` (default) — same as auto-archive after 6h:
+      ``is_liveblog`` flips to false, the entries stay so the article
+      keeps showing them as a static timeline.
+    * ``delete_entries=true`` — wipes every liveblog entry for this article.
+      Use when the editor wants a clean slate (e.g. test posts).
+    """
+    await _load_article(content_id, request, current_user)
+    now = datetime.now(timezone.utc).isoformat()
+    await db.content_items.update_one(
+        {"id": content_id},
+        {"$set": {"is_liveblog": False, "liveblog_ended_at": now}},
+    )
+    deleted = 0
+    if delete_entries:
+        res = await db.liveblog_entries.delete_many({"content_id": content_id})
+        deleted = res.deleted_count
+    await _broadcast(content_id, "liveblog_ended", {"deleted_entries": deleted})
+    return {"is_liveblog": False, "liveblog_ended_at": now, "deleted_entries": deleted}
+
+
 # ── Entry CRUD ───────────────────────────────────────────────────────────
 @liveblog_router.get("/{content_id}/liveblog/entries", response_model=List[LiveblogEntryResponse])
 async def list_entries(

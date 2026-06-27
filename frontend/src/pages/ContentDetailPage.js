@@ -783,6 +783,43 @@ const ContentDetailPage = () => {
                 Liveblog
               </label>
             )}
+            {isEditor && content.is_liveblog && (
+              <button
+                type="button"
+                data-testid="end-liveblog-btn"
+                onClick={async () => {
+                  const keep = window.confirm(
+                    'End liveblog?\n\n' +
+                    'OK = Keep entries (article keeps the timeline visible without LIVE badge)\n' +
+                    'Cancel = open a follow-up prompt to choose deleting entries'
+                  );
+                  let deleteEntries = false;
+                  if (!keep) {
+                    const wipe = window.confirm(
+                      'Delete all liveblog entries permanently?\n\n' +
+                      'OK = Yes, wipe everything (cannot be undone)\n' +
+                      'Cancel = Abort, do nothing'
+                    );
+                    if (!wipe) return;
+                    deleteEntries = true;
+                  }
+                  try {
+                    const res = await axios.post(
+                      `${API}/content/${contentId}/liveblog/end?delete_entries=${deleteEntries}`,
+                      {},
+                    );
+                    setContent((prev) => ({ ...prev, ...res.data }));
+                    toast.success(deleteEntries ? 'Liveblog ended, entries deleted' : 'Liveblog ended — entries kept');
+                  } catch (err) {
+                    toast.error(err.response?.data?.detail || 'Could not end liveblog');
+                  }
+                }}
+                title="End liveblog"
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border border-zinc-300 bg-white text-zinc-600 hover:bg-zinc-50"
+              >
+                End liveblog
+              </button>
+            )}
             {/* Ready check (purple) */}
             {content.status === 'ready' && (
               <span title="Ready" data-testid="ready-check" style={{ color: '#ffffff' }} className="w-6 h-6 rounded-full bg-[#7c1ac8] flex items-center justify-center flex-shrink-0">
