@@ -1,6 +1,25 @@
 # Changelog
 
 
+## 2026-06-27 — Liveblog timestamp timezone bugfix
+
+### Bug
+Editor picked 20:06 Brussels → field showed 18:06 na re-open en API kreeg de verkeerde tijd. Oorzaak: `<input type="datetime-local">` werd gevoed met `(draft.timestamp || '').slice(0, 16)` — een UTC ISO afgekapt op 16 chars. Datetime-local verwacht lokale wall-clock; de UTC-uur werd dus als Brussels-uur getoond, en bij save werd 't via `new Date(local).toISOString()` nog eens met de offset verschoven (na 1 round-trip 4h drift in zomer).
+
+### Fix
+- Twee helpers in `LiveblogPanel.js`:
+  - `isoToLocalInput(iso)` → converteert UTC ISO naar `YYYY-MM-DDTHH:mm` in browser-locale (gebruikt `d.getHours()/getMinutes()`).
+  - `localInputToIso(val)` → parseert local input via `new Date(val).toISOString()` (HTML-spec mandeert local parsing voor `T`-format).
+- Beide gewired in EntryEditor timestamp Input value/onChange.
+
+### Tests
+- Helper roundtrip onder `TZ=Europe/Brussels` (Node): zomer 20:06 ↔ UTC 18:06Z ✅, winter 20:06 ↔ UTC 19:06Z ✅, empty/invalid ✅, current-moment default ✅.
+- Backend regressie 16/16 green (`test_liveblog_body_html.py` + `test_liveblog_publish_flow.py`), iteration_156.
+
+### Deploy
+- VDC: `41aa44a0-22b9-4171-9967-fe6441370e43` (pending approval).
+
+
 ## 2026-06-27 — Liveblog timeline visuele polish
 
 ### Aanpassingen
