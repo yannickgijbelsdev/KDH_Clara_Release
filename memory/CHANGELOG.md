@@ -1,6 +1,21 @@
 # Changelog
 
 
+## 2026-06-27 — Liveblog timeline visuele polish
+
+### Aanpassingen
+- `<ol>` → `<ul class="clara-liveblog-timeline">` met `list-style:none` inline op de `<ul>` en elke `<li>` → geen browser-default nummering meer.
+- Status-pill: "Liveblog beëindigd op {datum}" zit nu in een afgeronde grijze badge (`background:#f4f4f5; border-radius:9999px; border:1px solid #e4e4e7`). LIVE-pill is rode pill (`background:#fee2e2; color:#b91c1c`) met een gestylde dot (geen `●`-glyph meer).
+- Inline styles op section, header, entry-card (border-left in rood/grijs afhankelijk van live/ended state, lichte achtergrond, afgeronde rechterhoeken), `<time>`, titel, body, figure/img/figcaption, embed en video → de timeline ziet er nu uit-de-doos goed uit op grk.fm zonder dat daar extra CSS nodig is.
+
+### Tests
+- `backend/tests/test_liveblog_body_html.py` — assertions geupdate naar `<ul>` + pill-class names.
+- 16/16 pytest cases green (iteration_155, ~138s).
+
+### Deploy
+- VDC auto-deploy: `3a880698-ec3a-48b7-8389-2499de8212e5` (pending approval).
+
+
 ## 2026-06-27 — Liveblog timeline rendered IN article body (consumer compat)
 
 ### Why
