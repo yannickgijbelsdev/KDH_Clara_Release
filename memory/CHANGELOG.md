@@ -1,6 +1,24 @@
 # Changelog
 
 
+## 2026-06-27 — News API prefix-fallback voor truncated slug-URLs
+
+### Bug
+`https://grk.fm/nieuws/genk-investeert-in-jeugdwelzijn-en-gelijke-kansen-met-opening-van-nieuwe-kinder-` gaf 404 — de slug was door een chat-client (Telegram knipt na ~70 chars) mid-word afgekapt, eindigde op `-`, en `get_article_detail` deed alleen een exact match op `id`/`slug`.
+
+### Fix
+`GET /api/news/articles/{article_id}` krijgt een **prefix-fallback**:
+- Gated: kicks pas in als de key **≥ 20 chars** is **én** eindigt op `-` (truncatie-signaal). Korte sleutels + niet-truncated sleutels → originele 404 verbatim.
+- Doet dan een `slug ~ '^{re.escape(stem)}'` zoek tegen `PUBLIC_BASE_QUERY` (drafts/unapproved blijven onzichtbaar), max 5 candidates.
+- 1 match → silent 200 met het volledige artikel. Multi-match → 404 met `detail: {message, candidates: [{slug, title}]}` zodat consumers een "bedoel je"-lijst tonen. 0 match → originele 404.
+
+### Tests
+- `backend/tests/test_news_article_prefix_fallback.py` — 8/8 pytest cases green (iteration_158). Inclusief de exacte real-world slug uit de bug.
+
+### Deploy
+- VDC: `5410cf1b-bd99-418c-aa96-fffa0c437733` (pending approval).
+
+
 ## 2026-06-27 — RDS Monitor Troubleshoot endpoint + UI
 
 ### Probleem
