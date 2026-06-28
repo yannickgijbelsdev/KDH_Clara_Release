@@ -612,7 +612,14 @@ def _serialize_item(item: dict, category: Optional[dict], site_slug: str, *, inc
 
 @news_public_router.get("/articles/{article_id}")
 async def get_article_detail(article_id: str):
-    """Public article detail, looked up by id OR slug. Returns the full body HTML."""
+    """Public article detail, looked up by id OR slug.
+
+    Slugs in the wild often get truncated by chat clients / social media
+    (Telegram cuts after ~70 chars and ends with ``-``, Slack ellipses,
+    Twitter t.co rewrites). When the exact lookup fails for what *looks
+    like* a truncated slug, we attempt a single-match prefix lookup so
+    the article still resolves instead of dead-ending in a 404.
+    """
     item = await db.content_items.find_one(
         {
             "$or": [{"id": article_id}, {"slug": article_id}],
@@ -621,7 +628,41 @@ async def get_article_detail(article_id: str):
         {"_id": 0},
     )
     if not item:
-        raise HTTPException(status_code=404, detail="Article not found")
+        # Prefix fallback — only kick in when the lookup key looks like
+        # a truncated slug (>= 20 chars and ends with ``-``). We escape
+        # regex specials and anchor to start-of-slug to keep this O(N)
+        # over the indexed ``slug`` field only.
+        candidates: list[dict] = []
+        key = article_id.strip()
+        if len(key) >= 20 and key.endswith("-"):
+            stem = key.rstrip("-")
+            safe = re.escape(stem)
+            cur = db.content_items.find(
+                {"slug": {"$regex": f"^{safe}"}, **PUBLIC_BASE_QUERY},
+                {"_id": 0, "id": 1, "slug": 1, "title": 1},
+            ).limit(5)
+            candidates = [c async for c in cur]
+            if len(candidates) == 1:
+                # Re-fetch the full doc — the projected one above is too thin
+                # for the serializer.
+                item = await db.content_items.find_one(
+                    {"id": candidates[0]["id"], **PUBLIC_BASE_QUERY},
+                    {"_id": 0},
+                )
+        if not item:
+            # 404 with did-you-mean suggestions when we have any prefix hits.
+            # FastAPI wraps ``detail`` in {"detail": ...} so we shape the
+            # payload as a flat dict that becomes ``{"detail": {message, candidates}}``.
+            if candidates:
+                payload = {
+                    "message": "Article not found — did you mean one of these?",
+                    "candidates": [
+                        {"slug": c.get("slug"), "title": c.get("title")}
+                        for c in candidates
+                    ],
+                }
+                raise HTTPException(status_code=404, detail=payload)
+            raise HTTPException(status_code=404, detail="Article not found")
     category = None
     if item.get("category_id"):
         category = await db.categories.find_one(

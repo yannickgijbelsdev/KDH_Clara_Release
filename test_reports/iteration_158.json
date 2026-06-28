@@ -1,0 +1,41 @@
+{
+  "summary": "Iteration 158 — verified the new prefix-fallback in GET /api/news/articles/{article_id} (/app/backend/routers/news_public.py, the `if not item:` block after the original $or lookup, lines ~630-665). Wrote /app/backend/tests/test_news_article_prefix_fallback.py with 8 pytest cases. All 8 PASSED. Coverage: (1) exact slug lookup still returns 200 with full body (no regression), (2) exact id (uuid) lookup still returns 200, (3) the canonical real-world case — an 88-char slug 'genk-investeert-in-jeugdwelzijn-...-kinderopvang' is correctly resolved by a truncated 70-char key ending in '-' (single-match → 200 with same id/slug), (4) two articles sharing a 25-char prefix → truncated lookup returns 404 with detail = {message: 'Article not found — did you mean one of these?', candidates: [{slug,title} × 2]}, (5) totally unknown truncated key → plain 404 with detail == 'Article not found' (no candidates field), (6) short key 'short-' (< 20 chars) is NOT prefix-fallback-eligible — original 404 returned even when a longer matching slug exists, (7) key without trailing '-' is NOT prefix-fallback-eligible — original 404 returned even when a longer matching slug starts with that exact string, (8) draft / non-approved articles are NEVER surfaced via the fallback (PUBLIC_BASE_QUERY visibility filter is enforced through both the exact and the regex prefix paths — the draft does not appear in candidates either). JUnit XML at /app/test_reports/pytest/iteration_158_prefix_fallback.xml.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/auth/login", "issue": "Still slow against the preview ingress (~30-60s for the admin login), already documented in iteration 157. Mitigated in this suite with a 4× retry, 120s timeout fixture. Not blocking."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_news_article_prefix_fallback.py",
+    "/app/test_reports/pytest/iteration_158_prefix_fallback.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Correct use of re.escape() on the user-supplied stem — neutralises regex specials so a slug like 'foo.bar.+' cannot escalate into a DoS-y regex. Good.",
+    "PUBLIC_BASE_QUERY is merged into BOTH the exact lookup ($or) and the regex prefix query — drafts/unapproved/soft-deleted items can never leak through either path. Verified empirically in test #8.",
+    "candidates limit(5) prevents an unbounded scan / huge 404 payload. Sensible cap.",
+    "Length guard `len(key) >= 20 and key.endswith('-')` correctly rejects accidental short lookups & non-truncation-shaped keys, avoiding spurious regex scans. Verified in tests #6 and #7.",
+    "When the prefix lookup finds exactly one match, the code re-fetches the full doc with the same projection-free find_one — necessary because the cursor used a thin projection. Correctly composed with PUBLIC_BASE_QUERY too. No double-trip when zero/multi matches.",
+    "Minor: the regex query `{'$regex': '^' + safe}` is unanchored at the end and uncached — for very large content_items collections this is a collection scan over slugs. Recommend ensuring there is an index on `slug` (likely already exists as it's the primary public lookup key). Not a blocker.",
+    "Minor nit: the multi-match candidates response does not de-duplicate by slug, but since slug is conventionally unique in this collection that's a non-issue in practice."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_news_article_prefix_fallback.py"
+  ],
+  "success_rate": {
+    "backend": "100% (8/8)",
+    "frontend": "N/A — backend-only review per request"
+  },
+  "test_credentials": "Admin: admkoodh@koodh.com / KYLovie13monx (worked).",
+  "seed_data_creation": "All test articles are prefixed 'TEST_PFX_' in title and are deleted by the module-scoped cleanup fixture (mongo_db.content_items.delete_one). No drafts left behind.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Re-run with: `cd /app/backend && pytest tests/test_news_article_prefix_fallback.py -v` (~120s including the 30-60s admin login cold-start). The suite creates each article via POST /api/content (admin auth) and then force-promotes it to status=published / approval_status=approved directly in Mongo — matches the existing pattern used by test_liveblog_body_html.py. Cleanup is module-scoped. The single-match test uses the exact real-world slug from the bug report ('genk-investeert-in-jeugdwelzijn-en-gelijke-kansen-met-opening-van-nieuwe-kinderopvang') with a uuid suffix for uniqueness across re-runs.",
+  "rca of the issue": "The original bug was that when chat clients / social platforms (e.g. Telegram) truncate long article URLs mid-word, the URL ended with a trailing '-' (e.g. '...nieuwe-kinder-') and dead-ended in a 404. The fix correctly adds a guarded regex prefix scan in get_article_detail: when (a) the exact $or lookup misses, (b) the key is ≥20 chars, AND (c) ends with '-', the code performs a `slug ~ '^<escaped_stem>'` lookup against the public-visible set (limit 5). One hit → silent 200 redirect to the full article; multiple hits → 404 with did-you-mean candidates; zero hits or guard fails → original verbatim 'Article not found'. The implementation also correctly preserves PUBLIC_BASE_QUERY in the fallback path so drafts/unapproved items stay hidden. All 9 review-request bullets are covered by the 8 test cases (the liveblog regression sanity is already covered by /app/backend/tests/test_liveblog_body_html.py, which still passes in CI, and the prefix-fallback code path delegates to the same body-building/timeline-injection logic once `item` is resolved — so behaviour is automatically preserved)."
+}
