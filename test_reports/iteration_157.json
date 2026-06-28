@@ -1,0 +1,44 @@
+{
+  "summary": "Iteration 157 — verified the new GET /api/rds/troubleshoot/{station} admin diagnostic endpoint added in /app/backend/routers/rds.py (lines 1276-1483). Wrote /app/backend/tests/test_rds_troubleshoot.py with 10 pytest cases covering: (a) overall response shape {station, ok, checks, recent_logs, summary}, (b) presence of the 7 core check names (Station configured / Stream URL resolved / DNS resolves / TCP reachable / HTTP reachable / Shoutcast metadata parses / Cache populated; the optional 'Stream broadcasting (stream_status=1)' only appears when metadata parses), (c) each check entry shape {name:str, ok:bool|None, detail:str, data:dict}, (d) the real-world GRK assertion — when TCP fails its detail must contain 'stream-shout.koodh.be:9010', confirming the diagnostic surfaces the actual infra cause, (e) downstream-skipped semantics — when TCP=False, HTTP must be ok=None and detail starts with 'Skipped', (f) Dutch human-readable summary format ('Name: detail → hint') with the failing-step hint, (g) the overall_ok aggregation rule (all(c['ok'] for c in checks if c['ok'] is not None)), (h) unauthenticated 401/403, (i) non-admin (yannick.gijbels) receives 403, (j) unknown station 'zzz' returns ok=False with exactly one 'Station configured' failing check. Result: 9 passed, 1 skipped (non-admin test skipped — the yannick.gijbels@koodh.com account is currently in a 73s failed-login lockout (HTTP 429 'Account temporarily locked due to failed attempts'), unrelated to this feature; require_admin enforcement is already covered by the unauthenticated test plus dozens of other suites). Live diagnostic for GRK confirmed TCP fails on stream-shout.koodh.be:9010 (matches review-request expectation). JUnit XML at /app/test_reports/pytest/iteration_157_rds_troubleshoot.xml. Frontend smoke skipped per review-request's explicit allowance — both data-testid hooks are present in /app/frontend/src/pages/RDSMonitorPage.js (line 85: 'troubleshoot-btn-${station}', line 96: 'troubleshoot-dialog-${station}').",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/auth/login", "issue": "Login endpoint is very slow (~50–60s end-to-end against the preview ingress) and frequently 502s on the first attempt. Required retry+sleep logic in the test fixture (6 attempts × 120s timeout, 2s back-off). Not a regression caused by this feature, but worth flagging — every backend test suite that needs auth is paying this cost. Probable causes: bcrypt cost factor combined with the failed-login-counter writes, or a cold backend process on the preview ingress."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_rds_troubleshoot.py",
+    "/app/test_reports/pytest/iteration_157_rds_troubleshoot.xml"
+  ],
+  "action_items": [
+    "Optional: unlock or rotate the yannick.gijbels@koodh.com account so future non-admin permission tests can run without the 73s lockout window.",
+    "Optional follow-up (not from this iteration): investigate the slow /api/auth/login response — it is the single biggest source of test flakiness in the preview environment."
+  ],
+  "critical_code_review_comments": [
+    "The diagnostic correctly funnels every step through the existing services.shoutcast helpers (resolve_active_stream + fetch_shoutcast_with_autodiscovery) so production parser behaviour is exercised — no diverging code paths.",
+    "Downstream-skip semantics use ok=None (not False), and the overall_ok aggregator correctly excludes None entries: all(c['ok'] for c in checks if c['ok'] is not None). Verified empirically.",
+    "Each branch that adds a 'Stream broadcasting (stream_status=1)' entry only fires AFTER 'Shoutcast metadata parses' succeeds — so the checks list is variable-length (7 normally, 8 when the parser succeeds). Tests handle both by asserting a SUBSET of expected names rather than exact length.",
+    "TCP step uses asyncio.open_connection with wait_for(timeout=4.0) — good. HTTP step uses httpx.AsyncClient(timeout=5.0). Worst-case total live latency is bounded (~5-15s).",
+    "Minor: socket.gethostbyname is sync; the code correctly wraps it in run_in_executor(None, ...). Good async hygiene.",
+    "Minor nit: the response's 'recent_logs' projection includes timestamp/stream_online/status/song_title/current_listeners. For the UI dialog showing 'last 10 shoutcast_logs', that's sufficient — but a 'message' or 'error' field on the log would help when stream_online=False. The current implementation has 'message' on the shoutcast_cache doc but not on the log entries returned here.",
+    "Minor nit: _summarise_failure has no fallback hint for the 'Cache populated' branch when there's literally no shoutcast_cache document yet (the 'no document' detail string says \"scheduler hasn't run yet?\" but the hint is the generic supervisor-logs one — still acceptable)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_rds_troubleshoot.py"
+  ],
+  "success_rate": {
+    "backend": "100% (9/9 executed, 1 skipped due to account lockout unrelated to this feature)",
+    "frontend": "N/A — smoke skipped per review-request; data-testid hooks confirmed by grep"
+  },
+  "test_credentials": "Admin: admkoodh@koodh.com / KYLovie13monx (worked). Non-admin: yannick.gijbels@koodh.com / test (currently 429 — Account temporarily locked due to failed attempts. Retry in 73s — confirmed via curl).",
+  "seed_data_creation": "None — read-only diagnostic endpoint; no DB writes by the test suite.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Re-run quickly with: `cd /app/backend && pytest tests/test_rds_troubleshoot.py -v` (~20-200s depending on backend cold-start). The _login helper retries 6× with 2s back-off and a 120s per-attempt timeout because the preview ingress returns 502 after 60s when the backend is slow. If the non-admin test is still skipped on the next iteration, wait ~80s for the lockout to expire or have an admin reset the failed-login counter for yannick.gijbels@koodh.com. The live diagnostic depends on real network reachability of stream-shout.koodh.be:9010 — currently down (server-side), which is exactly what the test asserts. If the stream comes back online, the 'test_grk_tcp_check_surfaces_real_host' test will pass on the alternate branch (tcp.ok=True) and the assertion still holds.",
+  "rca of the issue": "Not a bug-fix iteration — this iteration adds an admin diagnostic surface for an EXTERNAL infra outage (stream-shout.koodh.be:9010 refuses TCP). The diagnostic correctly identifies the failing step (TCP reachable) and emits the Dutch hint 'Stream-server is niet bereikbaar op die poort (firewall/server down).' — the user/operator now knows the cause is server-side, not Clara. No mitigation possible from Clara's side; the operator must restart the Shoutcast process on stream-shout.koodh.be or open port 9010."
+}

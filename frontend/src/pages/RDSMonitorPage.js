@@ -54,6 +54,122 @@ const getItemTypeLabel = (type) => {
 };
 
 // Moved outside parent — React can now properly memo & diff
+const TroubleshootButton = ({ station }) => {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+
+  const run = async () => {
+    setOpen(true);
+    setLoading(true);
+    setResult(null);
+    try {
+      const token = localStorage.getItem('token');
+      const r = await axios.get(`${API}/rds/troubleshoot/${station}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setResult(r.data);
+    } catch (e) {
+      setResult({ ok: false, error: e.response?.data?.detail || e.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={run}
+        data-testid={`troubleshoot-btn-${station}`}
+        className="border-red-300 text-red-600 hover:bg-red-50 h-7 px-2 text-xs"
+      >
+        <AlertTriangle className="w-3.5 h-3.5 mr-1" /> Troubleshoot
+      </Button>
+      {open && (
+        <div
+          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}
+        >
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto"
+               data-testid={`troubleshoot-dialog-${station}`}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 sticky top-0 bg-white">
+              <div>
+                <h3 className="text-lg font-semibold text-zinc-900">Troubleshoot — {station.toUpperCase()}</h3>
+                <p className="text-xs text-zinc-500">Live diagnose van de stream-monitor keten</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button size="sm" variant="outline" onClick={run} disabled={loading} className="h-8">
+                  <RefreshCw className={`w-3.5 h-3.5 mr-1 ${loading ? 'animate-spin' : ''}`} /> Opnieuw
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setOpen(false)} className="h-8">Sluit</Button>
+              </div>
+            </div>
+            <div className="px-6 py-4 space-y-3">
+              {loading && (
+                <div className="flex items-center gap-2 text-zinc-500 text-sm">
+                  <RefreshCw className="w-4 h-4 animate-spin" /> Bezig met checken…
+                </div>
+              )}
+              {result?.error && (
+                <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
+                  {result.error}
+                </div>
+              )}
+              {result?.summary && (
+                <div className={`rounded-lg px-4 py-3 text-sm ${result.ok ? 'bg-emerald-50 border border-emerald-200 text-emerald-800' : 'bg-red-50 border border-red-200 text-red-800'}`}>
+                  <div className="font-semibold mb-0.5">{result.ok ? 'Alle checks OK' : 'Probleem gevonden'}</div>
+                  <div className="text-xs">{result.summary}</div>
+                </div>
+              )}
+              {result?.checks && (
+                <ul className="space-y-2">
+                  {result.checks.map((c, i) => {
+                    const icon = c.ok === true ? <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5" />
+                      : c.ok === false ? <AlertCircle className="w-4 h-4 text-red-500 mt-0.5" />
+                      : <Clock className="w-4 h-4 text-zinc-400 mt-0.5" />;
+                    return (
+                      <li key={i} className="flex items-start gap-3 rounded-lg border border-zinc-200 px-3 py-2 bg-zinc-50">
+                        {icon}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-zinc-900">{c.name}</div>
+                          <div className="text-xs text-zinc-600 break-words">{c.detail}</div>
+                          {c.data && Object.keys(c.data).length > 0 && (
+                            <details className="mt-1">
+                              <summary className="text-[11px] text-zinc-400 cursor-pointer hover:text-zinc-600">data</summary>
+                              <pre className="mt-1 text-[11px] bg-white border border-zinc-200 rounded p-2 overflow-x-auto">{JSON.stringify(c.data, null, 2)}</pre>
+                            </details>
+                          )}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+              {result?.recent_logs?.length > 0 && (
+                <details className="mt-2">
+                  <summary className="text-xs text-zinc-500 cursor-pointer">Laatste 10 logs</summary>
+                  <div className="mt-2 max-h-48 overflow-y-auto text-[11px] font-mono bg-zinc-900 text-zinc-100 rounded-lg p-3">
+                    {result.recent_logs.map((l, i) => (
+                      <div key={i}>
+                        <span className="text-zinc-400">{l.timestamp}</span>{' '}
+                        <span className={l.stream_online ? 'text-emerald-400' : 'text-red-400'}>{l.status}</span>{' '}
+                        listeners={l.current_listeners} song="{(l.song_title || '').slice(0, 40)}"
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
+
+// Moved outside parent — React can now properly memo & diff
 const StationCard = memo(({ station, data, stationName, staleCountdown, showEndCountdown, scheduledTextCountdown }) => {
   const isLive = data?.live_show?.title;
   const calendarLive = data?.calendar_live_show;
@@ -108,9 +224,12 @@ const StationCard = memo(({ station, data, stationName, staleCountdown, showEndC
               <Wifi className="w-4 h-4" /> Online
             </span>
           ) : (
-            <span className="flex items-center gap-1 text-red-400 text-sm">
-              <WifiOff className="w-4 h-4" /> Offline
-            </span>
+            <>
+              <span className="flex items-center gap-1 text-red-400 text-sm">
+                <WifiOff className="w-4 h-4" /> Offline
+              </span>
+              <TroubleshootButton station={station} />
+            </>
           )}
         </div>
       </div>

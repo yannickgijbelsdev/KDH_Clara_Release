@@ -1,4 +1,5 @@
 """RDS Integration routes for MagicRDS and external systems."""
+import asyncio
 from fastapi import APIRouter, Depends, Request
 from typing import List, Optional
 from datetime import datetime, timezone
@@ -1270,3 +1271,213 @@ async def clear_shoutcast_logs(
         "status": "success",
         "message": f"Deleted {result.deleted_count} log entries"
     }
+
+
+@rds_router.get("/troubleshoot/{station}")
+async def troubleshoot_station(
+    station: str,
+    current_user: dict = Depends(require_admin),
+):
+    """Run a live end-to-end diagnostic for a station's stream-monitoring
+    chain and report exactly which step is failing. The Monitor UI exposes
+    this behind a Troubleshoot button.
+
+    The returned ``checks`` list contains entries shaped as::
+
+        {"name": "...", "ok": bool, "detail": str, "data": {...}}
+
+    Order is meaningful: a downstream check will be SKIPPED (``ok=None``)
+    once an upstream check fails.
+    """
+    import socket
+    import time
+    import httpx
+    from urllib.parse import urlparse
+
+    from services.shoutcast import (
+        SHOUTCAST_SERVERS,
+        fetch_shoutcast_with_autodiscovery,
+        resolve_active_stream,
+    )
+
+    checks: list[dict] = []
+
+    def _add(name: str, ok, detail: str = "", data: dict | None = None):
+        checks.append({"name": name, "ok": ok, "detail": detail, "data": data or {}})
+
+    # 1) Station configured?
+    station_doc = await db.rds_stations.find_one(
+        {"code": station}, {"_id": 0, "code": 1, "name": 1, "stream_url": 1, "enabled": 1}
+    )
+    legacy = SHOUTCAST_SERVERS.get(station)
+    if not station_doc and not legacy:
+        _add("Station configured", False,
+             f"No rds_stations doc with code='{station}' and no legacy SHOUTCAST_SERVERS entry.",
+             {})
+        return {"station": station, "ok": False, "checks": checks}
+    _add("Station configured", True,
+         f"Station '{station}' is registered.",
+         {"doc": station_doc, "legacy": legacy})
+
+    # 2) Stream URL resolution (honours per-station custom-schedule logic)
+    url, station_name, active_custom = await resolve_active_stream(station)
+    if not url:
+        _add("Stream URL resolved", False,
+             "resolve_active_stream returned no URL. Check rds_stations.stream_url and any custom-stream-windows.",
+             {"station_name": station_name})
+        return {"station": station, "ok": False, "checks": checks}
+    _add("Stream URL resolved", True,
+         "Active stream URL selected.",
+         {"url": url, "station_name": station_name,
+          "active_source": "custom" if active_custom else "default",
+          "custom_label": (active_custom or {}).get("label") if active_custom else None})
+
+    parsed_url = urlparse(url)
+    host = parsed_url.hostname or ""
+    port = parsed_url.port or (443 if parsed_url.scheme == "https" else 80)
+
+    # 3) DNS resolution
+    dns_ok = False
+    dns_ip = None
+    try:
+        loop = asyncio.get_event_loop()
+        addr_info = await loop.run_in_executor(None, socket.gethostbyname, host)
+        dns_ip = addr_info
+        dns_ok = True
+        _add("DNS resolves", True, f"{host} → {dns_ip}", {"host": host, "ip": dns_ip})
+    except Exception as e:
+        _add("DNS resolves", False, f"{host}: {e}", {"host": host})
+
+    # 4) TCP reachable on stream port (only if DNS ok)
+    tcp_ok = None
+    if dns_ok:
+        try:
+            t0 = time.time()
+            fut = asyncio.open_connection(host, port)
+            reader, writer = await asyncio.wait_for(fut, timeout=4.0)
+            writer.close()
+            try:
+                await writer.wait_closed()
+            except Exception:
+                pass
+            dt = round((time.time() - t0) * 1000, 1)
+            tcp_ok = True
+            _add("TCP reachable", True, f"{host}:{port} accepted connection in {dt} ms",
+                 {"host": host, "port": port, "latency_ms": dt})
+        except Exception as e:
+            tcp_ok = False
+            _add("TCP reachable", False, f"{host}:{port}: {e}",
+                 {"host": host, "port": port})
+    else:
+        _add("TCP reachable", None, "Skipped — DNS failed", {})
+
+    # 5) HTTP request to the stream endpoint (HEAD-style GET with short timeout)
+    if tcp_ok:
+        try:
+            async with httpx.AsyncClient(timeout=5.0, follow_redirects=True) as client:
+                # Some shoutcast servers don't like HEAD; do GET with 0-byte read.
+                r = await client.get(url, headers={"Icy-MetaData": "0", "User-Agent": "ClaraRDS/1.0"})
+                ct = r.headers.get("content-type", "")
+                ok = 200 <= r.status_code < 400
+                _add("HTTP reachable", ok,
+                     f"HTTP {r.status_code} {ct}",
+                     {"status_code": r.status_code, "content_type": ct,
+                      "icy_name": r.headers.get("icy-name"),
+                      "icy_metaint": r.headers.get("icy-metaint")})
+        except Exception as e:
+            _add("HTTP reachable", False, f"HTTP request failed: {e}", {"url": url})
+    else:
+        _add("HTTP reachable", None, "Skipped — TCP failed", {})
+
+    # 6) Shoutcast/Icecast metadata parse via the production helper
+    parsed = None
+    try:
+        parsed = await fetch_shoutcast_with_autodiscovery(url)
+    except Exception as e:
+        _add("Shoutcast metadata parses", False, f"Parser raised: {e}", {})
+    else:
+        if parsed is None:
+            _add("Shoutcast metadata parses", False,
+                 "fetch_shoutcast_with_autodiscovery returned None — "
+                 "endpoint not recognised as Shoutcast/Icecast or all autodiscovery paths "
+                 "(/7.html, /status-json.xsl, /status.xsl, ICY headers) failed.",
+                 {})
+        else:
+            online = parsed.get("stream_status") == 1
+            _add("Shoutcast metadata parses", True,
+                 f"server='{parsed.get('server_title')}' song='{parsed.get('raw_song_title','')[:80]}'",
+                 {"server_title": parsed.get("server_title"),
+                  "raw_song_title": parsed.get("raw_song_title"),
+                  "current_listeners": parsed.get("current_listeners"),
+                  "stream_status": parsed.get("stream_status"),
+                  "bitrate": parsed.get("bitrate")})
+            _add("Stream broadcasting (stream_status=1)", bool(online),
+                 "Stream is live" if online else "Server reachable but stream_status != 1 (encoder offline / no source connected).",
+                 {"stream_status": parsed.get("stream_status")})
+
+    # 7) Cache freshness — when did rds_builder_scheduler last successfully
+    #    write to shoutcast_cache for this station?
+    cache = await db.shoutcast_cache.find_one(
+        {"station": station},
+        {"_id": 0, "cached_at": 1, "stream_online": 1, "status": 1, "message": 1}
+    )
+    if not cache:
+        _add("Cache populated", False, "No shoutcast_cache document for this station — scheduler hasn't run yet?", {})
+    else:
+        from datetime import datetime as _dt, timezone as _tz
+        ts = cache.get("cached_at")
+        age_s = None
+        try:
+            dt = _dt.fromisoformat(str(ts).replace("Z", "+00:00"))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=_tz.utc)
+            age_s = (_dt.now(_tz.utc) - dt).total_seconds()
+        except Exception:
+            pass
+        fresh = age_s is not None and age_s < 90  # scheduler runs every ~15-30s
+        _add("Cache populated", fresh,
+             f"Last cached at {ts}" + (f" ({int(age_s)}s ago)" if age_s is not None else ""),
+             {"cached_at": ts, "age_seconds": int(age_s) if age_s is not None else None,
+              "stream_online": cache.get("stream_online"),
+              "status": cache.get("status"),
+              "message": cache.get("message")})
+
+    # 8) Last 10 logs for context
+    logs = await db.shoutcast_logs.find(
+        {"station": station}, {"_id": 0, "timestamp": 1, "stream_online": 1, "status": 1, "song_title": 1, "current_listeners": 1}
+    ).sort("timestamp", -1).limit(10).to_list(10)
+
+    overall_ok = all(c.get("ok") for c in checks if c.get("ok") is not None)
+    return {
+        "station": station,
+        "ok": overall_ok,
+        "checks": checks,
+        "recent_logs": logs,
+        "summary": _summarise_failure(checks) if not overall_ok else "All checks passed.",
+    }
+
+
+def _summarise_failure(checks: list[dict]) -> str:
+    """Build a one-line human summary of the first failing diagnostic step."""
+    for c in checks:
+        if c.get("ok") is False:
+            name = c.get("name", "check")
+            detail = c.get("detail", "")
+            hint = ""
+            n = name.lower()
+            if "dns" in n:
+                hint = " → Controleer dat het stream-domein nog bestaat (DNS/Cloudflare)."
+            elif "tcp" in n:
+                hint = " → Stream-server is niet bereikbaar op die poort (firewall/server down)."
+            elif "http" in n:
+                hint = " → Server antwoordt niet met een geldige HTTP-status (check Icecast/Shoutcast process)."
+            elif "metadata" in n:
+                hint = " → Endpoint is geen geldige Shoutcast/Icecast metadata-URL (check stream_url path)."
+            elif "broadcasting" in n:
+                hint = " → Server staat aan maar er is geen source/encoder verbonden (DJ-software loopt niet)."
+            elif "cache" in n:
+                hint = " → De RDS-scheduler heeft niet recent geschreven — check supervisor logs."
+            elif "configured" in n:
+                hint = " → Voeg het station toe via RDS → Settings."
+            return f"{name}: {detail}{hint}"
+    return ""
