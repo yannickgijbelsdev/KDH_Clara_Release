@@ -1,0 +1,36 @@
+{
+  "summary": "Iteration 156 — verification of the liveblog datetime-local timezone bugfix in /app/frontend/src/components/LiveblogPanel.js. Two new helpers `isoToLocalInput(iso)` and `localInputToIso(val)` were added (lines 41-56) and wired into the EntryEditor timestamp input at lines 466-468 (value={isoToLocalInput(draft.timestamp)} / onChange uses localInputToIso). Verified the helpers via an isolated Node script (/tmp/test_helpers.js) launched with TZ='Europe/Brussels' to mimic a Brussels reader's browser. Results: (a) summer round-trip — picking '2026-06-28T20:06' in Brussels yields UTC ISO '2026-06-28T18:06:00.000Z' (matches the review-request expectation exactly); re-feeding that ISO back into `isoToLocalInput` returns '2026-06-28T20:06' — no shift; (b) winter round-trip — '2026-01-15T20:06' Brussels (CET=UTC+1) → '2026-01-15T19:06:00.000Z' → '2026-01-15T20:06' (matches winter-DST clause of review); (c) pre-existing entry — UTC '2026-06-28T16:30:00Z' renders in the editor as '2026-06-28T18:30' (correct Brussels-local); (d) empty/invalid inputs return ''; (e) the startNew() default branch (`new Date().toISOString()`) passes cleanly through both helpers without losing the wall-clock minute/hour. Backend regression: pytest tests/test_liveblog_body_html.py + tests/test_liveblog_publish_flow.py = 16/16 PASSED in 138.58s (junit at /app/test_reports/pytest/iteration_156_liveblog.xml). `_format_entry_datetime_nl` in routers/news_public.py is untouched (it already converts UTC→Europe/Brussels via pytz.timezone('Europe/Brussels')), so the public <time class='clara-liveblog-time'> label remains correct. Full-UI Playwright drive was intentionally skipped per the review-request's explicit fallback (\"If frontend e2e is too slow, you may approximate the frontend test by directly verifying the two helper functions via a Node REPL\") because (1) the helpers are 100% deterministic pure functions, (2) forcing the Playwright context timezone via CDP requires creating a fresh context which the automation tool does not expose, (3) the multi-step login→Content→toggle-liveblog→create-entry orchestration adds substantial flakiness with no extra information beyond what the helper roundtrip already proves.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_liveblog_body_html.py",
+    "/app/backend/tests/test_liveblog_publish_flow.py",
+    "/app/test_reports/pytest/iteration_156_liveblog.xml",
+    "/tmp/test_helpers.js"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "isoToLocalInput / localInputToIso are pure and well-scoped. They correctly use d.getFullYear/getMonth/getDate/getHours/getMinutes (browser-local) on the read path, and `new Date(localString).toISOString()` (which Node/Browser parse in browser-local TZ) on the write path. No edge cases observed.",
+    "Note: `new Date(localString)` interpretation of a bare 'YYYY-MM-DDTHH:mm' is browser-local per the HTML/ECMAScript spec — confirmed in Node v20+ with TZ=Europe/Brussels. Safari historically used UTC for this format, but only for the older 'YYYY-MM-DD HH:mm' (space-separated) variant; the 'T' form is always local. Safe.",
+    "Minor: the input has only minute granularity, so any seconds present on an existing draft.timestamp are silently dropped on save (e.g. 14:14:16 becomes 14:14:00). This is by design for <input type=datetime-local> but worth noting if any consumer relies on second precision in liveblog_entries[].timestamp.",
+    "startNew() uses `new Date().toISOString()` — fine because `isoToLocalInput` will convert it to the user's local moment in the input. Could equivalently pass an empty string and let the helper return '', but current behaviour (default = now) matches review-request bullet 4."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "100% (16/16)",
+    "frontend": "100% on the two affected helper functions (8/8 Node assertions under TZ=Europe/Brussels). End-to-end Playwright drive skipped per review-request fallback clause."
+  },
+  "test_credentials": "admkoodh@koodh.com / KYLovie13monx (loaded from /app/memory/test_credentials.md but not used — no e2e login was needed for this iteration)",
+  "seed_data_creation": "None (helper test is hermetic; backend regression suites manage their own TEST_LBHTML_* / TEST_LIVEBLOG_* content_items with their own teardown).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "The two helpers in LiveblogPanel.js are the entirety of the fix. To re-verify quickly: `TZ='Europe/Brussels' node /tmp/test_helpers.js` (no deps). To re-verify backend hasn't regressed: `cd /app/backend && pytest tests/test_liveblog_body_html.py tests/test_liveblog_publish_flow.py -v` (~140s, 16 tests). If a future iteration ever wants a full Playwright drive, override the browser timezone via CDP before navigating: `client = await page.context.new_cdp_session(page); await client.send('Emulation.setTimezoneOverride', {'timezoneId': 'Europe/Brussels'})`, then login → Content → open a liveblog article → click [data-testid=liveblog-add-btn] (if present) → fill [data-testid=liveblog-timestamp-input] with '2026-06-28T20:06' → click [data-testid=liveblog-save-btn] → re-open via pencil → assert input value === '2026-06-28T20:06'.",
+  "rca of the issue": "Root cause was correctly identified by the main agent: the EntryEditor passed `(draft.timestamp || '').slice(0, 16)` straight into <input type='datetime-local'>. Per the HTML spec, datetime-local expects a LOCAL wall-clock 'YYYY-MM-DDTHH:mm' value but draft.timestamp is a UTC ISO string. As a result a UTC '18:06:00Z' was shown as '2026-06-28T18:06' to a Brussels user — i.e. the wrong wall-clock (should have been 20:06). On save, `new Date(e.target.value).toISOString()` interpreted that '18:06' as Brussels-local and shifted it again to 16:06Z, producing a -4h drift end-to-end after one round trip. The fix funnels both directions through the timezone-aware helpers: read uses d.getHours()/getMinutes() (browser-local), write uses `new Date(localString).toISOString()` (which the HTML spec mandates parses as local). Mitigation steps now in place: (1) editing an existing entry shows the correct Brussels time, (2) saving a freshly-picked Brussels time produces the right UTC ISO, (3) re-opening the entry shows the same wall-clock the user picked, (4) the backend, _format_entry_datetime_nl, and the rendered <time class='clara-liveblog-time'> tag are untouched and continue to display the correct Brussels label."
+}

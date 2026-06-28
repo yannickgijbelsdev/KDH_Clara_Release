@@ -35,6 +35,26 @@ const WS_BASE = process.env.REACT_APP_BACKEND_URL?.replace(/^https/, 'wss').repl
 const emptyImage = { url: '', key: '', credit: '', photographer: '', license: '', source_url: '' };
 const emptyVideo = { url: '', key: '', embed_code: '' };
 
+/* Convert a UTC ISO string to the local "YYYY-MM-DDTHH:mm" value expected by
+   `<input type="datetime-local">`. Without this the input shows the raw UTC
+   hour (off by 1–2h vs Brussels) and re-saves are silently shifted. */
+const isoToLocalInput = (iso) => {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
+/* Reverse: turn the local datetime-local value back into a UTC ISO string for
+   the API. `new Date(localString)` interprets the value in the browser's
+   timezone, so `.toISOString()` gives the right UTC moment. */
+const localInputToIso = (val) => {
+  if (!val) return new Date().toISOString();
+  const d = new Date(val);
+  return isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
+};
+
 const LiveblogPanel = ({ contentId, mainSiteId, token, canEdit, ended = false, endedAt = null }) => {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -443,8 +463,8 @@ const EntryEditor = ({ draft, setDraft, onSave, onCancel, contentId, headers, sa
           <Label className="text-xs">Timestamp</Label>
           <Input
             type="datetime-local"
-            value={(draft.timestamp || '').slice(0, 16)}
-            onChange={(e) => setField('timestamp', e.target.value ? new Date(e.target.value).toISOString() : new Date().toISOString())}
+            value={isoToLocalInput(draft.timestamp)}
+            onChange={(e) => setField('timestamp', localInputToIso(e.target.value))}
             data-testid="liveblog-timestamp-input"
             className="mt-1 bg-white"
           />
