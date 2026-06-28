@@ -1,0 +1,36 @@
+{
+  "summary": "Iteration 155 — Backend-only re-verification after visual-polish refactor of _render_liveblog_html (news_public.py): switched <ol> -> <ul class='clara-liveblog-timeline'>, replaced literal ● char with a styled dot <span> inside the LIVE pill, wrapped 'Liveblog beëindigd' in a rounded badge, and added inline styles to every clara-liveblog-* element. Ran the two existing pytest suites: /app/backend/tests/test_liveblog_body_html.py (8 cases, updated by main agent to match the new <ul>/pill markup) and /app/backend/tests/test_liveblog_publish_flow.py (8 cases, untouched). All 16 PASSED in 138.62s. Manually cross-checked the rendered HTML produced by routers/news_public.py against every assertion bullet in the review request: (a) exactly one <ul class='clara-liveblog-timeline' present, zero <ol> and zero 'list-style:decimal'; (b) every <li class='clara-liveblog-entry'> carries an inline 'list-style:none' (S_ENTRY / S_ENTRY_ENDED constants both prepend it); (c) ended pill emits class='clara-liveblog-status clara-liveblog-ended' with inline style containing border-radius:9999px and background:#f4f4f5, and the text is 'Liveblog beëindigd' (+ ' op {date}' when liveblog_ended_at set); (d) LIVE pill emits class='clara-liveblog-status clara-liveblog-live' with inline background:#fee2e2;color:#b91c1c, contains the literal text 'LIVE', and the leading dot is now a styled <span> (no '●' character in the live pill); (e) inline styles confirmed on section, header, title, count, list, entry, time, entry-title, entry-body, media, figure, img, figcaption, embed and video. No new tests added — existing coverage from iterations 153/154 plus main-agent's update fully exercises the new markup.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_liveblog_body_html.py",
+    "/app/backend/tests/test_liveblog_publish_flow.py",
+    "/app/test_reports/pytest/iteration_155_liveblog.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "S_ENTRY and S_ENTRY_ENDED both hard-code border-left:3px solid #ef4444 / #d4d4d8 — fine, but the red 3px stripe is now applied to entries whether the liveblog is live or ended. The is_live flag does flip the stripe colour (S_ENTRY when live, S_ENTRY_ENDED when ended), so this is correct; just noting the per-entry colour is global to the article state, not the entry's own timestamp/state. Probably intended.",
+    "Inline styles are now baked into every <span>/<li>/<figure>. This makes the markup ~30% heavier per liveblog. For very long liveblogs (50+ entries) the body grows quickly. If grk.fm caches body HTML aggressively this is fine, otherwise consider a single <style scoped> block at the top of the section to dedupe repeated declarations.",
+    "Header count text still uses English plural 'updates' (e.g. '3 updates') even though the surrounding UI labels are Dutch ('Liveblog beëindigd'). Consider 'updates'/'update' both in Dutch ('updates'/'update' is actually the same Dutch loanword, so technically fine — flagging only for explicit copy review).",
+    "_html.escape is applied to ended_label but NOT to the LIVE pill text 'LIVE' (it's a constant string, so safe). Consistent treatment is fine; just noting for future maintainers.",
+    "The styled-dot <span> inside the LIVE pill uses width/height .5rem — at very small font-sizes the dot can disappear on retina screens that round to 0.5px. Not a functional issue, purely cosmetic."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "100% (16/16)",
+    "frontend": "not tested (backend-only request)"
+  },
+  "test_credentials": "admkoodh@koodh.com / KYLovie13monx",
+  "seed_data_creation": "Both test files create their own TEST_LBHTML_* / TEST_LIVEBLOG_* content_items via /api/content and force status=published + approval_status=approved directly in Mongo. Module-scoped cleanup fixtures tear down all created liveblog_entries and content_items at end of session.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Two regression suites cover the liveblog feature: tests/test_liveblog_body_html.py (HTML markup, now expects <ul class='clara-liveblog-timeline'> and status pill classes 'clara-liveblog-status clara-liveblog-live'/'clara-liveblog-ended' — no literal '●' inside the LIVE pill) and tests/test_liveblog_publish_flow.py (auto-publish + visibility gates). Re-run: cd /app/backend && pytest tests/test_liveblog_body_html.py tests/test_liveblog_publish_flow.py -v. Total runtime ~140s. The visual-polish change is body-HTML-only; no API contract or DB schema changed in this iteration.",
+  "rca of the issue": "Not a bug iteration — this iteration was a visual polish (timeline looked plain on grk.fm). The fix replaces consumer-CSS dependency with inline styles + a rounded status pill, switches <ol> to <ul> to drop browser-default numbering, and ensures every <li> has list-style:none even when the consumer theme has aggressive global <li> rules. Verified by re-running both regression suites green and by spot-checking the constants in _render_liveblog_html against each acceptance bullet."
+}

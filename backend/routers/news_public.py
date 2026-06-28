@@ -425,40 +425,104 @@ def _format_entry_datetime_nl(ts: Optional[str]) -> str:
 def _render_liveblog_html(entries: list[dict], *, ended_at: Optional[str], is_live: bool) -> str:
     """Render published liveblog entries as a self-contained HTML timeline
     that every consumer site can drop straight into their existing article-
-    body container. No external CSS required: we inline only structural
-    classes (``clara-liveblog*``) so consumers can theme them if they want,
-    but the markup is readable out of the box.
+    body container. Inline styles are included so the timeline looks
+    presentable on every consumer (grk.fm, mfy.fm, dbnt.be, …) without
+    requiring a CSS file — consumers can still override via the
+    ``clara-liveblog*`` class names.
 
     ``entries`` must already be sorted newest-first.
     """
     if not entries:
         return ""
-    header_status = (
-        '<span class="clara-liveblog-status clara-liveblog-live">● LIVE</span>'
-        if is_live
-        else f'<span class="clara-liveblog-status clara-liveblog-ended">Liveblog beëindigd{(" op " + _format_entry_datetime_nl(ended_at)) if ended_at else ""}</span>'
+    # Inline style snippets — kept conservative so consumer themes aren't
+    # overridden too aggressively. Border radius + soft background give the
+    # entries a card-like feel; no hard colours that would clash with a
+    # dark theme.
+    S_SECTION = "margin:2rem 0;font-family:inherit;"
+    S_HEADER = "display:flex;flex-wrap:wrap;align-items:center;gap:.75rem;margin:0 0 1rem 0;"
+    S_TITLE = "margin:0;font-size:1.25rem;font-weight:700;letter-spacing:-.01em;"
+    S_LIVE_BADGE = (
+        "display:inline-flex;align-items:center;gap:.4rem;"
+        "padding:.25rem .7rem;border-radius:9999px;"
+        "background:#fee2e2;color:#b91c1c;font-size:.75rem;"
+        "font-weight:600;text-transform:uppercase;letter-spacing:.04em;"
     )
+    S_ENDED_BADGE = (
+        "display:inline-flex;align-items:center;gap:.4rem;"
+        "padding:.4rem .85rem;border-radius:9999px;"
+        "background:#f4f4f5;color:#52525b;font-size:.8rem;"
+        "font-weight:500;border:1px solid #e4e4e7;"
+    )
+    S_COUNT = "color:#71717a;font-size:.8rem;margin-left:auto;"
+    S_LIST = "list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1rem;"
+    S_ENTRY = (
+        "list-style:none;border-left:3px solid #ef4444;background:#fafafa;"
+        "border-radius:0 .75rem .75rem 0;padding:1rem 1.25rem;"
+    )
+    S_ENTRY_ENDED = (
+        "list-style:none;border-left:3px solid #d4d4d8;background:#fafafa;"
+        "border-radius:0 .75rem .75rem 0;padding:1rem 1.25rem;"
+    )
+    S_TIME = "display:block;font-size:.75rem;color:#71717a;font-weight:600;letter-spacing:.02em;margin-bottom:.4rem;text-transform:uppercase;"
+    S_ENTRY_TITLE = "margin:0 0 .5rem 0;font-size:1.05rem;font-weight:700;color:#18181b;"
+    S_ENTRY_BODY = "color:#27272a;line-height:1.55;font-size:1rem;"
+    S_MEDIA = "margin-top:.75rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.75rem;"
+    S_FIGURE = "margin:0;border-radius:.5rem;overflow:hidden;background:#fff;border:1px solid #e4e4e7;"
+    S_IMG = "display:block;width:100%;height:auto;object-fit:cover;"
+    S_CAPTION = "font-size:.7rem;color:#71717a;padding:.4rem .6rem;background:#f4f4f5;"
+    S_EMBED = "aspect-ratio:16/9;width:100%;border-radius:.5rem;overflow:hidden;background:#000;"
+    S_VIDEO = "width:100%;border-radius:.5rem;background:#000;display:block;"
+
+    if is_live:
+        header_status = (
+            f'<span class="clara-liveblog-status clara-liveblog-live" '
+            f'style="{S_LIVE_BADGE}">'
+            f'<span style="width:.5rem;height:.5rem;border-radius:9999px;background:#ef4444;display:inline-block;"></span>'
+            f'LIVE</span>'
+        )
+    else:
+        ended_label = "Liveblog beëindigd"
+        if ended_at:
+            ended_label = f"Liveblog beëindigd op {_format_entry_datetime_nl(ended_at)}"
+        header_status = (
+            f'<span class="clara-liveblog-status clara-liveblog-ended" '
+            f'style="{S_ENDED_BADGE}">{_html.escape(ended_label)}</span>'
+        )
+
     parts: list[str] = [
-        '<section class="clara-liveblog" data-clara-liveblog="true">',
-        f'<header class="clara-liveblog-header"><h2 class="clara-liveblog-title">Liveblog</h2>{header_status}<span class="clara-liveblog-count">{len(entries)} update{"s" if len(entries) != 1 else ""}</span></header>',
-        '<ol class="clara-liveblog-timeline">',
+        f'<section class="clara-liveblog" data-clara-liveblog="true" style="{S_SECTION}">',
+        f'<header class="clara-liveblog-header" style="{S_HEADER}">'
+        f'<h2 class="clara-liveblog-title" style="{S_TITLE}">Liveblog</h2>'
+        f'{header_status}'
+        f'<span class="clara-liveblog-count" style="{S_COUNT}">{len(entries)} update{"s" if len(entries) != 1 else ""}</span>'
+        f'</header>',
+        f'<ul class="clara-liveblog-timeline" style="{S_LIST}">',
     ]
+    entry_style = S_ENTRY if is_live else S_ENTRY_ENDED
     for e in entries:
         when = _format_entry_datetime_nl(e.get("timestamp"))
         title = (e.get("title") or "").strip()
         body = (e.get("body") or "").strip()
-        parts.append('<li class="clara-liveblog-entry">')
+        parts.append(f'<li class="clara-liveblog-entry" style="{entry_style}">')
         if when:
-            parts.append(f'<time class="clara-liveblog-time" datetime="{_html.escape(e.get("timestamp") or "", quote=True)}">{_html.escape(when)}</time>')
+            parts.append(
+                f'<time class="clara-liveblog-time" style="{S_TIME}" '
+                f'datetime="{_html.escape(e.get("timestamp") or "", quote=True)}">'
+                f'{_html.escape(when)}</time>'
+            )
         if title:
-            parts.append(f'<h3 class="clara-liveblog-entry-title">{_html.escape(title)}</h3>')
+            parts.append(
+                f'<h3 class="clara-liveblog-entry-title" style="{S_ENTRY_TITLE}">'
+                f'{_html.escape(title)}</h3>'
+            )
         if body:
-            # body is already TinyMCE HTML — pass through, the editor sanitises.
-            parts.append(f'<div class="clara-liveblog-entry-body">{body}</div>')
+            parts.append(
+                f'<div class="clara-liveblog-entry-body" style="{S_ENTRY_BODY}">{body}</div>'
+            )
 
         imgs = e.get("images") or []
         if imgs:
-            parts.append('<div class="clara-liveblog-media clara-liveblog-images">')
+            parts.append(f'<div class="clara-liveblog-media clara-liveblog-images" style="{S_MEDIA}">')
             for img in imgs:
                 src = (img.get("url") or "").strip()
                 if not src:
@@ -470,26 +534,37 @@ def _render_liveblog_html(entries: list[dict], *, ended_at: Optional[str], is_li
                     "license": img.get("license"),
                     "source_url": img.get("source_url"),
                 })
-                parts.append('<figure class="clara-liveblog-figure">')
-                parts.append(f'<img src="{_html.escape(src, quote=True)}" alt="{alt}" loading="lazy" />')
+                parts.append(f'<figure class="clara-liveblog-figure" style="{S_FIGURE}">')
+                parts.append(
+                    f'<img src="{_html.escape(src, quote=True)}" alt="{alt}" '
+                    f'loading="lazy" style="{S_IMG}" />'
+                )
                 if caption:
-                    parts.append(f'<figcaption class="clara-liveblog-credit">{caption}</figcaption>')
+                    parts.append(
+                        f'<figcaption class="clara-liveblog-credit" style="{S_CAPTION}">'
+                        f'{caption}</figcaption>'
+                    )
                 parts.append('</figure>')
             parts.append('</div>')
 
         vids = e.get("videos") or []
         if vids:
-            parts.append('<div class="clara-liveblog-media clara-liveblog-videos">')
+            parts.append(f'<div class="clara-liveblog-media clara-liveblog-videos" style="{S_MEDIA}">')
             for v in vids:
                 if v.get("embed_html"):
-                    # iframes etc are produced by services.video_embed
-                    parts.append(f'<div class="clara-liveblog-embed">{v["embed_html"]}</div>')
+                    parts.append(
+                        f'<div class="clara-liveblog-embed" style="{S_EMBED}">'
+                        f'{v["embed_html"]}</div>'
+                    )
                 elif v.get("url"):
                     safe_url = _html.escape(v["url"], quote=True)
-                    parts.append(f'<video class="clara-liveblog-video" src="{safe_url}" controls playsinline></video>')
+                    parts.append(
+                        f'<video class="clara-liveblog-video" src="{safe_url}" '
+                        f'controls playsinline style="{S_VIDEO}"></video>'
+                    )
             parts.append('</div>')
         parts.append('</li>')
-    parts.append('</ol>')
+    parts.append('</ul>')
     parts.append('</section>')
     return "".join(parts)
 

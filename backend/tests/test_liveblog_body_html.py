@@ -144,7 +144,7 @@ class TestLiveblogHtmlRendering:
 
         # Section appears exactly once
         assert body.count('<section class="clara-liveblog"') == 1
-        assert '<ol class="clara-liveblog-timeline">' in body
+        assert '<ul class="clara-liveblog-timeline"' in body
 
         # 2 <li class='clara-liveblog-entry'>
         li_count = len(re.findall(r'<li class="clara-liveblog-entry"', body))
@@ -152,7 +152,7 @@ class TestLiveblogHtmlRendering:
 
         # Each entry has <time datetime="..."> with ISO; readable Dutch text contains ' · '
         time_matches = re.findall(
-            r'<time class="clara-liveblog-time" datetime="([^"]+)">([^<]+)</time>',
+            r'<time class="clara-liveblog-time"[^>]*datetime="([^"]+)"[^>]*>([^<]+)</time>',
             body,
         )
         assert len(time_matches) == 2
@@ -168,21 +168,23 @@ class TestLiveblogHtmlRendering:
             ]), f"expected dutch month name in {label}"
 
         # Entry 1 has the title h3
-        assert '<h3 class="clara-liveblog-entry-title">Entry With Image</h3>' in body
+        assert '<h3 class="clara-liveblog-entry-title"' in body
+        assert '>Entry With Image</h3>' in body
         # Body-only entry should NOT produce an h3 for entry 2 — only one h3 in the timeline
-        h3_count = len(re.findall(r'<h3 class="clara-liveblog-entry-title">', body))
+        h3_count = len(re.findall(r'<h3 class="clara-liveblog-entry-title"', body))
         assert h3_count == 1, f"expected 1 h3 (only titled entry), got {h3_count}"
 
         # Image figure + figcaption with credit
-        assert '<figure class="clara-liveblog-figure">' in body
+        assert '<figure class="clara-liveblog-figure"' in body
         assert 'src="https://example.com/photo.jpg"' in body
-        assert '<figcaption class="clara-liveblog-credit">' in body
+        assert '<figcaption class="clara-liveblog-credit"' in body
         # Credit line should mention Reuters (and photographer)
         assert "Reuters" in body
         assert "Jane Doe" in body
 
-        # Header: should contain LIVE since is_liveblog=true
-        assert "● LIVE" in body
+        # Header: should contain LIVE pill since is_liveblog=true
+        assert 'class="clara-liveblog-status clara-liveblog-live"' in body
+        assert ">LIVE</span>" in body
         assert "Liveblog beëindigd" not in body
 
     def test_zero_published_entries_no_markup(self, auth_headers, mongo_db, cleanup):
@@ -266,9 +268,10 @@ class TestLiveblogHtmlRendering:
         # or auto-archive's own timestamp.
         body = data["body"]
         assert "Liveblog beëindigd" in body
-        assert "● LIVE" not in body
-        # Should still render the timeline ol
-        assert '<ol class="clara-liveblog-timeline">' in body
+        # No LIVE pill on an ended liveblog
+        assert "clara-liveblog-live" not in body
+        # Should still render the timeline ul
+        assert '<ul class="clara-liveblog-timeline"' in body
 
     def test_video_embed_html_and_url(self, auth_headers, mongo_db, cleanup):
         article = _create_article(auth_headers, mongo_db)
@@ -299,7 +302,7 @@ class TestLiveblogHtmlRendering:
         pr = requests.get(f"{BASE_URL}/api/news/articles/{cid}", timeout=20)
         body = pr.json()["body"]
 
-        assert '<div class="clara-liveblog-embed">' in body
+        assert '<div class="clara-liveblog-embed"' in body
         assert embed_html in body, "iframe HTML must be passed through"
         assert '<video class="clara-liveblog-video"' in body
         assert 'src="https://example.com/clip.mp4"' in body
