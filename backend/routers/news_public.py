@@ -392,6 +392,108 @@ def _featured_image_caption_html(item: dict) -> str:
     return f'<p class="clara-image-credit">{line}</p>'
 
 
+# Dutch month names so the rendered timeline header doesn't depend on the
+# consumer's locale (grk.fm, mfy.fm, dbnt.be, … all render the body HTML
+# verbatim).
+_NL_MONTHS = [
+    "", "januari", "februari", "maart", "april", "mei", "juni",
+    "juli", "augustus", "september", "oktober", "november", "december",
+]
+
+
+def _format_entry_datetime_nl(ts: Optional[str]) -> str:
+    """Format an ISO datetime as ``26 juni 2026 · 21:27`` (Brussels time)."""
+    if not ts:
+        return ""
+    try:
+        from datetime import datetime as _dt, timezone as _tz
+        dt = _dt.fromisoformat(str(ts).replace("Z", "+00:00"))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=_tz.utc)
+        # Brussels = UTC+1/+2 depending on DST. Use zoneinfo when available.
+        try:
+            from zoneinfo import ZoneInfo  # py3.9+
+            dt = dt.astimezone(ZoneInfo("Europe/Brussels"))
+        except Exception:
+            pass
+        month = _NL_MONTHS[dt.month] if 1 <= dt.month <= 12 else str(dt.month)
+        return f"{dt.day} {month} {dt.year} · {dt.hour:02d}:{dt.minute:02d}"
+    except Exception:
+        return str(ts)
+
+
+def _render_liveblog_html(entries: list[dict], *, ended_at: Optional[str], is_live: bool) -> str:
+    """Render published liveblog entries as a self-contained HTML timeline
+    that every consumer site can drop straight into their existing article-
+    body container. No external CSS required: we inline only structural
+    classes (``clara-liveblog*``) so consumers can theme them if they want,
+    but the markup is readable out of the box.
+
+    ``entries`` must already be sorted newest-first.
+    """
+    if not entries:
+        return ""
+    header_status = (
+        '<span class="clara-liveblog-status clara-liveblog-live">● LIVE</span>'
+        if is_live
+        else f'<span class="clara-liveblog-status clara-liveblog-ended">Liveblog beëindigd{(" op " + _format_entry_datetime_nl(ended_at)) if ended_at else ""}</span>'
+    )
+    parts: list[str] = [
+        '<section class="clara-liveblog" data-clara-liveblog="true">',
+        f'<header class="clara-liveblog-header"><h2 class="clara-liveblog-title">Liveblog</h2>{header_status}<span class="clara-liveblog-count">{len(entries)} update{"s" if len(entries) != 1 else ""}</span></header>',
+        '<ol class="clara-liveblog-timeline">',
+    ]
+    for e in entries:
+        when = _format_entry_datetime_nl(e.get("timestamp"))
+        title = (e.get("title") or "").strip()
+        body = (e.get("body") or "").strip()
+        parts.append('<li class="clara-liveblog-entry">')
+        if when:
+            parts.append(f'<time class="clara-liveblog-time" datetime="{_html.escape(e.get("timestamp") or "", quote=True)}">{_html.escape(when)}</time>')
+        if title:
+            parts.append(f'<h3 class="clara-liveblog-entry-title">{_html.escape(title)}</h3>')
+        if body:
+            # body is already TinyMCE HTML — pass through, the editor sanitises.
+            parts.append(f'<div class="clara-liveblog-entry-body">{body}</div>')
+
+        imgs = e.get("images") or []
+        if imgs:
+            parts.append('<div class="clara-liveblog-media clara-liveblog-images">')
+            for img in imgs:
+                src = (img.get("url") or "").strip()
+                if not src:
+                    continue
+                alt = _html.escape((img.get("alt_text") or title or "") or "", quote=True)
+                caption = _format_credit_line({
+                    "credit": img.get("credit"),
+                    "photographer": img.get("photographer"),
+                    "license": img.get("license"),
+                    "source_url": img.get("source_url"),
+                })
+                parts.append('<figure class="clara-liveblog-figure">')
+                parts.append(f'<img src="{_html.escape(src, quote=True)}" alt="{alt}" loading="lazy" />')
+                if caption:
+                    parts.append(f'<figcaption class="clara-liveblog-credit">{caption}</figcaption>')
+                parts.append('</figure>')
+            parts.append('</div>')
+
+        vids = e.get("videos") or []
+        if vids:
+            parts.append('<div class="clara-liveblog-media clara-liveblog-videos">')
+            for v in vids:
+                if v.get("embed_html"):
+                    # iframes etc are produced by services.video_embed
+                    parts.append(f'<div class="clara-liveblog-embed">{v["embed_html"]}</div>')
+                elif v.get("url"):
+                    safe_url = _html.escape(v["url"], quote=True)
+                    parts.append(f'<video class="clara-liveblog-video" src="{safe_url}" controls playsinline></video>')
+            parts.append('</div>')
+        parts.append('</li>')
+    parts.append('</ol>')
+    parts.append('</section>')
+    return "".join(parts)
+
+
 def _serialize_item(item: dict, category: Optional[dict], site_slug: str, *, include_body: bool = False) -> dict:
     out = {
         "id": item["id"],
@@ -456,7 +558,7 @@ async def get_article_detail(article_id: str):
         site = await db.main_sites.find_one({"id": item["main_site_id"]}, {"_id": 0, "slug": 1})
         site_slug = (site or {}).get("slug", "")
     out = _serialize_item(item, category, site_slug, include_body=True)
-    # Auto-archive if no activity in the last 12 hours — the live badge
+    # Auto-archive if no activity in the last 6 hours — the live badge
     # then disappears, but the entries stay so the article reads as a
     # static timeline ("ended liveblog").
     await _maybe_archive_liveblog(item)
@@ -469,7 +571,20 @@ async def get_article_detail(article_id: str):
     cur = db.liveblog_entries.find(
         {"content_id": item["id"], "published": True}
     ).sort("timestamp", -1)
-    out["liveblog_entries"] = [_strip_entry_author(_ser_entry(e)) async for e in cur]
+    entries = [_strip_entry_author(_ser_entry(e)) async for e in cur]
+    out["liveblog_entries"] = entries
+    # Inject the timeline DIRECTLY into the body HTML so every consumer
+    # site (grk.fm, mfy.fm, dbnt.be, …) that already renders ``body`` gets
+    # the timeline for free — no consumer-side code change needed. The
+    # raw ``liveblog_entries`` array stays in the response for clients
+    # that want to render it themselves with custom styling.
+    timeline_html = _render_liveblog_html(
+        entries,
+        ended_at=item.get("liveblog_ended_at"),
+        is_live=bool(item.get("is_liveblog")),
+    )
+    if timeline_html:
+        out["body"] = (out.get("body") or "") + timeline_html
     return out
 
 
