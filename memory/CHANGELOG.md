@@ -1,6 +1,38 @@
 # Changelog
 
 
+## 2026-06-27 — RDS Monitor Troubleshoot endpoint + UI
+
+### Probleem
+GRK stond op "Offline" in de RDS Monitor zonder uitleg waarom.
+
+### Live root-cause (gevonden door de nieuwe diagnostiek)
+`stream-shout.koodh.be:9010` accepteert geen TCP-connecties. DNS lost wel op (84.195.91.218), maar de Shoutcast-server is down of poort wordt door firewall geblokkeerd. Dit is een infra-issue server-side, niet Clara.
+
+### Backend
+- `GET /api/rds/troubleshoot/{station}` (admin-only): 7-stap live diagnostic chain
+  1. Station configured
+  2. Stream URL resolved (honoreert custom-stream-windows)
+  3. DNS resolves
+  4. TCP reachable (asyncio.open_connection, 4s timeout)
+  5. HTTP reachable (httpx GET, 5s timeout)
+  6. Shoutcast metadata parses (via productie `fetch_shoutcast_with_autodiscovery`)
+  7. Cache populated (rds_builder_scheduler freshness, max 90s oud)
+- Downstream steps krijgen `ok=null` (Skipped) wanneer upstream faalt.
+- `summary` veld geeft Nederlandse one-liner met eerste falende step + actiegerichte hint (DNS / firewall / Icecast-process / encoder / scheduler).
+- `recent_logs[]` laatste 10 entries uit `shoutcast_logs` voor context.
+
+### Frontend
+- `RDSMonitorPage.js.TroubleshootButton` component naast het Offline-badge: kleine rode outline-button → opent Clara-styled modal met per-step icoon (✓ / ✗ / ⏱), expandable JSON `data` per stap, en uitklapbare log-historiek (donker mono blok). Data-testids `troubleshoot-btn-{station}` en `troubleshoot-dialog-{station}`.
+- Refresh-knop in de modal voor on-demand re-run.
+
+### Tests
+- `backend/tests/test_rds_troubleshoot.py` — 9/9 pytest cases groen (1 skipped door non-admin lockout, niet feature-gerelateerd). Iteration_157.
+
+### Deploy
+- VDC: `3cfb70da-dd1a-463b-b740-52d70bdb4aa8` (pending approval).
+
+
 ## 2026-06-27 — Liveblog timestamp timezone bugfix
 
 ### Bug
