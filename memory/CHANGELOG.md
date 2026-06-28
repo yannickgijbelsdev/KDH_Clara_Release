@@ -1,6 +1,24 @@
 # Changelog
 
 
+## 2026-06-27 — Liveblog timeline rendered IN article body (consumer compat)
+
+### Why
+grk.fm (en mfy.fm/dbnt.be) renderen alléén het `body` HTML-veld uit de News API. De aparte `liveblog_entries[]` JSON-array werd nooit gelezen, dus zelfs als entries gepubliceerd waren, verschenen ze niet op het artikel — alleen de intro stond op de pagina. Schermafdruk van de user: "Dit is dag 2. Volg alles via deze Liveblog." en daarna niets meer.
+
+### Backend
+- `routers/news_public.py._render_liveblog_html(entries, ended_at, is_live)`: bouwt een self-contained `<section class="clara-liveblog">` met `<header>` (LIVE-badge of "Liveblog beëindigd op {datum}"), `<ol class="clara-liveblog-timeline">` en per entry `<li>` met `<time datetime=ISO>` (Dutch-formatted), optionele `<h3>`, HTML-body, en media: `<figure>` met `<img>`+`<figcaption>` per foto, `<div class="clara-liveblog-embed">` voor video-embeds, `<video controls>` voor S3-uploads.
+- `get_article_detail`: appendet `timeline_html` aan `out["body"]` zodra er gepubliceerde entries zijn. Featured-image caption + inline `<img>` figcaption injectie blijven boven het body-blok zoals voorheen.
+- `liveblog_entries[]` blijft beschikbaar in de JSON — back-compat voor clients die zelf willen renderen.
+- Helper `_format_entry_datetime_nl` formatteert Brussels-tijd als `26 juni 2026 · 21:27` (gebruikt `zoneinfo` met UTC-fallback).
+
+### Tests
+- `backend/tests/test_liveblog_body_html.py` — 8 pytest cases, 100% green (123s): structuur, lege state, drafts-hidden, ended-header, video-embed + url, regression op featured caption + inline figcaption, unpublish.
+
+### Deploy
+- VDC auto-deploy: `e544c64e-3f83-4ff6-af74-e2dd8884eb78` (pending approval).
+
+
 ## 2026-06-27 — Liveblog Save-as-draft root cause + auto-publish fix (P0)
 
 ### Root cause
