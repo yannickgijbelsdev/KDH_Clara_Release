@@ -338,6 +338,40 @@ async def update_station(
         except Exception as e:
             logger.warning(f"Cache refresh after custom_streams update failed: {e}")
 
+    # If `default_text` was changed and the station is currently showing a
+    # show_name item (i.e. no live show active), refresh rds_builder_output
+    # immediately so the RDS Monitor & /api/rds/{station}/live reflect the
+    # new text without waiting for the next scheduler tick.
+    if data.default_text is not None and updated:
+        try:
+            code = updated["code"]
+            active = await db.rds_cached_rundowns.find_one(
+                {"is_active": True, "rds_station": {"$in": [code, "both"]}},
+                {"_id": 0},
+            )
+            output = await db.rds_builder_output.find_one({"station": code}, {"_id": 0})
+            if not active and output and output.get("current_item_type") in ("show_name", "", None):
+                new_text = update_fields.get("default_text", "") or ""
+                if new_text != (output.get("current_text") or ""):
+                    now_iso = datetime.now(timezone.utc).isoformat()
+                    await db.rds_builder_output.update_one(
+                        {"station": code},
+                        {"$set": {
+                            "current_text": new_text,
+                            "current_item_type": "show_name",
+                            "updated_at": now_iso,
+                        }},
+                    )
+                    # Also invalidate the /monitor endpoint 5s cache so the
+                    # UI sees the change on the very next poll.
+                    try:
+                        from routers import rds_builder as _rb
+                        _rb._monitor_cache = {}
+                    except Exception:
+                        pass
+        except Exception as e:
+            logger.warning(f"Default-text refresh failed for {station_id}: {e}")
+
     return updated
 
 

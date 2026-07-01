@@ -1,0 +1,34 @@
+{
+  "summary": "Backend-only verification of the end-to-end propagation fix that makes editable `default_text` (RDS Settings) flow immediately into the RDS Monitor and /api/rds/{station}/live. All 6 new propagation tests + all 7 iteration-159 regression tests pass (13/13). The fast-path in PUT /api/rds-stations/{main_site_id}/{station_id} correctly writes rds_builder_output.current_text and invalidates _monitor_cache, live-show precedence is honored, whitespace-only PUT trims to '' and legacy fallback recovers via the scheduler, and other station fields (name / stream_url) are preserved.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_rds_default_text_propagation.py",
+    "/app/backend/tests/test_rds_default_show_text.py",
+    "/app/test_reports/pytest/iteration_160_default_text_propagation.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "routers/rds_stations.py:369 — the fast-path resets `_rb._monitor_cache = {}` (empty dict) but the module initializes it as `{'data': None, 'timestamp': None}` and reads `.get('data'/'timestamp'/'cache_key')`. `{}` works via `.get()` returning None, but is subtly inconsistent with the shape used elsewhere (`_monitor_cache['data'] = ...`). Prefer `_rb._monitor_cache = {'data': None, 'timestamp': None, 'cache_key': None}` for clarity and to keep the shape invariant. Not blocking — tests pass.",
+    "routers/rds_stations.py:353 — fast-path condition `output.get('current_item_type') in ('show_name', '', None)` will ALSO fire when the current item is 'presenter_name' (or any non-show_name type where the field happens to be missing/empty). If the current sequence item is presenter_name but current_item_type has been persisted as '' by an older path, this fast-path would overwrite presenter text with default_text. Consider tightening to `== 'show_name'` only.",
+    "services/rds_builder_scheduler.py:267 — resolve_station_default_text queries rds_stations by `code` only (no main_site_id scope). Same multi-tenant concern flagged in iteration_159 comment 1 — if two main sites ever share a station code, the first document wins. OK for current single-tenant grk/mfy topology.",
+    "The fast-path writes `default_text` (possibly empty after trim) directly into current_text and does NOT apply the legacy fallback map that resolve_station_default_text would. This is by design (scheduler tick converges within ~10s), but means the Monitor shows a blank string for up to ~10s after the user clears the field. Consider calling resolve_station_default_text inside the fast-path to eliminate the flicker."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_rds_default_text_propagation.py"
+  ],
+  "success_rate": {"backend": "100% (13/13 — 6 new + 7 regression)", "frontend": "N/A (backend only)"},
+  "test_credentials": "admkoodh@koodh.com / KYLovie13monx (from /app/memory/test_credentials.md)",
+  "seed_data_creation": "Test file uses an autouse module-scoped fixture that: (1) snapshots grk/mfy default_text from rds_stations, (2) deactivates any live rds_cached_rundowns for grk/mfy/both, (3) snapshots rds_builder_output docs for grk/mfy (or creates a temporary one with current_item_id='test-fixture' if missing) and forces current_item_type='show_name' so the PUT fast-path can fire. On teardown all mutations are reversed: default_text values restored via PUT, active rundowns re-activated, rds_builder_output docs restored (or deleted if newly-created), and any live-show fixture inserted by TestLiveShowPrecedence is deleted. Post-run DB verification confirmed grk.default_text='the feelgood station' and mfy.default_text='altijd dichtbij' with 0 leftover fixture docs.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Reusable propagation test file: /app/backend/tests/test_rds_default_text_propagation.py. Requires REACT_APP_BACKEND_URL, MONGO_URL, DB_NAME env vars (present in /app/backend/.env and /app/frontend/.env — pytest picks them up when supervisor-managed backend is running, or export them manually when running from shell). The test file needs local MongoDB access to snapshot/restore state; it will not work from a machine that only has HTTP access to the preview URL. Iteration-159 tests remain the HTTP-only regression suite; iteration-160 adds Monitor + fast-path coverage that requires direct DB access.",
+  "rca of the issue": "N/A — no bugs found. Fix (helper `resolve_station_default_text` + PUT fast-path writing `rds_builder_output.current_text` + `_monitor_cache = {}` invalidation) works as designed. Monitor reflects new default_text within ~200ms of PUT, live-show precedence is honored, whitespace-only PUT trims to '' and scheduler tick recovers legacy fallback within ~10s."
+}

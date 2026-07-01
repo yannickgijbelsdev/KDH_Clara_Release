@@ -247,6 +247,29 @@ async def get_active_scheduled_text_for_station(db, station: str) -> dict | None
     return None
 
 
+# Legacy fallback used only when a station has no editable ``default_text``
+# in its rds_stations DB doc. Real config lives in the DB and is edited via
+# RDS Settings → "Default show text".
+_LEGACY_DEFAULT_STATION_NAMES = {
+    "grk": "the feelgood station",
+    "mfy": "altijd dichtbij",
+}
+
+
+async def resolve_station_default_text(db, station: str) -> str:
+    """Read the editable ``rds_stations.default_text`` for ``station`` and
+    fall back to the legacy hardcoded map (and finally to '') when unset.
+
+    This is the single source of truth for the "no live show" fallback used
+    across the RDS builder pipeline (show_name items, sequence refresh,
+    stale-output recovery, and the /monitor endpoint via output.current_text).
+    """
+    st = await db.rds_stations.find_one({"code": station}, {"_id": 0, "default_text": 1})
+    if st and (st.get("default_text") or "").strip():
+        return st["default_text"].strip()
+    return _LEGACY_DEFAULT_STATION_NAMES.get(station, "")
+
+
 async def get_item_text(db, station: str, item: dict) -> str:
     """Get the text for a sequence item."""
     item_type = item.get("type")
@@ -264,12 +287,9 @@ async def get_item_text(db, station: str, item: dict) -> str:
         if cached and cached.get("show_title"):
             return cached["show_title"]
         
-        # Default fallback when no show for this station
-        default_names = {
-            "grk": "the feelgood station",
-            "mfy": "altijd dichtbij"
-        }
-        return default_names.get(station, "")
+        # Default fallback when no show for this station (editable via RDS
+        # Settings → "Default show text"; hardcoded map is the legacy fallback).
+        return await resolve_station_default_text(db, station)
     
     elif item_type == "presenter_name":
         # Get current live show presenters for this station
@@ -433,10 +453,7 @@ async def process_rds_sequence(db, station: str):
             {"_id": 0}
         )
         
-        default_names = {
-            "grk": "the feelgood station",
-            "mfy": "altijd dichtbij"
-        }
+        default_text = await resolve_station_default_text(db, station)
         
         # Always re-evaluate: get fresh text for the current item type
         old_text = current_output.get("current_text", "") if current_output else ""
@@ -446,11 +463,11 @@ async def process_rds_sequence(db, station: str):
         if old_item_type in ("show_name", "now_playing", "presenter_name"):
             fresh_text = await get_item_text(db, station, {"type": old_item_type})
             if not fresh_text:
-                fresh_text = default_names.get(station, "")
+                fresh_text = default_text
             new_item_type = old_item_type
         elif old_item_type in ("scheduled_text", "audio_trigger") or not old_item_type:
             # Scheduled text or audio trigger ended, or no item type set - use default
-            fresh_text = default_names.get(station, "")
+            fresh_text = default_text
             new_item_type = "show_name"
         else:
             fresh_text = old_text
@@ -672,7 +689,7 @@ async def process_named_output(db, output_config: dict):
             {"_id": 0}
         )
         if state:
-            default_names = {"grk": "the feelgood station", "mfy": "altijd dichtbij"}
+            default_text = await resolve_station_default_text(db, station)
             old_text = state.get("current_text", "")
             old_item_type = state.get("current_item_type", "")
             
@@ -680,9 +697,9 @@ async def process_named_output(db, output_config: dict):
             if old_item_type in ("show_name", "now_playing", "presenter_name"):
                 fresh_text = await get_item_text(db, station, {"type": old_item_type})
                 if not fresh_text:
-                    fresh_text = default_names.get(station, "")
+                    fresh_text = default_text
             else:
-                fresh_text = default_names.get(station, "")
+                fresh_text = default_text
             
             if fresh_text != old_text:
                 await db.rds_output_states.update_one(
@@ -864,10 +881,7 @@ class RDSBuilderScheduler:
             now_brussels = datetime.now(BRUSSELS_TZ)
             timestamp = now_brussels.isoformat()
             
-            default_names = {}
-            all_st = await self.db.rds_stations.find({}, {"_id": 0, "code": 1, "default_text": 1}).to_list(100)
-            for st in all_st:
-                default_names[st["code"]] = st.get("default_text", st["code"])
+            all_st = await self.db.rds_stations.find({}, {"_id": 0, "code": 1}).to_list(100)
             station_codes = [s["code"] for s in all_st] if all_st else ["mfy", "grk"]
             
             # 1. Refresh the live show cache (deactivates ended shows)
@@ -896,7 +910,7 @@ class RDSBuilderScheduler:
                 if current_type == "show_name" and not has_active:
                     fresh_text = await get_item_text(self.db, station, {"type": "show_name"})
                     if not fresh_text:
-                        fresh_text = default_names.get(station, "")
+                        fresh_text = await resolve_station_default_text(self.db, station)
                     
                     if fresh_text != current_text:
                         await self.db.rds_builder_output.update_one(
