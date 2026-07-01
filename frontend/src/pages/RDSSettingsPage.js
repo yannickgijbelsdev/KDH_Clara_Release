@@ -58,6 +58,7 @@ const RDSSettingsPage = () => {
   // Per-row test result: { [stationId]: { [index]: { status, song_title, message, stream_online, current_listeners } } }
   const [streamTestResults, setStreamTestResults] = useState({});
   const [testingStream, setTestingStream] = useState(null); // `${stationId}-${index}` while in-flight
+  const [savingDefaultText, setSavingDefaultText] = useState(null); // station.id while save is in-flight
   // Live "what's active right now" per station code
   const [liveStatus, setLiveStatus] = useState({});
 
@@ -320,6 +321,24 @@ const RDSSettingsPage = () => {
       toast.error(error.response?.data?.detail || 'Could not save stream schedule');
     } finally {
       setSavingStreams(false);
+    }
+  };
+
+  const saveDefaultShowText = async (station) => {
+    if (!mainSiteId) {
+      toast.error('Main site not loaded yet');
+      return;
+    }
+    setSavingDefaultText(station.id);
+    try {
+      await axios.put(`${API}/rds-stations/${mainSiteId}/${station.id}`, {
+        default_text: (station.default_text || '').trim(),
+      });
+      toast.success(`Default show-tekst opgeslagen voor ${station.name}`);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Kon default show-tekst niet opslaan');
+    } finally {
+      setSavingDefaultText(null);
     }
   };
 
@@ -627,6 +646,57 @@ const RDSSettingsPage = () => {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Default show text (no live show) */}
+      <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-6" data-testid="default-show-text-section">
+        <div className="flex items-center gap-2 mb-2">
+          <Radio className="w-5 h-5 text-emerald-500" />
+          <h2 className="text-lg font-semibold text-zinc-900">Default show text</h2>
+        </div>
+        <p className="text-zinc-500 text-sm mb-4">
+          Deze tekst verschijnt als show-naam in de RDS-output wanneer er <span className="font-medium text-zinc-700">geen live show</span> loopt.
+          Handig voor slogans of algemene branding (bijv. "the feelgood station").
+        </p>
+
+        {stations.length === 0 && (
+          <p className="text-zinc-500 text-sm italic">Geen stations geconfigureerd. Voeg RDS-stations toe via de site-instellingen.</p>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {stations.map((st, idx) => (
+            <div key={st.id || st.code}>
+              <Label className="text-xs text-zinc-400 flex items-center gap-2 mb-1">
+                <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: st.color }} />
+                {st.name}
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  value={st.default_text || ''}
+                  onChange={(e) => {
+                    const next = [...stations];
+                    next[idx] = { ...next[idx], default_text: e.target.value };
+                    setStations(next);
+                  }}
+                  placeholder={`e.g. ${st.name === 'GRK' ? 'the feelgood station' : 'jouw favoriete hits'}`}
+                  className="bg-zinc-50 border-zinc-200 text-zinc-900"
+                  data-testid={`default-show-text-${st.code}`}
+                />
+                <Button
+                  size="sm"
+                  onClick={() => saveDefaultShowText(st)}
+                  disabled={savingDefaultText === st.id}
+                  className="text-white shrink-0"
+                  style={{ backgroundColor: st.color }}
+                  data-testid={`save-default-show-text-${st.code}`}
+                >
+                  <Save className="w-3 h-3 mr-1" />
+                  {savingDefaultText === st.id ? 'Saving…' : 'Save'}
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Custom Stream Scheduler Section */}

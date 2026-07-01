@@ -525,7 +525,9 @@ async def get_live_show_title_txt():
 
 # ============== STATION-SPECIFIC ENDPOINTS ==============
 
-# Default station names when no live show
+# Legacy fallback used ONLY when a station doesn't have `default_text` set
+# in its rds_stations doc. Real editable configuration lives in the DB and
+# is managed via RDS Settings → "Default show text".
 DEFAULT_STATION_NAMES = {
     "grk": "the feelgood station",
     "mfy": "altijd dichtbij"
@@ -536,7 +538,9 @@ async def get_live_show_title_for_station(station: str) -> str:
     """Get the current live show title for a specific station.
     
     First tries to find a show specifically assigned to this station or "both".
-    If no station-specific show, returns default station name.
+    If no station-specific show, returns default station name — sourced from
+    the editable ``rds_stations.default_text`` DB field when set, with the
+    legacy hardcoded ``DEFAULT_STATION_NAMES`` mapping as a final fallback.
     """
     # Try to find a show specifically assigned to this station or "both"
     cached = await db.rds_cached_rundowns.find_one(
@@ -545,8 +549,15 @@ async def get_live_show_title_for_station(station: str) -> str:
     )
     if cached and cached.get("show_title"):
         return cached["show_title"]
-    
-    # Default fallback when no show for this station
+
+    # DB-configured fallback (editable in RDS Settings)
+    st = await db.rds_stations.find_one(
+        {"code": station}, {"_id": 0, "default_text": 1}
+    )
+    if st and (st.get("default_text") or "").strip():
+        return st["default_text"].strip()
+
+    # Legacy hardcoded fallback for stations that predate the editable field
     return DEFAULT_STATION_NAMES.get(station, "")
 
 

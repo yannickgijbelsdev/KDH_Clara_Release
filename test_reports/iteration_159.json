@@ -1,0 +1,31 @@
+{
+  "summary": "Backend-only verification of the new editable 'Default show text' feature in RDS Settings. Confirmed PUT /api/rds-stations/{main_site_id}/{station_id} accepts and persists the `default_text` field (with whitespace trimming), and that GET /api/rds/{station}/live now returns the DB value when set. Verified legacy DEFAULT_STATION_NAMES fallback for both 'grk' and 'mfy' when default_text is cleared, and that unknown station codes yield 404 from routing (never a 500). Original default_text values were snapshotted and restored after the run so shared preview data does not drift.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_rds_default_show_text.py",
+    "/app/test_reports/pytest/iteration_159_default_show_text.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "get_live_show_title_for_station in /app/backend/routers/rds.py looks up rds_stations by code only (no main_site_id scope). If two main sites ever share a station code (e.g. two 'grk'), the first document wins. Acceptable today because the public /api/rds/{station}/live routes are only defined for the singleton 'mfy'/'grk' codes, but flag for future multi-tenant RDS support.",
+    "Unknown-station coverage: the helper's 'return empty string for unknown code' branch is not reachable via any HTTP route today (no public endpoint accepts arbitrary station codes). If a caller starts using the helper indirectly (e.g. from a per-station endpoint added later), consider unit-testing the helper directly against the DB, not just via HTTP."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_rds_default_show_text.py"
+  ],
+  "success_rate": {"backend": "100% (7/7)", "frontend": "N/A (backend only)"},
+  "test_credentials": "admkoodh@koodh.com / KYLovie13monx (from /app/memory/test_credentials.md)",
+  "seed_data_creation": "None persisted. The test suite temporarily wrote 'Test show name X', '  padded value  ', 'sanity-check-value', and '' into grk/mfy default_text, then restored the original values ('the feelgood station' / 'altijd dichtbij') via a module-scoped fixture teardown. Verified restoration manually post-run.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Reusable test file: /app/backend/tests/test_rds_default_show_text.py. It logs in as admin, resolves radiogroep main_site_id via /api/rds-stations/by-slug/radiogroep, mutates default_text on grk/mfy, verifies /api/rds/{station}/live plaintext output, and restores originals. If a live show is currently active on grk/mfy in the preview env, the two 'live endpoint' tests will pytest.skip rather than fail (documented in-test).",
+  "rca of the issue": "N/A — no bugs found. Implementation matches the PRD: rds.py:537 get_live_show_title_for_station reads db.rds_stations.default_text before falling back to DEFAULT_STATION_NAMES; rds_stations.py:320 trims whitespace on PUT."
+}
