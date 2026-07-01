@@ -1,6 +1,23 @@
 # Changelog
 
 
+## 2026-06-27 — Default show text (no live show) is nu editable via RDS Settings
+
+### Voor
+Hardcoded `DEFAULT_STATION_NAMES = {'grk': 'the feelgood station', 'mfy': 'altijd dichtbij'}` in `routers/rds.py` — niet aanpasbaar zonder deploy.
+
+### Nu
+- **Backend** `get_live_show_title_for_station`: leest eerst `rds_stations.default_text` uit de DB, valt terug op de legacy hardcoded map, en '' bij onbekende station code. Whitespace wordt getrimd bij save.
+- **Frontend** — nieuwe sectie **"Default show text"** in `RDSSettingsPage.js` (boven Now Playing Stream Schedule), met per-station input (`data-testid=default-show-text-{code}`) en Save-knop (`data-testid=save-default-show-text-{code}`). PUT `/api/rds-stations/{main_site_id}/{station_id}` met `{default_text}`.
+- Ook al aanwezig in EditMainSiteWizard (bij site-instellingen) — nu ook toegankelijk direct in RDS Settings zoals gevraagd.
+
+### Tests
+- `backend/tests/test_rds_default_show_text.py` — 7/7 pytest green (iteration_159). Verifieert DB-value → live endpoint output, fallback naar hardcoded map wanneer leeg, whitespace trim, live show heeft voorrang, en originele waardes gerestored na teardown.
+
+### Deploy
+- VDC: `490cecf4-95a5-460f-bbd3-6763ec267ad7` (pending approval).
+
+
 ## 2026-06-27 — News API prefix-fallback voor truncated slug-URLs
 
 ### Bug
