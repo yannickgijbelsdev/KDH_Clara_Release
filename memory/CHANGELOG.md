@@ -1,6 +1,25 @@
 # Changelog
 
 
+## 2026-06-27 — RDS Monitor volgt nu de editable Default show text
+
+### Root cause
+De feature van iteration 159 wijzigde alléén het `/api/rds/{station}/live` plaintext-endpoint. De RDS Monitor las echter `rds_builder_output.current_text`, dat door `services/rds_builder_scheduler.py` gevuld wordt uit **drie** aparte hardcoded fallback-mappen (`{'grk': 'the feelgood station', 'mfy': 'altijd dichtbij'}`) op regels 268, 436 en 675. Één plek keek naar de DB (regel 887), maar defaultte naar `station['code']` bij lege waarde — ook fout.
+
+### Fix
+- **`services/rds_builder_scheduler.py`**: nieuwe helper `resolve_station_default_text(db, station)` = single source of truth. Leest `rds_stations.default_text` uit DB, fallback naar legacy map, dan ''. Alle vier de hardcoded call-sites gebruiken nu deze helper.
+- **`routers/rds_stations.py` PUT fast-path**: bij wijziging van `default_text` én geen live show én `current_item_type == 'show_name'` (strict) → schrijft `resolve_station_default_text` output direct in `rds_builder_output.current_text` en invalidateert de `/monitor` 5s-cache. Monitor toont nieuwe waarde binnen ~200ms i.p.v. te wachten op scheduler-tick.
+- Bij lege PUT valt 'ie meteen terug op de legacy map (geen 10s blank flicker meer).
+- `presenter_name` / `now_playing` items worden strict beschermd tegen accidental overwrite.
+
+### Tests
+- `backend/tests/test_rds_default_text_propagation.py` — 9 nieuwe pytest cases
+- Totaal: 16/16 groen (iteration_161). Regression + propagation + refinement gates allemaal covered.
+
+### Deploy
+- VDC: `c82f9f18-4fa8-4c4c-bb08-beab4214985d` (pending approval).
+
+
 ## 2026-06-27 — Default show text (no live show) is nu editable via RDS Settings
 
 ### Voor
