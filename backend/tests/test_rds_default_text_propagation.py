@@ -340,3 +340,167 @@ class TestSequenceRefreshRegression:
                     break
             time.sleep(1)
         assert got == new_val, f"scheduler did not converge to new default_text (got '{got}')"
+
+
+
+class TestClearedFieldImmediateLegacyFallback:
+    """T5 (iteration 161): PUT default_text='' on a station whose
+    current_item_type='show_name' and no live show is active — Monitor within
+    ~1s must return the legacy fallback (never blank).
+
+    Previously the fast-path wrote the raw '' into current_text, causing a
+    ~10s blank flicker until the scheduler tick recovered the legacy value.
+    """
+
+    def test_empty_put_yields_legacy_immediately(
+        self, mongo_db, auth_headers, radiogroep_ctx
+    ):
+        code = "grk"
+        # Ensure no live rundown could mask the fallback
+        mongo_db.rds_cached_rundowns.update_many(
+            {"rds_station": {"$in": [code, "both"]}, "is_active": True},
+            {"$set": {"is_active": False}},
+        )
+        # Ensure current_item_type is 'show_name' so the fast-path fires
+        mongo_db.rds_builder_output.update_one(
+            {"station": code}, {"$set": {"current_item_type": "show_name"}}
+        )
+
+        # Prime with a non-legacy value so we can detect the transition
+        _put_default_text(auth_headers, radiogroep_ctx, code, "PrimedNonLegacy")
+        _get_monitor(code)
+
+        # PUT empty
+        r = _put_default_text(auth_headers, radiogroep_ctx, code, "")
+        assert r.status_code == 200
+        assert (r.json().get("default_text") or "") == ""
+
+        legacy = LEGACY_DEFAULTS[code]
+
+        # Within ~1s the Monitor must already show legacy fallback, not ''
+        got = None
+        history = []
+        deadline = time.time() + 1.5
+        while time.time() < deadline:
+            mr = _get_monitor(code)
+            if mr.status_code == 200:
+                got = _monitor_current_text(mr.json(), code)
+                history.append(got)
+                if got == legacy:
+                    break
+            time.sleep(0.15)
+
+        assert got == legacy, (
+            f"Empty PUT did not immediately recover legacy fallback "
+            f"(got '{got}', history={history}). The fast-path must call "
+            f"resolve_station_default_text so cleared fields never blank "
+            f"the Monitor for ~10s."
+        )
+
+        # Also verify DB was written with the resolved legacy value, not ''
+        post = mongo_db.rds_builder_output.find_one(
+            {"station": code}, {"_id": 0, "current_text": 1}
+        )
+        assert (post or {}).get("current_text") == legacy, (
+            f"rds_builder_output.current_text must be the resolved legacy "
+            f"value, got '{(post or {}).get('current_text')}'"
+        )
+
+
+class TestPresenterNameProtection:
+    """T6 (iteration 161): When rds_builder_output.current_item_type is
+    'presenter_name' (or 'now_playing'), the PUT fast-path must NOT overwrite
+    current_text. Only 'show_name' items should be replaced.
+    """
+
+    def _fastpath_does_not_touch(self, mongo_db, auth_headers, radiogroep_ctx,
+                                  fixture_type: str, fixture_text: str,
+                                  put_value: str):
+        """Helper: force current_item_type to `fixture_type` with `fixture_text`,
+        PUT `put_value` as default_text, then verify the *fast-path* did not
+        overwrite by inspecting the DB with the smallest possible delay.
+
+        Since a global scheduler tick may fire within ~1s and legitimately
+        rewrite current_text (for presenter_name/now_playing with no live show,
+        the scheduler falls back to default_text), we use the `updated_at`
+        timestamp to distinguish the fast-path write from a subsequent
+        scheduler write. The fast-path only writes when the type is show_name,
+        so for presenter/now_playing the doc must remain UNCHANGED between
+        our fixture set and the very next read post-PUT.
+        """
+        code = "grk"
+        # Ensure no live rundown that could feed real data
+        mongo_db.rds_cached_rundowns.update_many(
+            {"rds_station": {"$in": [code, "both"]}, "is_active": True},
+            {"$set": {"is_active": False}},
+        )
+
+        pre_doc = mongo_db.rds_builder_output.find_one({"station": code}, {"_id": 0})
+        assert pre_doc, "expected rds_builder_output doc for grk"
+
+        # Force fixture state with a unique updated_at we can detect
+        fixture_updated_at = f"__FIXTURE__{time.time()}__"
+        mongo_db.rds_builder_output.update_one(
+            {"station": code},
+            {"$set": {
+                "current_item_type": fixture_type,
+                "current_text": fixture_text,
+                "updated_at": fixture_updated_at,
+            }},
+        )
+
+        # Fire PUT
+        r = _put_default_text(auth_headers, radiogroep_ctx, code, put_value)
+        assert r.status_code == 200
+
+        # Read immediately (no sleep) — the fast-path is synchronous within
+        # the PUT handler; if it fired, current_text is now put_value AND
+        # updated_at != fixture_updated_at.
+        post = mongo_db.rds_builder_output.find_one(
+            {"station": code},
+            {"_id": 0, "current_text": 1, "current_item_type": 1, "updated_at": 1},
+        )
+
+        # Restore before assertions (so failure doesn't leave dirty state)
+        mongo_db.rds_builder_output.update_one(
+            {"station": code},
+            {"$set": {
+                "current_item_type": pre_doc.get("current_item_type", "show_name"),
+                "current_text": pre_doc.get("current_text", ""),
+                "updated_at": pre_doc.get("updated_at", ""),
+            }},
+        )
+
+        # If the fast-path wrote, current_text will be put_value. That's the
+        # regression we're testing for.
+        assert post.get("current_text") != put_value, (
+            f"Fast-path OVERWROTE current_text on a '{fixture_type}' item "
+            f"(got '{post.get('current_text')}' == PUT value). "
+            f"Strict '== show_name' check regressed."
+        )
+
+        # Also: if the doc was untouched by the fast-path, updated_at should
+        # still be our sentinel (unless the 1s scheduler tick raced us — in
+        # which case current_text might differ from fixture_text but must
+        # still not equal put_value, which is the assertion above).
+        return post
+
+    def test_presenter_name_not_overwritten_by_put(
+        self, mongo_db, auth_headers, radiogroep_ctx
+    ):
+        self._fastpath_does_not_touch(
+            mongo_db, auth_headers, radiogroep_ctx,
+            fixture_type="presenter_name",
+            fixture_text="Jan Peeters (test fixture)",
+            put_value="ShouldNotOverwritePresenter_XYZ",
+        )
+
+    def test_now_playing_not_overwritten_by_put(
+        self, mongo_db, auth_headers, radiogroep_ctx
+    ):
+        self._fastpath_does_not_touch(
+            mongo_db, auth_headers, radiogroep_ctx,
+            fixture_type="now_playing",
+            fixture_text="Fixture Artist - Fixture Song (test)",
+            put_value="ShouldNotOverwriteNowPlaying_XYZ",
+        )

@@ -350,8 +350,12 @@ async def update_station(
                 {"_id": 0},
             )
             output = await db.rds_builder_output.find_one({"station": code}, {"_id": 0})
-            if not active and output and output.get("current_item_type") in ("show_name", "", None):
-                new_text = update_fields.get("default_text", "") or ""
+            if not active and output and output.get("current_item_type") == "show_name":
+                # Use the resolver so a cleared field falls back to the
+                # legacy map instead of blanking the Monitor for ~10s until
+                # the scheduler catches up.
+                from services.rds_builder_scheduler import resolve_station_default_text
+                new_text = await resolve_station_default_text(db, code)
                 if new_text != (output.get("current_text") or ""):
                     now_iso = datetime.now(timezone.utc).isoformat()
                     await db.rds_builder_output.update_one(
@@ -363,10 +367,11 @@ async def update_station(
                         }},
                     )
                     # Also invalidate the /monitor endpoint 5s cache so the
-                    # UI sees the change on the very next poll.
+                    # UI sees the change on the very next poll. Keep the
+                    # canonical shape used by rds_builder.get_rds_monitor_data.
                     try:
                         from routers import rds_builder as _rb
-                        _rb._monitor_cache = {}
+                        _rb._monitor_cache = {"data": None, "timestamp": None, "cache_key": None}
                     except Exception:
                         pass
         except Exception as e:

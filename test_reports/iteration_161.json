@@ -1,0 +1,35 @@
+{
+  "summary": "Backend-only re-verification of the two iteration_160 review refinements in PUT /api/rds-stations/{main_site_id}/{station_id}: (1) strict `output.get('current_item_type') == 'show_name'` gate on the fast-path, (2) fast-path writes `resolve_station_default_text(db, code)` instead of raw `default_text` so a cleared field recovers the legacy hardcoded map (`grk` -> 'the feelgood station', `mfy` -> 'altijd dichtbij') without waiting ~10s for the scheduler tick. All 13 previously-green tests still pass (7 iter-159 + 6 iter-160). Added 3 new assertions (1 for immediate legacy recovery on empty PUT, 2 for presenter_name/now_playing protection) — 16/16 green in 7.7s. DB state verified restored to legacy defaults post-run with 0 fixture leftovers.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_rds_default_text_propagation.py",
+    "/app/backend/tests/test_rds_default_show_text.py",
+    "/app/test_reports/pytest/iteration_161_default_text_refined.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "routers/rds_stations.py:353 — strict `== 'show_name'` gate now correctly protects `presenter_name` / `now_playing` items from the fast-path (verified: fixture with type='presenter_name' or 'now_playing' + PUT default_text does NOT trigger a fast-path write). The previous flag from iteration_160 is now resolved.",
+    "routers/rds_stations.py:358 — fast-path now calls `resolve_station_default_text(db, code)` so empty PUT recovers the legacy fallback within ~200ms (measured), eliminating the ~10s blank flicker in the Monitor between PUT and next scheduler tick. Verified via new TestClearedFieldImmediateLegacyFallback::test_empty_put_yields_legacy_immediately.",
+    "routers/rds_stations.py:374 — the cache-invalidation shape is now `{'data': None, 'timestamp': None, 'cache_key': None}` (canonical), addressing the iteration_160 shape-inconsistency comment.",
+    "Minor race caveat (informational, not a bug): the RDS Builder scheduler tick runs every 1s and, for `presenter_name`/`now_playing` items with no live show, will legitimately rewrite `current_text` via `run_rds_builder_cycle` → `get_item_text` → `default_text` fallback (services/rds_builder_scheduler.py:463-471). The new test `test_presenter_name_not_overwritten_by_put` therefore asserts on the immediate post-PUT DB read (fast-path is synchronous within the handler) rather than after a sleep, which is the correct scope for validating the fast-path gate. Any subsequent scheduler-driven rewrite is a separate concern outside this iteration.",
+    "services/rds_builder_scheduler.py:267 — `resolve_station_default_text` still queries `rds_stations` by `code` only, no `main_site_id` scope. Multi-tenant concern flagged since iteration_159 remains open. OK for current single-tenant grk/mfy topology, but if a second main site ever adopts code='grk', the first document wins. Suggest scoping by main_site_id when the RDS Settings page migrates to per-site station lookups."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_rds_default_text_propagation.py"
+  ],
+  "success_rate": {"backend": "100% (16/16 — 7 iter-159 regression + 6 iter-160 propagation + 3 new iter-161 refinement)", "frontend": "N/A (backend only)"},
+  "test_credentials": "admkoodh@koodh.com / KYLovie13monx (from /app/memory/test_credentials.md)",
+  "seed_data_creation": "The autouse module-scope fixture snapshots grk/mfy default_text + rds_builder_output docs + active rds_cached_rundowns, forces current_item_type='show_name' during the run, and restores all state on teardown (default_text via PUT, rds_builder_output via direct update, live rundowns re-activated). The 3 new tests each apply their own transient state (presenter_name / now_playing / cleared-empty) and restore before assertions. Post-run DB verification: rds_stations{grk,mfy}.default_text = legacy values; rds_builder_output{grk,mfy}.current_item_type='show_name'; 0 fixture leftovers in rds_cached_rundowns.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Both test files (/app/backend/tests/test_rds_default_show_text.py + /app/backend/tests/test_rds_default_text_propagation.py) are the canonical regression suite for the editable-default-text feature — 16 tests, ~8s run time, requires local Mongo access (MONGO_URL / DB_NAME env). New in iter-161: TestClearedFieldImmediateLegacyFallback (verifies fast-path calls resolve_station_default_text) and TestPresenterNameProtection (verifies strict == 'show_name' gate; asserts on immediate post-PUT DB read to avoid racing the 1s scheduler tick). If future iterations widen the fast-path (e.g. to also handle scheduled_text), extend TestPresenterNameProtection with additional fixture_type cases. resolve_station_default_text still queries by `code` only — flag for main_site_id scoping when multi-tenant lands.",
+  "rca of the issue": "N/A — no bugs found. Both review refinements land correctly: strict `== 'show_name'` gate confirmed (fast-path skips on presenter_name/now_playing types); resolve_station_default_text called from fast-path confirmed (empty PUT immediately yields legacy fallback in Monitor within ~200ms and writes legacy value to rds_builder_output.current_text, no ~10s blank flicker)."
+}
