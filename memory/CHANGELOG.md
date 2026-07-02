@@ -1,6 +1,25 @@
 # Changelog
 
 
+## 2026-06-27 — Per-station Now Playing casing selector
+
+### Nieuw
+- `rds_stations.now_playing_case` (mixed | upper | lower | sentence, default 'mixed'). Editable via RDS Settings.
+- **Backend**: `services/shoutcast.py.format_now_playing(song, case)` uitgebreid met case-parameter. `get_now_playing` leest `now_playing_case` uit DB en past 'm toe vóór caching. `services/rds_builder_scheduler.py.get_item_text` skipt de `is_unformatted_title` safety fallback voor non-mixed modes (elk casing is dan by design correct).
+- **PUT fast-path** in `routers/rds_stations.py`: bij wijziging van `now_playing_case` → `cache_now_playing` retriggeren + `_monitor_cache` invalidateren zodat de nieuwe formatting binnen ~200ms in Monitor + DAB verschijnt.
+- **Frontend**: nieuwe card in RDS Settings met 4 knoppen per station (`data-testid=np-case-{code}-{key}`), preview label (ARTIST - Title / ARTIST - TITLE / artist - title / Artist - Title), en één shared Save-knop met de stationskleur.
+
+### Waarom "soms nog now playing zonder opmaak" op DAB
+Bij mixed-mode kickte de `is_unformatted_title` safety net soms in en gaf de builder tijdelijk `''` terug — daardoor viel de output op de fallback show-name. Nu is dat gedrag alleen actief voor mixed; upper/lower/sentence garanderen 100% opmaak.
+
+### Tests
+- `backend/tests/test_rds_now_playing_case.py` — 30 nieuwe pytest cases (unit voor format_now_playing, PUT persistence, sanitisatie, fast-path re-cache, get_item_text-gate).
+- 46/46 groen (iter-162: 30 nieuw + 16 regression uit iter-161).
+
+### Deploy
+- VDC: `9f175ceb-85ee-4a35-bf11-fdde4d8b7467` (pending approval).
+
+
 ## 2026-06-27 — RDS Monitor volgt nu de editable Default show text
 
 ### Root cause
