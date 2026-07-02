@@ -1,6 +1,26 @@
 # Changelog
 
 
+## 2026-06-27 — Now Playing artiest + titel op aparte regels
+
+### Nieuw
+- Per-station boolean `now_playing_two_lines` (default `False`) op `rds_stations`. Wanneer aan → `format_now_playing` joint artist + title met `\n` i.p.v. ` - `.
+- Werkt met alle 4 case-modi: `ARTIST\nTitle` / `ARTIST\nTITLE` / `artist\ntitle` / `Artist\nTitle`.
+- Backwards-compat: als input geen artist/title separator heeft, blijft de output één regel (geen kunstmatige newline).
+- **PUT fast-path** re-cachet shoutcast + invalidateert monitor-cache zodra flag verandert → nieuwe layout binnen ~200ms zichtbaar.
+- Frontend: checkbox in de RDS Settings casing-card met preview snippet `ARTIST↵Title` (data-testid `np-twolines-{code}`).
+
+### DAB/RDS gedrag
+Moderne DAB/MagicRDS firmware rendert `\n` als fysieke line-break. Oudere receivers collapsen naar spatie → nog steeds leesbaar. Geen aparte config nodig voor DAB.
+
+### Tests
+- `backend/tests/test_rds_now_playing_two_lines.py` — 30 nieuwe pytest cases (4×2 case-matrix, no-separator, empty, backwards-compat kwarg, PUT persist + omit-preserve, fast-path re-cache, publieke endpoints (JSON + .txt) preserven raw \n).
+- Totaal RDS Settings regression: 74/74 executed groen (2 pre-existing skips unrelated).
+
+### Deploy
+- VDC: `ef0c0e66-6c0a-42c3-8500-5390211ce250` (pending approval).
+
+
 ## 2026-06-27 — Per-station Now Playing casing selector
 
 ### Nieuw
