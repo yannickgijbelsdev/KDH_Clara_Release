@@ -336,10 +336,14 @@ async def get_item_text(db, station: str, item: dict) -> str:
             song_title = cached.get("song_title", "")
             raw_title = cached.get("raw_song_title", "")
             
-            # Check if the title appears unformatted (all caps including song part)
-            # This can happen when the cache hasn't been updated yet after deployment
-            # In this case, show fallback text to give time for proper formatting
-            if song_title and raw_title:
+            # Only apply the "unformatted" safety fallback when the station
+            # is using the legacy MIXED case rule. For upper/lower/sentence
+            # modes ANY casing is by definition correct, so skip the check.
+            station_doc = await db.rds_stations.find_one(
+                {"code": source_station}, {"_id": 0, "now_playing_case": 1}
+            )
+            case_pref = ((station_doc or {}).get("now_playing_case") or "mixed").lower()
+            if case_pref == "mixed" and song_title and raw_title:
                 # Import the check function
                 from services.shoutcast import is_unformatted_title
                 if is_unformatted_title(song_title):

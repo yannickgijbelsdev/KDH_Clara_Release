@@ -333,10 +333,11 @@ const RDSSettingsPage = () => {
     try {
       await axios.put(`${API}/rds-stations/${mainSiteId}/${station.id}`, {
         default_text: (station.default_text || '').trim(),
+        now_playing_case: station.now_playing_case || 'mixed',
       });
-      toast.success(`Default show-tekst opgeslagen voor ${station.name}`);
+      toast.success(`Instellingen opgeslagen voor ${station.name}`);
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Kon default show-tekst niet opslaan');
+      toast.error(error.response?.data?.detail || 'Kon instellingen niet opslaan');
     } finally {
       setSavingDefaultText(null);
     }
@@ -652,41 +653,81 @@ const RDSSettingsPage = () => {
       <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-6" data-testid="default-show-text-section">
         <div className="flex items-center gap-2 mb-2">
           <Radio className="w-5 h-5 text-emerald-500" />
-          <h2 className="text-lg font-semibold text-zinc-900">Default show text</h2>
+          <h2 className="text-lg font-semibold text-zinc-900">Default show text & Now playing formatting</h2>
         </div>
         <p className="text-zinc-500 text-sm mb-4">
-          Deze tekst verschijnt als show-naam in de RDS-output wanneer er <span className="font-medium text-zinc-700">geen live show</span> loopt.
-          Handig voor slogans of algemene branding (bijv. "the feelgood station").
+          Zet de <span className="font-medium text-zinc-700">show-naam</span> die verschijnt wanneer er geen live show loopt, en kies de
+          <span className="font-medium text-zinc-700"> hoofdlettergebruik</span> voor <em>Now playing</em>. De formatting geldt overal — RDS Monitor, DAB, MagicRDS, en de public /live endpoints.
         </p>
 
         {stations.length === 0 && (
           <p className="text-zinc-500 text-sm italic">Geen stations geconfigureerd. Voeg RDS-stations toe via de site-instellingen.</p>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {stations.map((st, idx) => (
-            <div key={st.id || st.code}>
-              <Label className="text-xs text-zinc-400 flex items-center gap-2 mb-1">
-                <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: st.color }} />
-                {st.name}
-              </Label>
-              <div className="flex gap-2">
-                <Input
-                  value={st.default_text || ''}
-                  onChange={(e) => {
-                    const next = [...stations];
-                    next[idx] = { ...next[idx], default_text: e.target.value };
-                    setStations(next);
-                  }}
-                  placeholder={`e.g. ${st.name === 'GRK' ? 'the feelgood station' : 'jouw favoriete hits'}`}
-                  className="bg-zinc-50 border-zinc-200 text-zinc-900"
-                  data-testid={`default-show-text-${st.code}`}
-                />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {stations.map((st, idx) => {
+            const npCase = st.now_playing_case || 'mixed';
+            const NP_OPTIONS = [
+              { key: 'mixed', label: 'ARTIST - Title', hint: 'Artiest UPPER, titel Title Case (huidige default)' },
+              { key: 'upper', label: 'ARTIST - TITLE', hint: 'Alles HOOFDLETTERS' },
+              { key: 'lower', label: 'artist - title', hint: 'Alles kleine letters' },
+              { key: 'sentence', label: 'Artist - Title', hint: 'Beide delen in Title Case' },
+            ];
+            return (
+              <div key={st.id || st.code} className="border border-zinc-200 rounded-lg p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: st.color }} />
+                  <span className="text-sm font-semibold text-zinc-900">{st.name}</span>
+                </div>
+
+                <div>
+                  <Label className="text-xs text-zinc-500">Default show text</Label>
+                  <Input
+                    value={st.default_text || ''}
+                    onChange={(e) => {
+                      const next = [...stations];
+                      next[idx] = { ...next[idx], default_text: e.target.value };
+                      setStations(next);
+                    }}
+                    placeholder={`e.g. ${st.name === 'GRK' ? 'the feelgood station' : 'jouw favoriete hits'}`}
+                    className="bg-zinc-50 border-zinc-200 text-zinc-900 mt-1"
+                    data-testid={`default-show-text-${st.code}`}
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-xs text-zinc-500 block mb-1">Now playing formatting</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {NP_OPTIONS.map(opt => (
+                      <button
+                        key={opt.key}
+                        type="button"
+                        onClick={() => {
+                          const next = [...stations];
+                          next[idx] = { ...next[idx], now_playing_case: opt.key };
+                          setStations(next);
+                        }}
+                        title={opt.hint}
+                        className={`text-left border rounded-md px-3 py-2 transition-colors ${
+                          npCase === opt.key
+                            ? 'border-transparent text-white shadow-sm'
+                            : 'border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50'
+                        }`}
+                        style={npCase === opt.key ? { backgroundColor: st.color } : {}}
+                        data-testid={`np-case-${st.code}-${opt.key}`}
+                      >
+                        <div className="text-xs font-mono leading-tight">{opt.label}</div>
+                        <div className={`text-[10px] ${npCase === opt.key ? 'text-white/80' : 'text-zinc-500'}`}>{opt.hint}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <Button
                   size="sm"
                   onClick={() => saveDefaultShowText(st)}
                   disabled={savingDefaultText === st.id}
-                  className="text-white shrink-0"
+                  className="text-white w-full"
                   style={{ backgroundColor: st.color }}
                   data-testid={`save-default-show-text-${st.code}`}
                 >
@@ -694,8 +735,8 @@ const RDSSettingsPage = () => {
                   {savingDefaultText === st.id ? 'Saving…' : 'Save'}
                 </Button>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

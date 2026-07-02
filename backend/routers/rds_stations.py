@@ -41,6 +41,7 @@ class RDSStationCreate(BaseModel):
     stream_url: Optional[str] = None
     stream_type: str = "shoutcast_v1"  # shoutcast_v1, shoutcast_v2, icecast
     default_text: str = ""  # fallback text when no show is live
+    now_playing_case: str = "mixed"  # mixed | upper | lower | sentence
     color: str = "#f97316"
     order: int = 0
     custom_streams: List[CustomStreamSchedule] = Field(default_factory=list)
@@ -52,6 +53,7 @@ class RDSStationUpdate(BaseModel):
     stream_url: Optional[str] = None
     stream_type: Optional[str] = None
     default_text: Optional[str] = None
+    now_playing_case: Optional[str] = None
     color: Optional[str] = None
     order: Optional[int] = None
     custom_streams: Optional[List[CustomStreamSchedule]] = None
@@ -63,6 +65,14 @@ class RDSStationBulkSync(BaseModel):
 
 
 # ── Helpers ──
+
+_ALLOWED_CASES = {"mixed", "upper", "lower", "sentence"}
+
+
+def _sanitize_case(value) -> str:
+    v = (value or "").strip().lower()
+    return v if v in _ALLOWED_CASES else "mixed"
+
 
 def _normalize_custom_stream(s) -> dict:
     """Coerce a CustomStreamSchedule (model or dict) into a clean db dict.
@@ -216,6 +226,7 @@ async def create_station(
         "stream_url": (data.stream_url or "").strip(),
         "stream_type": data.stream_type,
         "default_text": data.default_text.strip(),
+        "now_playing_case": _sanitize_case(data.now_playing_case),
         "color": data.color,
         "order": data.order,
         "custom_streams": [_normalize_custom_stream(s) for s in (data.custom_streams or [])],
@@ -266,6 +277,7 @@ async def bulk_sync_stations(
             "stream_url": (station.stream_url or "").strip(),
             "stream_type": station.stream_type,
             "default_text": station.default_text.strip(),
+            "now_playing_case": _sanitize_case(getattr(station, "now_playing_case", None)) if getattr(station, "now_playing_case", None) else (prev.get("now_playing_case") if prev else "mixed"),
             "color": station.color,
             "order": i,
             "custom_streams": [_normalize_custom_stream(s) for s in (station.custom_streams or [])] or (prev.get("custom_streams", []) if prev else []),
@@ -318,6 +330,8 @@ async def update_station(
         update_fields["stream_type"] = data.stream_type
     if data.default_text is not None:
         update_fields["default_text"] = data.default_text.strip()
+    if data.now_playing_case is not None:
+        update_fields["now_playing_case"] = _sanitize_case(data.now_playing_case)
     if data.color is not None:
         update_fields["color"] = data.color
     if data.order is not None:
@@ -337,6 +351,21 @@ async def update_station(
             await cache_now_playing(db, updated["code"])
         except Exception as e:
             logger.warning(f"Cache refresh after custom_streams update failed: {e}")
+
+    # If `now_playing_case` changed, re-format the currently cached
+    # song title with the new case and refresh the builder output so the
+    # DAB/RDS display picks up the new formatting on the very next poll.
+    if data.now_playing_case is not None and updated:
+        try:
+            from services.shoutcast import cache_now_playing
+            await cache_now_playing(db, updated["code"])
+            try:
+                from routers import rds_builder as _rb
+                _rb._monitor_cache = {"data": None, "timestamp": None, "cache_key": None}
+            except Exception:
+                pass
+        except Exception as e:
+            logger.warning(f"now_playing_case refresh failed for {station_id}: {e}")
 
     # If `default_text` was changed and the station is currently showing a
     # show_name item (i.e. no live show active), refresh rds_builder_output

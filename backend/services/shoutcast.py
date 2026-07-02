@@ -206,10 +206,16 @@ def smart_title_case(text: str) -> str:
     return result
 
 
-def format_now_playing(song_title: str) -> str:
-    """Format now playing text: ARTIST in UPPERCASE, Title in Title Case.
-    
-    Examples:
+def format_now_playing(song_title: str, case: str = "mixed") -> str:
+    """Format now-playing text.
+
+    ``case`` controls the output style:
+      * ``"mixed"`` (legacy default): ARTIST in UPPERCASE, Title in Title Case
+      * ``"upper"``: entire string uppercased ("PHIL COLLINS - IN THE AIR TONIGHT")
+      * ``"lower"``: entire string lowercased ("phil collins - in the air tonight")
+      * ``"sentence"``: Title Case both parts ("Phil Collins - In The Air Tonight")
+
+    Examples with ``case="mixed"``:
     - "phil collins - in the air tonight" → "PHIL COLLINS - In The Air Tonight"
     - "ABBA - Dancing Queen" → "ABBA - Dancing Queen"
     - "Some Artist" (no separator) → "SOME ARTIST"
@@ -217,33 +223,44 @@ def format_now_playing(song_title: str) -> str:
     """
     if not song_title:
         return song_title
-    
+
     # Clean up any trailing separators from filtered content
     song_title = song_title.strip()
     for sep in [" - ", " – ", " — ", "-", "–", "—"]:
         if song_title.endswith(sep.strip()):
             song_title = song_title.rstrip(sep.strip()).strip()
-    
+
     if not song_title:
         return song_title
-    
+
+    # Non-mixed cases apply unconditionally regardless of separator presence —
+    # editors picked the style knowingly.
+    case = (case or "mixed").lower()
+    if case == "upper":
+        return song_title.upper()
+    if case == "lower":
+        return song_title.lower()
+    if case == "sentence":
+        return smart_title_case(song_title)
+
+    # ── legacy "mixed" mode below ─────────────────────────────────────
     # Common separators between artist and title
     separators = [" - ", " – ", " — "]
-    
+
     for sep in separators:
         if sep in song_title:
             parts = song_title.split(sep, 1)  # Split only on first occurrence
             if len(parts) == 2:
                 artist = parts[0].strip().upper()  # UPPERCASE for artist
                 title = parts[1].strip()
-                
+
                 # If title is empty after filter, just return artist
                 if not title:
                     return artist
-                
+
                 title = smart_title_case(title)  # Smart Title Case for song title
                 return f"{artist} - {title}"
-    
+
     # No separator found - treat entire string as artist name
     return song_title.upper()
 
@@ -460,7 +477,17 @@ async def get_now_playing(station: str, db=None, apply_filter: bool = True) -> D
 
     raw_song_title = parsed["raw_song_title"]
     filtered_title = apply_filters(raw_song_title, filters) if apply_filter else raw_song_title
-    song_title = format_now_playing(filtered_title) if apply_filter else filtered_title
+    # Look up per-station case preference (mixed / upper / lower / sentence).
+    # Defaults to legacy "mixed" so untouched stations behave exactly as before.
+    case_pref = "mixed"
+    if db is not None:
+        try:
+            st_doc = await _get_station_doc(station)
+            if st_doc and (st_doc.get("now_playing_case") or "").strip():
+                case_pref = st_doc["now_playing_case"].strip().lower()
+        except Exception:
+            pass
+    song_title = format_now_playing(filtered_title, case=case_pref) if apply_filter else filtered_title
 
     return {
         "status": "success",

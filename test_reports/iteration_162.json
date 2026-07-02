@@ -1,0 +1,37 @@
+{
+  "summary": "Backend-only verification of the per-station Now Playing casing feature (iteration 162). Added /app/backend/tests/test_rds_now_playing_case.py with 30 tests covering: (1) format_now_playing() unit — 14 tests spanning mixed/upper/lower/sentence + edge cases (empty string, no separator, unknown case, None case, kwarg default); (2) PUT /api/rds-stations/{main_site_id}/{station_id} persistence + _sanitize_case helper — 8 tests (upper/lower/sentence/mixed persist, 'invalid' → 'mixed', case-insensitive input, whitespace trim, other-fields preservation); (3) fast-path re-cache when now_playing_case changes — 2 tests (upper/lower reformat cached song_title); (4) get_item_text('now_playing') branch — 5 tests confirming the is_unformatted_title safety fallback is now gated on case=='mixed' (mixed unformatted → '', lower/upper/sentence return song_title as-is, mixed properly-formatted returned); (5) public GET /api/rds/grk/now-playing endpoint honours cached title — 1 test. All 30 new tests + full iteration_161 regression suite (16/16) pass in ~9.8s and ~5.7s respectively. Post-run DB state verified restored (grk & mfy now_playing_case='mixed', legacy default_text intact, shoutcast_cache.song_title back to a real live-stream value).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_rds_now_playing_case.py",
+    "/app/test_reports/pytest/iteration_162_now_playing_case.xml",
+    "/app/test_reports/pytest/iteration_162_regression.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "services/shoutcast.py:209-265 — format_now_playing correctly branches on case *before* the separator scan for non-mixed modes, so upper/lower/sentence are applied unconditionally (even for strings without a ' - ' separator). Verified via test_upper_preserves_no_separator / test_lower_preserves_no_separator / test_sentence_no_separator_title_cases_whole_string.",
+    "services/shoutcast.py:238 — `case = (case or 'mixed').lower()` correctly handles None + odd casing input from callers. Unknown values silently fall through to the mixed branch (defensive default). This is the same behaviour as `_sanitize_case` in routers/rds_stations.py, so the two layers agree.",
+    "services/shoutcast.py:482-489 — get_now_playing reads station.now_playing_case from DB via _get_station_doc which is scoped by `code` only (not by main_site_id). Same multi-tenant caveat flagged in iteration_161 for resolve_station_default_text: if two main sites ever share the code 'grk', the first document wins. Not a bug today (single-tenant grk/mfy topology), but worth revisiting when RDS Settings goes multi-site.",
+    "services/rds_builder_scheduler.py:342-346 — the case_pref lookup inside get_item_text executes an extra rds_stations.find_one for EVERY now_playing tick (one per station per 1s scheduler cycle). Marginal cost today (2 stations × 1/s = 2 QPS on an indexed field), but if the scheduler cadence tightens or station count grows this could be co-located with the shoutcast_cache read (single aggregation) or memoised for a few seconds. Not urgent.",
+    "routers/rds_stations.py:44,56,229,280,334 — RDSStationCreate + RDSStationUpdate + POST create + bulk-sync + PUT update all consistently apply _sanitize_case. bulk-sync additionally preserves the prior value when the incoming payload omits the field, which is the correct behaviour for a full-replace endpoint.",
+    "routers/rds_stations.py:358-368 — fast-path re-cache is guarded by `data.now_playing_case is not None`, which triggers on ANY PUT that includes the field even when the value is unchanged. Minor micro-optimisation opportunity (compare against the previous DB value before firing cache_now_playing) but not a correctness issue; cache_now_playing is idempotent and re-hitting Shoutcast every ~few clicks is fine.",
+    "routers/rds_stations.py:362-366 — _monitor_cache invalidation uses the canonical shape `{'data': None, 'timestamp': None, 'cache_key': None}` matching the default_text fast-path (iteration 161). Consistent."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_rds_now_playing_case.py"
+  ],
+  "success_rate": {"backend": "100% (30/30 new + 16/16 regression = 46/46)", "frontend": "N/A (backend only)"},
+  "test_credentials": "admkoodh@koodh.com / KYLovie13monx (from /app/memory/test_credentials.md)",
+  "seed_data_creation": "Autouse module-scope fixture `snapshot_case` snapshots now_playing_case for grk/mfy and the shoutcast_cache doc for grk; restores everything on teardown via PUT + direct mongo write. Individual tests transiently mutate shoutcast_cache.song_title/raw_song_title and rds_stations.now_playing_case; no leftovers on the shared preview env (verified post-run: grk/mfy now_playing_case='mixed', shoutcast_cache song_title back to real live value 'TOY DOLLS - Nelly The Elephant').",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "The new canonical regression suite for the per-station Now Playing casing feature is /app/backend/tests/test_rds_now_playing_case.py — 30 tests, ~10s runtime, requires local Mongo + BASE_URL env. Note the async pattern used for calling get_item_text directly from a sync test: create a fresh AsyncIOMotorClient inside asyncio.run so it binds to the local loop (do NOT import `database.db` — that client caches a loop that closes between test runs). Combined with iteration_161's default_text suites (test_rds_default_show_text.py + test_rds_default_text_propagation.py = 16 tests) the full RDS-settings regression is 46 tests / ~16s. Multi-tenant caveat still open (from iter 161): both resolve_station_default_text and get_now_playing / get_item_text look up rds_stations by `code` only — flag for main_site_id scoping when a second main site adopts overlapping codes.",
+  "rca of the issue": "N/A — no bugs found. All 12 features listed in the review request verified green: (a) format_now_playing branches correctly on all 4 cases including no-separator sentence & empty-string; (b) _sanitize_case coerces 'invalid' + whitespace + case-mixed input to canonical lowercase or 'mixed'; (c) PUT persistence round-trips through GET; (d) fast-path re-caches shoutcast with the new case (verified via direct shoutcast_cache assertion); (e) get_item_text now_playing branch skips the is_unformatted_title safety net for non-mixed cases (verified with all 4 fixtures); (f) 16/16 iteration_161 tests still green — no regression."
+}
