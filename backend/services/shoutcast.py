@@ -206,14 +206,19 @@ def smart_title_case(text: str) -> str:
     return result
 
 
-def format_now_playing(song_title: str, case: str = "mixed") -> str:
+def format_now_playing(song_title: str, case: str = "mixed", two_lines: bool = False) -> str:
     """Format now-playing text.
 
-    ``case`` controls the output style:
+    ``case`` controls the casing style:
       * ``"mixed"`` (legacy default): ARTIST in UPPERCASE, Title in Title Case
       * ``"upper"``: entire string uppercased ("PHIL COLLINS - IN THE AIR TONIGHT")
       * ``"lower"``: entire string lowercased ("phil collins - in the air tonight")
       * ``"sentence"``: Title Case both parts ("Phil Collins - In The Air Tonight")
+
+    ``two_lines`` — when ``True``, joins artist and title with a newline
+    (``\\n``) instead of `` - ``. Some RDS/DAB receivers render this as a
+    physical line break in the Dynamic Label; consumers that don't handle
+    the newline usually collapse it to a space, which is still readable.
 
     Examples with ``case="mixed"``:
     - "phil collins - in the air tonight" → "PHIL COLLINS - In The Air Tonight"
@@ -233,20 +238,37 @@ def format_now_playing(song_title: str, case: str = "mixed") -> str:
     if not song_title:
         return song_title
 
-    # Non-mixed cases apply unconditionally regardless of separator presence —
-    # editors picked the style knowingly.
     case = (case or "mixed").lower()
-    if case == "upper":
-        return song_title.upper()
-    if case == "lower":
-        return song_title.lower()
-    if case == "sentence":
-        return smart_title_case(song_title)
+    join_sep = "\n" if two_lines else " - "
 
-    # ── legacy "mixed" mode below ─────────────────────────────────────
     # Common separators between artist and title
     separators = [" - ", " – ", " — "]
 
+    # For non-mixed cases, still detect and re-split on separator so we can
+    # honour the two-lines request while applying the requested casing.
+    if case in ("upper", "lower", "sentence"):
+        for sep in separators:
+            if sep in song_title:
+                parts = song_title.split(sep, 1)
+                if len(parts) == 2:
+                    artist_raw, title_raw = parts[0].strip(), parts[1].strip()
+                    if case == "upper":
+                        artist, title = artist_raw.upper(), title_raw.upper()
+                    elif case == "lower":
+                        artist, title = artist_raw.lower(), title_raw.lower()
+                    else:  # sentence
+                        artist, title = smart_title_case(artist_raw), smart_title_case(title_raw)
+                    if not title:
+                        return artist
+                    return f"{artist}{join_sep}{title}"
+        # No separator — apply case to the whole string, no join needed
+        if case == "upper":
+            return song_title.upper()
+        if case == "lower":
+            return song_title.lower()
+        return smart_title_case(song_title)
+
+    # ── legacy "mixed" mode ───────────────────────────────────────────
     for sep in separators:
         if sep in song_title:
             parts = song_title.split(sep, 1)  # Split only on first occurrence
@@ -259,7 +281,7 @@ def format_now_playing(song_title: str, case: str = "mixed") -> str:
                     return artist
 
                 title = smart_title_case(title)  # Smart Title Case for song title
-                return f"{artist} - {title}"
+                return f"{artist}{join_sep}{title}"
 
     # No separator found - treat entire string as artist name
     return song_title.upper()
@@ -477,17 +499,21 @@ async def get_now_playing(station: str, db=None, apply_filter: bool = True) -> D
 
     raw_song_title = parsed["raw_song_title"]
     filtered_title = apply_filters(raw_song_title, filters) if apply_filter else raw_song_title
-    # Look up per-station case preference (mixed / upper / lower / sentence).
-    # Defaults to legacy "mixed" so untouched stations behave exactly as before.
+    # Look up per-station case + two-lines prefs.
+    # Defaults to legacy "mixed" + single line so untouched stations behave
+    # exactly as before.
     case_pref = "mixed"
+    two_lines_pref = False
     if db is not None:
         try:
             st_doc = await _get_station_doc(station)
-            if st_doc and (st_doc.get("now_playing_case") or "").strip():
-                case_pref = st_doc["now_playing_case"].strip().lower()
+            if st_doc:
+                if (st_doc.get("now_playing_case") or "").strip():
+                    case_pref = st_doc["now_playing_case"].strip().lower()
+                two_lines_pref = bool(st_doc.get("now_playing_two_lines"))
         except Exception:
             pass
-    song_title = format_now_playing(filtered_title, case=case_pref) if apply_filter else filtered_title
+    song_title = format_now_playing(filtered_title, case=case_pref, two_lines=two_lines_pref) if apply_filter else filtered_title
 
     return {
         "status": "success",

@@ -334,6 +334,7 @@ const RDSSettingsPage = () => {
       await axios.put(`${API}/rds-stations/${mainSiteId}/${station.id}`, {
         default_text: (station.default_text || '').trim(),
         now_playing_case: station.now_playing_case || 'mixed',
+        now_playing_two_lines: !!station.now_playing_two_lines,
       });
       toast.success(`Instellingen opgeslagen voor ${station.name}`);
     } catch (error) {
@@ -721,6 +722,32 @@ const RDSSettingsPage = () => {
                       </button>
                     ))}
                   </div>
+                  <label
+                    className="flex items-start gap-2 mt-3 cursor-pointer group select-none"
+                    data-testid={`np-twolines-label-${st.code}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={!!st.now_playing_two_lines}
+                      onChange={(e) => {
+                        const next = [...stations];
+                        next[idx] = { ...next[idx], now_playing_two_lines: e.target.checked };
+                        setStations(next);
+                      }}
+                      className="mt-0.5 accent-zinc-800"
+                      data-testid={`np-twolines-${st.code}`}
+                    />
+                    <div className="text-xs">
+                      <div className="font-medium text-zinc-700 group-hover:text-zinc-900">
+                        Artiest & titel op aparte regels
+                      </div>
+                      <div className="text-[11px] text-zinc-500 leading-snug">
+                        Op DAB/RDS-displays die newlines ondersteunen verschijnt de titel op regel 2.
+                        <br />
+                        Preview: <span className="font-mono text-zinc-700">ARTIST<span className="text-zinc-400">↵</span>Title</span>
+                      </div>
+                    </div>
+                  </label>
                 </div>
 
                 <Button
