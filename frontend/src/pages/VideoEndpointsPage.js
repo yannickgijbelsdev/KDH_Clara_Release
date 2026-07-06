@@ -535,7 +535,7 @@ export default function VideoEndpointsPage() {
 
       {/* Preview dialog */}
       <Dialog open={!!previewItem} onOpenChange={(o) => !o && setPreviewItem(null)}>
-        <DialogContent className="bg-white max-w-3xl">
+        <DialogContent className="bg-white max-w-3xl w-[92vw] overflow-hidden p-6">
           <DialogHeader>
             <DialogTitle>{previewItem?.name}</DialogTitle>
             <DialogDescription className="text-zinc-500 text-sm">
@@ -544,12 +544,13 @@ export default function VideoEndpointsPage() {
           </DialogHeader>
           {previewItem?.embed_html && (
             <div
-              className="aspect-video w-full"
+              className="relative w-full rounded-lg overflow-hidden bg-black clara-video-preview"
+              style={{ aspectRatio: '16 / 9' }}
               // eslint-disable-next-line react/no-danger
               dangerouslySetInnerHTML={{ __html: previewItem.embed_html }}
             />
           )}
-          <div className="mt-2">
+          <div className="mt-3">
             <Label className="text-[11px] text-zinc-400">Embed HTML</Label>
             <Textarea
               readOnly

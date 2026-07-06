@@ -341,3 +341,19 @@ input:focus, textarea:focus, select:focus {
   background-color: #18181b;
 }
 
+
+/* Force embedded iframes/videos in the Video Endpoint preview to fill
+   their aspect-ratio container regardless of hardcoded width/height
+   attributes in the pasted embed HTML (Vimeo/YouTube snippets often
+   ship with height="450" which overflows the modal). */
+.clara-video-preview iframe,
+.clara-video-preview video,
+.clara-video-preview embed,
+.clara-video-preview object {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  border: 0;
+  display: block;
+}
