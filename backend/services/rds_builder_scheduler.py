@@ -270,6 +270,38 @@ async def resolve_station_default_text(db, station: str) -> str:
     return _LEGACY_DEFAULT_STATION_NAMES.get(station, "")
 
 
+async def _apply_type_padding(db, station: str, item_type: str, text: str) -> str:
+    """Optionally split ``text`` into two padded lines when the item type is
+    listed in ``rds_stations.two_lines_types`` for this station and
+    ``line_width > 0``.
+
+    Delegates to ``services.shoutcast.apply_two_lines_padding`` so the split
+    + pad logic is defined in exactly one place.
+    """
+    if not text:
+        return text
+    try:
+        st = await db.rds_stations.find_one(
+            {"code": station},
+            {"_id": 0, "line_width": 1, "two_lines_types": 1},
+        )
+    except Exception:
+        return text
+    if not st:
+        return text
+    types = st.get("two_lines_types") or []
+    if item_type not in types:
+        return text
+    try:
+        width = int(st.get("line_width") or 0)
+    except (TypeError, ValueError):
+        width = 0
+    if width <= 0:
+        return text
+    from services.shoutcast import apply_two_lines_padding
+    return apply_two_lines_padding(text, width)
+
+
 async def get_item_text(db, station: str, item: dict) -> str:
     """Get the text for a sequence item."""
     item_type = item.get("type")
@@ -285,11 +317,12 @@ async def get_item_text(db, station: str, item: dict) -> str:
             {"_id": 0, "show_title": 1}
         )
         if cached and cached.get("show_title"):
-            return cached["show_title"]
+            return await _apply_type_padding(db, station, "show_name", cached["show_title"])
         
         # Default fallback when no show for this station (editable via RDS
         # Settings → "Default show text"; hardcoded map is the legacy fallback).
-        return await resolve_station_default_text(db, station)
+        default_txt = await resolve_station_default_text(db, station)
+        return await _apply_type_padding(db, station, "default_text", default_txt)
     
     elif item_type == "presenter_name":
         # Get current live show presenters for this station
@@ -314,7 +347,7 @@ async def get_item_text(db, station: str, item: dict) -> str:
                     # Join with " & " for multiple presenters
                     names = [p.get("name", "") for p in presenters if p.get("name")]
                     if names:
-                        return " & ".join(names)
+                        return await _apply_type_padding(db, station, "presenter_name", " & ".join(names))
         return ""
     
     elif item_type == "now_playing":
@@ -351,7 +384,11 @@ async def get_item_text(db, station: str, item: dict) -> str:
                     return ""  # Return empty to skip and show fallback
             
             if song_title:
-                return song_title
+                # Padding for the "now_playing" item type. Note that
+                # cache_now_playing already baked in newline+padding when the
+                # station has the flag on, so double-padding is a no-op via
+                # the shoutcast helper (idempotent when line already padded).
+                return await _apply_type_padding(db, station, "now_playing", song_title)
         return ""
     
     elif item_type == "audio_trigger":
@@ -416,10 +453,11 @@ async def process_rds_sequence(db, station: str):
     
     if active_scheduled:
         # A scheduled text is active - update output with this text
+        scheduled_text = await _apply_type_padding(db, station, "scheduled_text", active_scheduled["text"])
         output_data = {
             "station": station,
             "current_index": -1,  # -1 indicates scheduled text, not sequence item
-            "current_text": active_scheduled["text"],
+            "current_text": scheduled_text,
             "current_item_type": "scheduled_text",
             "current_item_id": active_scheduled["id"],
             "scheduled_text_active": True,

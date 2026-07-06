@@ -335,6 +335,8 @@ const RDSSettingsPage = () => {
         default_text: (station.default_text || '').trim(),
         now_playing_case: station.now_playing_case || 'mixed',
         now_playing_two_lines: !!station.now_playing_two_lines,
+        line_width: typeof station.line_width === 'number' ? station.line_width : parseInt(station.line_width || '0', 10) || 0,
+        two_lines_types: Array.isArray(station.two_lines_types) ? station.two_lines_types : [],
       });
       toast.success(`Instellingen opgeslagen voor ${station.name}`);
     } catch (error) {
@@ -722,32 +724,77 @@ const RDSSettingsPage = () => {
                       </button>
                     ))}
                   </div>
-                  <label
-                    className="flex items-start gap-2 mt-3 cursor-pointer group select-none"
-                    data-testid={`np-twolines-label-${st.code}`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={!!st.now_playing_two_lines}
-                      onChange={(e) => {
-                        const next = [...stations];
-                        next[idx] = { ...next[idx], now_playing_two_lines: e.target.checked };
-                        setStations(next);
-                      }}
-                      className="mt-0.5 accent-zinc-800"
-                      data-testid={`np-twolines-${st.code}`}
-                    />
-                    <div className="text-xs">
-                      <div className="font-medium text-zinc-700 group-hover:text-zinc-900">
-                        Artiest & titel op aparte regels
-                      </div>
-                      <div className="text-[11px] text-zinc-500 leading-snug">
-                        Op DAB/RDS-displays die newlines ondersteunen verschijnt de titel op regel 2.
-                        <br />
-                        Preview: <span className="font-mono text-zinc-700">ARTIST<span className="text-zinc-400">↵</span>Title</span>
+                  <div className="mt-3 p-3 rounded-md bg-zinc-50 border border-zinc-200">
+                    <div className="text-xs font-medium text-zinc-700 mb-2">Two-lines & padding</div>
+                    <p className="text-[11px] text-zinc-500 mb-2 leading-snug">
+                      Split artiest/titel over 2 regels en vul de eerste regel op met spaties tot de gekozen breedte —
+                      forceert een line-break op DAB/RDS-displays met vaste karakter-breedte.
+                    </p>
+                    <div className="grid grid-cols-3 gap-2 items-center mb-3">
+                      <Label className="text-[11px] text-zinc-500 col-span-1">Lijnbreedte</Label>
+                      <div className="col-span-2 flex items-center gap-2">
+                        <Input
+                          type="number"
+                          min="0"
+                          max="64"
+                          step="1"
+                          value={st.line_width ?? 0}
+                          onChange={(e) => {
+                            const next = [...stations];
+                            next[idx] = { ...next[idx], line_width: Math.max(0, Math.min(64, parseInt(e.target.value || '0', 10) || 0)) };
+                            setStations(next);
+                          }}
+                          className="h-8 bg-white text-xs"
+                          data-testid={`np-line-width-${st.code}`}
+                        />
+                        <span className="text-[10px] text-zinc-500 whitespace-nowrap">chars (0 = uit)</span>
                       </div>
                     </div>
-                  </label>
+                    <div className="text-[11px] text-zinc-500 mb-1">Toepassen op:</div>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {[
+                        { key: 'now_playing', label: 'Now playing' },
+                        { key: 'show_name', label: 'Show name' },
+                        { key: 'default_text', label: 'Default text' },
+                        { key: 'presenter_name', label: 'Presenter name' },
+                        { key: 'scheduled_text', label: 'Scheduled text' },
+                      ].map((row) => {
+                        const enabled = (st.two_lines_types || []).includes(row.key)
+                          || (row.key === 'now_playing' && st.now_playing_two_lines);
+                        return (
+                          <label
+                            key={row.key}
+                            className="flex items-center gap-2 cursor-pointer text-xs text-zinc-700"
+                            data-testid={`np-2ltype-label-${st.code}-${row.key}`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={!!enabled}
+                              onChange={(e) => {
+                                const currentList = new Set(st.two_lines_types || []);
+                                // Fold the legacy bool into the list on first
+                                // interaction so users can toggle it here.
+                                if (st.now_playing_two_lines) currentList.add('now_playing');
+                                if (e.target.checked) currentList.add(row.key);
+                                else currentList.delete(row.key);
+                                const next = [...stations];
+                                next[idx] = {
+                                  ...next[idx],
+                                  two_lines_types: Array.from(currentList),
+                                  // Keep legacy field in sync when it's the now_playing toggle
+                                  ...(row.key === 'now_playing' ? { now_playing_two_lines: e.target.checked } : {}),
+                                };
+                                setStations(next);
+                              }}
+                              className="accent-zinc-800"
+                              data-testid={`np-2ltype-${st.code}-${row.key}`}
+                            />
+                            {row.label}
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
 
                 <Button

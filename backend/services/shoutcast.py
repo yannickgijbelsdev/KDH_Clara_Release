@@ -206,7 +206,29 @@ def smart_title_case(text: str) -> str:
     return result
 
 
-def format_now_playing(song_title: str, case: str = "mixed", two_lines: bool = False) -> str:
+def apply_two_lines_padding(text: str, line_width: int) -> str:
+    """Split ``text`` on the first artist/title-style separator, pad the
+    first part to ``line_width`` characters with trailing spaces and join
+    the two parts with a newline.
+
+    Used to force RDS/DAB Dynamic-Label receivers to break the line at the
+    intended point instead of wherever their fixed-width buffer happens to
+    wrap. When ``text`` has no natural separator we return it unchanged —
+    padding a single-word show name to arbitrary width is meaningless.
+
+    ``line_width <= 0`` disables the treatment entirely.
+    """
+    if not text or line_width <= 0:
+        return text
+    for sep in (" - ", " – ", " — ", "\n"):
+        if sep in text:
+            a, b = text.split(sep, 1)
+            a = a.rstrip()  # no trailing space before the pad
+            return f"{a.ljust(line_width)}\n{b.lstrip()}"
+    return text
+
+
+def format_now_playing(song_title: str, case: str = "mixed", two_lines: bool = False, line_width: int = 0) -> str:
     """Format now-playing text.
 
     ``case`` controls the casing style:
@@ -239,7 +261,17 @@ def format_now_playing(song_title: str, case: str = "mixed", two_lines: bool = F
         return song_title
 
     case = (case or "mixed").lower()
+    # When line_width > 0 and the caller asked for two-line output, we
+    # want space-padding on line 1 so DAB receivers wrap at the intended
+    # spot. Padding implies a newline separator regardless of ``two_lines``.
+    use_padded = two_lines and line_width > 0
     join_sep = "\n" if two_lines else " - "
+
+    def _finalise(result: str) -> str:
+        if use_padded and "\n" in result:
+            a, _, b = result.partition("\n")
+            return f"{a.rstrip().ljust(line_width)}\n{b.lstrip()}"
+        return result
 
     # Common separators between artist and title
     separators = [" - ", " – ", " — "]
@@ -260,7 +292,7 @@ def format_now_playing(song_title: str, case: str = "mixed", two_lines: bool = F
                         artist, title = smart_title_case(artist_raw), smart_title_case(title_raw)
                     if not title:
                         return artist
-                    return f"{artist}{join_sep}{title}"
+                    return _finalise(f"{artist}{join_sep}{title}")
         # No separator — apply case to the whole string, no join needed
         if case == "upper":
             return song_title.upper()
@@ -281,7 +313,7 @@ def format_now_playing(song_title: str, case: str = "mixed", two_lines: bool = F
                     return artist
 
                 title = smart_title_case(title)  # Smart Title Case for song title
-                return f"{artist}{join_sep}{title}"
+                return _finalise(f"{artist}{join_sep}{title}")
 
     # No separator found - treat entire string as artist name
     return song_title.upper()
@@ -499,21 +531,35 @@ async def get_now_playing(station: str, db=None, apply_filter: bool = True) -> D
 
     raw_song_title = parsed["raw_song_title"]
     filtered_title = apply_filters(raw_song_title, filters) if apply_filter else raw_song_title
-    # Look up per-station case + two-lines prefs.
-    # Defaults to legacy "mixed" + single line so untouched stations behave
-    # exactly as before.
+    # Look up per-station format prefs from DB. Defaults preserve the
+    # legacy behaviour (mixed case, single line, no padding) so untouched
+    # stations behave exactly as before.
     case_pref = "mixed"
     two_lines_pref = False
+    line_width_pref = 0
     if db is not None:
         try:
             st_doc = await _get_station_doc(station)
             if st_doc:
                 if (st_doc.get("now_playing_case") or "").strip():
                     case_pref = st_doc["now_playing_case"].strip().lower()
-                two_lines_pref = bool(st_doc.get("now_playing_two_lines"))
+                # Two-lines is enabled for now_playing if EITHER the legacy
+                # bool is True OR "now_playing" is in the new types list.
+                legacy = bool(st_doc.get("now_playing_two_lines"))
+                types = st_doc.get("two_lines_types") or []
+                two_lines_pref = legacy or ("now_playing" in types)
+                try:
+                    line_width_pref = int(st_doc.get("line_width") or 0)
+                except (TypeError, ValueError):
+                    line_width_pref = 0
         except Exception:
             pass
-    song_title = format_now_playing(filtered_title, case=case_pref, two_lines=two_lines_pref) if apply_filter else filtered_title
+    song_title = format_now_playing(
+        filtered_title,
+        case=case_pref,
+        two_lines=two_lines_pref,
+        line_width=line_width_pref,
+    ) if apply_filter else filtered_title
 
     return {
         "status": "success",

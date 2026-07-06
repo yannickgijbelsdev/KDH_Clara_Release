@@ -42,7 +42,13 @@ class RDSStationCreate(BaseModel):
     stream_type: str = "shoutcast_v1"  # shoutcast_v1, shoutcast_v2, icecast
     default_text: str = ""  # fallback text when no show is live
     now_playing_case: str = "mixed"  # mixed | upper | lower | sentence
-    now_playing_two_lines: bool = False  # join artist + title with \n instead of " - "
+    now_playing_two_lines: bool = False  # legacy shortcut for now_playing in two_lines_types
+    # Two-lines split + space-padding. `line_width` = target chars for the first
+    # line (0 = disabled, no padding). `two_lines_types` = list of RDS item
+    # types to apply the treatment to. Valid values: now_playing, show_name,
+    # default_text, presenter_name, scheduled_text.
+    line_width: int = 0
+    two_lines_types: List[str] = Field(default_factory=list)
     color: str = "#f97316"
     order: int = 0
     custom_streams: List[CustomStreamSchedule] = Field(default_factory=list)
@@ -56,6 +62,8 @@ class RDSStationUpdate(BaseModel):
     default_text: Optional[str] = None
     now_playing_case: Optional[str] = None
     now_playing_two_lines: Optional[bool] = None
+    line_width: Optional[int] = None
+    two_lines_types: Optional[List[str]] = None
     color: Optional[str] = None
     order: Optional[int] = None
     custom_streams: Optional[List[CustomStreamSchedule]] = None
@@ -69,11 +77,40 @@ class RDSStationBulkSync(BaseModel):
 # ── Helpers ──
 
 _ALLOWED_CASES = {"mixed", "upper", "lower", "sentence"}
+_ALLOWED_TWO_LINES_TYPES = {"now_playing", "show_name", "default_text", "presenter_name", "scheduled_text"}
 
 
 def _sanitize_case(value) -> str:
     v = (value or "").strip().lower()
     return v if v in _ALLOWED_CASES else "mixed"
+
+
+def _sanitize_line_width(value) -> int:
+    """Clamp ``line_width`` to a sane range. 0 disables padding entirely.
+    Above 64 makes no sense for RDS/DAB (RadioText caps around 64 chars)."""
+    try:
+        n = int(value)
+    except (TypeError, ValueError):
+        return 0
+    if n < 0:
+        return 0
+    return min(n, 64)
+
+
+def _sanitize_two_lines_types(value) -> list:
+    """Filter to the allowed enum + dedupe while preserving order."""
+    if not value:
+        return []
+    if isinstance(value, str):
+        value = [value]
+    seen: set = set()
+    out: list = []
+    for v in value:
+        s = (v or "").strip().lower()
+        if s in _ALLOWED_TWO_LINES_TYPES and s not in seen:
+            out.append(s)
+            seen.add(s)
+    return out
 
 
 def _normalize_custom_stream(s) -> dict:
@@ -230,6 +267,8 @@ async def create_station(
         "default_text": data.default_text.strip(),
         "now_playing_case": _sanitize_case(data.now_playing_case),
         "now_playing_two_lines": bool(data.now_playing_two_lines),
+        "line_width": _sanitize_line_width(data.line_width),
+        "two_lines_types": _sanitize_two_lines_types(data.two_lines_types),
         "color": data.color,
         "order": data.order,
         "custom_streams": [_normalize_custom_stream(s) for s in (data.custom_streams or [])],
@@ -282,6 +321,8 @@ async def bulk_sync_stations(
             "default_text": station.default_text.strip(),
             "now_playing_case": _sanitize_case(getattr(station, "now_playing_case", None)) if getattr(station, "now_playing_case", None) else (prev.get("now_playing_case") if prev else "mixed"),
             "now_playing_two_lines": bool(getattr(station, "now_playing_two_lines", None)) if getattr(station, "now_playing_two_lines", None) is not None else bool(prev.get("now_playing_two_lines") if prev else False),
+            "line_width": _sanitize_line_width(getattr(station, "line_width", None)) if getattr(station, "line_width", None) is not None else int(prev.get("line_width", 0) if prev else 0),
+            "two_lines_types": _sanitize_two_lines_types(getattr(station, "two_lines_types", None)) if getattr(station, "two_lines_types", None) is not None else list(prev.get("two_lines_types", []) if prev else []),
             "color": station.color,
             "order": i,
             "custom_streams": [_normalize_custom_stream(s) for s in (station.custom_streams or [])] or (prev.get("custom_streams", []) if prev else []),
@@ -338,6 +379,10 @@ async def update_station(
         update_fields["now_playing_case"] = _sanitize_case(data.now_playing_case)
     if data.now_playing_two_lines is not None:
         update_fields["now_playing_two_lines"] = bool(data.now_playing_two_lines)
+    if data.line_width is not None:
+        update_fields["line_width"] = _sanitize_line_width(data.line_width)
+    if data.two_lines_types is not None:
+        update_fields["two_lines_types"] = _sanitize_two_lines_types(data.two_lines_types)
     if data.color is not None:
         update_fields["color"] = data.color
     if data.order is not None:
@@ -358,13 +403,28 @@ async def update_station(
         except Exception as e:
             logger.warning(f"Cache refresh after custom_streams update failed: {e}")
 
-    # If `now_playing_case` OR `now_playing_two_lines` changed, re-format the
-    # currently cached song title with the new options and refresh the builder
-    # output so the DAB/RDS display picks up the change on the very next poll.
-    if (data.now_playing_case is not None or data.now_playing_two_lines is not None) and updated:
+    # If `now_playing_case`, `now_playing_two_lines`, `line_width`, or
+    # `two_lines_types` changed, re-format the currently cached song title
+    # with the new options and refresh the builder output so the DAB/RDS
+    # display picks up the change on the very next poll.
+    format_fields_changed = any([
+        data.now_playing_case is not None,
+        data.now_playing_two_lines is not None,
+        data.line_width is not None,
+        data.two_lines_types is not None,
+    ])
+    if format_fields_changed and updated:
         try:
             from services.shoutcast import cache_now_playing
             await cache_now_playing(db, updated["code"])
+            # Trigger a fresh builder-output cycle so show_name / default_text
+            # pipeline picks up padding changes too — otherwise we'd wait
+            # up to one scheduler tick (~10s) for the change to reach DAB.
+            try:
+                from services.rds_builder_scheduler import process_rds_sequence
+                await process_rds_sequence(db, updated["code"])
+            except Exception as _e:
+                logger.debug(f"process_rds_sequence refresh skipped: {_e}")
             try:
                 from routers import rds_builder as _rb
                 _rb._monitor_cache = {"data": None, "timestamp": None, "cache_key": None}
