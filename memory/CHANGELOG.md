@@ -1,6 +1,33 @@
 # Changelog
 
 
+## 2026-06-27 — Dynamic padding + per-output opt-in voor two-lines
+
+### Nieuw
+- **`line_width: int`** (0=uit, 1-64) op `rds_stations`: pad de eerste regel op tot N tekens met trailing spaces zodat DAB-displays met vaste karakter-breedte precies wrappen op het intended breakpoint.
+- **`two_lines_types: List[str]`** — checkbox-lijst per output type: `now_playing`, `show_name`, `default_text`, `presenter_name`, `scheduled_text`. Alleen items in de lijst krijgen de two-lines + padding behandeling.
+- `now_playing_two_lines` (v1 boolean) blijft behouden als legacy shortcut voor 'now_playing' in de list.
+
+### Backend
+- **Nieuwe helper** `services/shoutcast.py.apply_two_lines_padding(text, line_width)`: split op eerste ` - ` / ` – ` / ` — ` / `\n`, pad eerste deel met `.ljust(line_width)`, join met `\n`. Geen truncatie (spec-driven).
+- **`format_now_playing`** krijgt `line_width` kwarg — `_finalise` closure past padding toe na case-transform op alle 4 case-modi.
+- **`services/rds_builder_scheduler.py._apply_type_padding`**: nieuwe async helper die per-station de `two_lines_types`-lijst + `line_width` checkt en delegateert aan de shoutcast-helper. Gecalled bij show_name (live + fallback), presenter_name, now_playing, en scheduled_text (in `process_rds_sequence`).
+- Show_name fallback (geen live show) gebruikt `default_text` key i.p.v. `show_name` voor per-type gating → editors kunnen padding aan/uit toggle per branch.
+- **PUT fast-path** in `routers/rds_stations.py`: alle 4 format-fields (case / two_lines / line_width / two_lines_types) triggeren `cache_now_playing` + `process_rds_sequence` + `_monitor_cache` reset.
+- Sanitisatie: `_sanitize_line_width` clamps 0..64 (non-int → 0); `_sanitize_two_lines_types` filtert op allowed enum + dedupe order-preserving.
+
+### Frontend
+- Nieuwe "Two-lines & padding" panel per station: `line_width` numeric input (0-64) + 5 checkboxes voor de output types. Preview: `ARTIST↵Title` blijft leidend, uitleg-tekst waarom padding helpt.
+- Save-handler stuurt `line_width` + `two_lines_types` mee in het PUT payload.
+
+### Tests
+- `backend/tests/test_rds_two_lines_padding.py` — 45 nieuwe pytest cases (apply_two_lines_padding unit / format_now_playing padding / PUT sanitisatie / per-type gating / E2E via get_item_text / fast-path re-cache).
+- Full regression: 121/121 executed groen (iter-164: 45 nieuw + 76 uit iter-161→163).
+
+### Deploy
+- VDC: `eb00f008-27f6-458a-bae2-7df020ebcf47` (pending approval).
+
+
 ## 2026-06-27 — Now Playing artiest + titel op aparte regels
 
 ### Nieuw
