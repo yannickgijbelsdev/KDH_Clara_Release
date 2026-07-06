@@ -1,6 +1,26 @@
 # Changelog
 
 
+## 2026-06-27 — Show video_endpoint_name denormalisation (pill-label persistence)
+
+### Bug
+Op ShowDetailPage klapte de "Send to Video Endpoint"-pill terug naar de neutrale label na een page refresh — zelfs als `has_video=true` en `video_endpoint_id` correct waren gepersisteerd. Frontend `endpoints.find(...)` faalde omdat de list lazy is (pas gefetched wanneer de popover opent).
+
+### Fix (Option A — backend enrichment)
+- Nieuwe helper `_enrich_show_video_endpoint(show)` in `routers/shows.py`: doet één `db.video_endpoints.find_one({id})` en zet `video_endpoint_name` op de show doc. Defensief bij ontbrekende / gedelete endpoints (returnt null, geen crash).
+- Wired in **6 return sites**: create_show, get_show, update_show, update_recurrence_settings, stop_recurrence, enable_recurrence.
+- **Bulk-enrichment** in `GET /api/shows` (list) via één `$in` query per page — O(1) DB-roundtrips i.p.v. per-row lookups.
+- `ShowResponse.video_endpoint_name: Optional[str] = None` toegevoegd (models/shows.py:163).
+- Frontend `pick-endpoint-none` testid toegevoegd.
+
+### Tests
+- `backend/tests/test_show_video_endpoint_enrichment.py` — 6/6 pytest cases groen (create/update/get/list + null-when-no-video + deleted-endpoint-no-crash).
+- Frontend E2E — 12/12 Playwright assertions groen: pill label survives `page.reload()` en toont exact de endpoint-naam, `pick-endpoint-none` werkt.
+
+### Deploy
+- VDC: `d8a81102-e6a9-4a36-94a1-88c8745af9e6` (pending approval).
+
+
 ## 2026-06-27 — Video Endpoint preview modal overflow fix
 
 ### Bug
