@@ -1,6 +1,22 @@
 # Changelog
 
 
+## 2026-06-27 — Video Endpoint preview modal overflow fix
+
+### Bug
+Custom-iframe preview (Video Endpoints → Vimeo GRK → 👁) puilde uit de rechterkant van de witte modal-kaart. Oorzaak: gepaste embed HTML bevat `<iframe width="100%" height="450" ...>` — de outer `<div className="aspect-video w-full">` klipte niet en de 450px hardcoded height forceerde de iframe uit de aspect-ratio box.
+
+### Fix
+- `VideoEndpointsPage.js`: DialogContent krijgt `max-w-3xl w-[92vw] overflow-hidden p-6` (viewport-safe cap + clipping). Preview-wrapper wordt `<div className="relative w-full rounded-lg overflow-hidden bg-black clara-video-preview" style={{aspectRatio:'16/9'}}>`.
+- `App.css`: nieuwe scoped rules `.clara-video-preview iframe/video/embed/object { position:absolute; inset:0; width:100%!important; height:100%!important; border:0; display:block; }` — dwingt elke iframe/video die door dangerouslySetInnerHTML wordt geïnjecteerd om het 16:9 container-formaat te vullen, ongeacht hardcoded width/height attributes.
+
+### Tests
+- 14/14 frontend assertions (iteration_165) — verified in-browser: iframe rect 718×403.875 (16:9 exact) binnen modal 768×687.9 met 25px padding aan alle kanten, geen page horizontal overflow. Regressie op create-dialog: `.clara-video-preview` scope leaked niet.
+
+### Deploy
+- VDC: `f9497c0c-f03f-4f2c-b1e5-b124b5cc610a` (pending approval).
+
+
 ## 2026-06-27 — Dynamic padding + per-output opt-in voor two-lines
 
 ### Nieuw
