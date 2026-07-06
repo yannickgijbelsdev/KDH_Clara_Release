@@ -73,6 +73,27 @@ def generate_occurrence_dates(start_date: str, interval_weeks: int, end_date: Op
 
 # ============== SHOW TITLES (Templates) ==============
 
+async def _enrich_show_video_endpoint(show: dict) -> dict:
+    """Denormalise ``video_endpoint_id`` into ``video_endpoint_name`` so
+    consumers (Clara UI, RDS scheduler snapshot, third-party feeds) don't
+    need a second query to render the pill label.
+
+    Mutates ``show`` in place and returns it. Safe to call with None or
+    an empty dict.
+    """
+    if not show:
+        return show
+    vid = show.get("video_endpoint_id")
+    if not vid:
+        show["video_endpoint_name"] = None
+        return show
+    ep = await db.video_endpoints.find_one(
+        {"id": vid}, {"_id": 0, "name": 1}
+    )
+    show["video_endpoint_name"] = (ep or {}).get("name")
+    return show
+
+
 async def get_presenters_info(presenter_ids: List[str], main_site_id: str = None, team_id: str = None) -> List[dict]:
     """Fetch presenter information for given IDs.
     
@@ -809,6 +830,17 @@ async def get_shows(
         ).to_list(200)
         station_map = {t['name']: t.get('rds_station', 'none') for t in title_docs}
 
+    # Bulk-enrich `video_endpoint_name` in one query so the list rendering
+    # can show endpoint labels without an extra roundtrip per row.
+    endpoint_ids = list({s.get("video_endpoint_id") for s in shows if s.get("video_endpoint_id")})
+    ep_map: dict = {}
+    if endpoint_ids:
+        cursor = db.video_endpoints.find(
+            {"id": {"$in": endpoint_ids}}, {"_id": 0, "id": 1, "name": 1}
+        )
+        async for e in cursor:
+            ep_map[e["id"]] = e.get("name")
+
     for show in shows:
         if show.get('studio_id'):
             show['studio_name'] = studios_map.get(show['studio_id'])
@@ -818,6 +850,9 @@ async def get_shows(
             show['presenters'] = [presenters_map[pid] for pid in presenter_ids if pid in presenters_map]
         # Add station label
         show['rds_station'] = station_map.get(show.get('title'), 'none')
+        # Add video endpoint name (denormalised)
+        vid = show.get("video_endpoint_id")
+        show["video_endpoint_name"] = ep_map.get(vid) if vid else None
     
     return shows
 
@@ -995,7 +1030,7 @@ async def create_show(
             details={"date": show_data.date, "start_time": show_data.start_time, "end_time": show_data.end_time}
         )
         
-        return show_doc
+        return await _enrich_show_video_endpoint(show_doc)
 
 
 @shows_router.get("/{show_id}", response_model=ShowResponse)
@@ -1043,7 +1078,7 @@ async def get_show(
     # Auto-push schedule to Radioplayer
     background_tasks.add_task(_trigger_radioplayer_schedule_push)
     
-    return show
+    return await _enrich_show_video_endpoint(show)
 
 
 @shows_router.put("/{show_id}", response_model=ShowResponse)
@@ -1150,7 +1185,7 @@ async def update_show(
     # Auto-push schedule to Radioplayer
     background_tasks.add_task(_trigger_radioplayer_schedule_push)
     
-    return updated_show
+    return await _enrich_show_video_endpoint(updated_show)
 
 
 @shows_router.delete("/{show_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -1291,7 +1326,7 @@ async def update_recurrence_settings(
     )
 
     updated_show = await db.shows.find_one({"id": show_id}, {"_id": 0})
-    return updated_show
+    return await _enrich_show_video_endpoint(updated_show)
 
 
 @shows_router.post("/{show_id}/stop-recurrence")
@@ -1371,7 +1406,7 @@ async def stop_recurrence(
     updated_show = await db.shows.find_one({"id": show_id}, {"_id": 0})
     if updated_show:
         updated_show["deleted"] = False
-        return updated_show
+        return await _enrich_show_video_endpoint(updated_show)
     
     return {"deleted": True, "message": "Show not found after update"}
 
@@ -1468,7 +1503,7 @@ async def enable_recurrence(
             await db.shows.insert_many(child_docs)
     
     updated_show = await db.shows.find_one({"id": show_id}, {"_id": 0})
-    return updated_show
+    return await _enrich_show_video_endpoint(updated_show)
 
 
 # ============== RUNDOWN ROUTES ==============

@@ -1,0 +1,39 @@
+{
+  "summary": "iter-167 fix verified end-to-end. Backend: 6/6 pytest cases in /app/backend/tests/test_show_video_endpoint_enrichment.py PASSED, covering all 4 explicit backend curl scenarios from the review request (create/update/get/list + null-when-no-video + deleted-endpoint-no-crash). Frontend E2E: 12/12 Playwright assertions PASSED against the real Radiogroep site — the CRITICAL regression (pill label reverting after page.reload()) is fixed, and the pick-endpoint-none testid works as spec'd. Seeded 1 video_endpoint (TEST_iter167_Vimeo_GRK) + 1 show under main_site_id=63154708-... via direct pymongo insert, then verified via GET /api/shows/{id} that video_endpoint_name is denormalised. Post-refresh, the send-to-video-endpoint-btn read exactly 'TEST_iter167_Vimeo_GRK' (not the neutral fallback). All seed data cleaned; final video_endpoints count = 0.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "GET /api/shows/{show_id}", "issue": "First uncached GET of a show consistently takes ~15s while subsequent GETs return in ~100ms. Reproduced 3× via curl in an isolated shell. Suspect the `background_tasks.add_task(_trigger_radioplayer_schedule_push)` at shows.py:1079 or a downstream sync call is blocking the response before flush. Not related to iter-167 fix — but bumped test timeouts from 15s→45s so pytest can pass. Worth a separate investigation."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_show_video_endpoint_enrichment.py",
+    "/app/test_reports/pytest/iter167_results.xml"
+  ],
+  "action_items": [
+    "Optional: investigate the first-GET latency on /api/shows/{show_id} (~15s cold, ~100ms warm). Likely BackgroundTasks flushing before response OR a cold-start radioplayer push. Non-blocking for this fix."
+  ],
+  "critical_code_review_comments": [
+    "shows.py:76-94 `_enrich_show_video_endpoint` — correct + defensive: guards for None show, missing video_endpoint_id, and a video_endpoint_id pointing at a deleted row (find_one returns None → falls through to name=None). Test `test_deleted_endpoint_yields_null_name_no_crash` confirms 200 + null (no KeyError).",
+    "shows.py:833-855 bulk enrichment in list endpoint is O(1) DB roundtrips per page (single `$in` query on video_endpoint_id). Verified via test_list_shows_bulk_enriches_video_endpoint_name.",
+    "shows.py:1033/1081/1188/1329/1409/1506 — all 6 ShowResponse return sites are wired through `_enrich_show_video_endpoint`. create/get/update/update_recurrence/stop_recurrence/enable_recurrence are all denormalised now.",
+    "ShowDetailPage.js:1341-1342 fallback `endpoints.find(...) || (veId ? { id: veId, name: show?.video_endpoint_name || '' } : null)` — correct: on first render (before the popover has been opened and /api/videos fetched), the fallback resolves via show.video_endpoint_name, which the backend now provides. Confirmed in-browser via `page.reload()` immediately followed by an assertion on the pill text.",
+    "ShowDetailPage.js:1462 `data-testid=pick-endpoint-none` — present and functional. Clicking it correctly sends `has_video: true, video_endpoint_id: null`, popover closes, pill label reverts to 'Send to Video Endpoint' and the rose-100 background is preserved (because has_video is still true). All three states verified.",
+    "Nit (pre-existing, not in iter-167 scope): DialogContent console warnings — 'requires a DialogTitle' + 'Missing Description or aria-describedby' — appear on the login page and elsewhere. A11y noise, not a functional bug."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_show_video_endpoint_enrichment.py (created)"
+  ],
+  "success_rate": {"backend": "100% (6/6 pytest)", "frontend": "100% (12/12 Playwright assertions)"},
+  "test_credentials": "admkoodh@koodh.com / KYLovie13monx (from /app/memory/test_credentials.md — login returned requires_2fa=false despite totp_enabled=true; documented, not a bug)",
+  "seed_data_creation": "Seeded 1 video_endpoint 'TEST_iter167_Vimeo_GRK' + 1 show 'TEST_iter167_show' under main_site_id=63154708-3320-444c-932d-aa3642b5090c (Radiogroep). Created directly via pymongo (ISO string timestamps — datetime objects break VideoEndpointResponse validation, learned from iter-165). All test data deleted post-run — final db.video_endpoints count = 0, no TEST_iter167* shows remain.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend GET /api/shows/{show_id} has a ~15s cold-start latency (first request after container warm). Bump requests timeouts to 30-45s or hit the endpoint once as a warmup in fixtures. The video_endpoint_name field is now on ShowResponse (line 163 in /app/backend/models/shows.py) — regression tests should assert its presence + correct value after every mutation (create/update/recurrence toggles). Frontend fallback lives at /app/frontend/src/pages/ShowDetailPage.js:1341-1342.",
+  "rca of the issue": "iter-166 root cause: `currentEndpoint = endpoints.find(e => e.id === veId)` returned undefined on first render because the `endpoints` array is fetched lazily (only when the popover opens). After a page reload, before the user clicks the pill, the list is empty → currentEndpoint=undefined → pill falls back to the neutral 'Send to Video Endpoint' label even though has_video=true and video_endpoint_id is set. Fix (option A, backend enrichment): _enrich_show_video_endpoint denormalises the endpoint name into every ShowResponse via a single find_one on db.video_endpoints. The frontend fallback at line 1341 now resolves to `{ id: veId, name: show.video_endpoint_name }` on first render, so the pill label survives page reload. Verified: pill reads 'TEST_iter167_Vimeo_GRK' both before and after page.reload()."
+}

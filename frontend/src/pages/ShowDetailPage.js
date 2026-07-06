@@ -1334,7 +1334,12 @@ const VideoEndpointInline = ({ show, setShow, isEditor }) => {
 
   const hasVideo = !!show?.has_video;
   const veId = show?.video_endpoint_id || '';
-  const currentEndpoint = endpoints.find((e) => e.id === veId);
+  // Prefer the endpoint from the fetched list, but fall back to a placeholder
+  // that carries at least the id — this prevents the button label from
+  // reverting to the neutral "Send to Video Endpoint" state when the list
+  // hasn't loaded yet or the endpoint was fetched from a different scope.
+  const currentEndpoint = endpoints.find((e) => e.id === veId)
+    || (veId ? { id: veId, name: show?.video_endpoint_name || '' } : null);
 
   // Fetch endpoint library lazily — only when the popover is opened the
   // first time. Cached afterwards.
@@ -1360,14 +1365,31 @@ const VideoEndpointInline = ({ show, setShow, isEditor }) => {
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
 
-  const save = async (next) => {
+  const save = async (next, optimistic) => {
+    // Optimistic UI: reflect the change instantly so the button label
+    // updates before the network round-trip completes. Roll back on error.
+    let prevSnapshot = null;
+    if (optimistic) {
+      setShow((prev) => {
+        prevSnapshot = prev;
+        return { ...prev, ...optimistic };
+      });
+    }
     setSaving(true);
     try {
       const res = await axios.put(`${API}/shows/${showId}`, next, {
         headers: { 'X-Main-Site-ID': mainSiteId },
       });
-      setShow((prev) => ({ ...prev, ...res.data }));
+      // Server-confirmed state wins — spread the response but explicitly
+      // preserve the fields the user just toggled so nullable defaults in
+      // ShowResponse can't silently reset them.
+      setShow((prev) => ({
+        ...prev,
+        ...res.data,
+        ...(optimistic || {}),
+      }));
     } catch (err) {
+      if (prevSnapshot) setShow(prevSnapshot);
       toast.error(err.response?.data?.detail || 'Could not save video setting');
     } finally {
       setSaving(false);
@@ -1375,10 +1397,20 @@ const VideoEndpointInline = ({ show, setShow, isEditor }) => {
   };
 
   const toggle = (checked) => {
-    save({ has_video: checked, video_endpoint_id: checked ? veId || null : null });
+    const nextEndpoint = checked ? veId || null : null;
+    save(
+      { has_video: checked, video_endpoint_id: nextEndpoint },
+      { has_video: checked, video_endpoint_id: nextEndpoint },
+    );
+    if (!checked) setOpen(false);
   };
   const pick = (endpointId) => {
-    save({ has_video: true, video_endpoint_id: endpointId || null });
+    const nextEndpoint = endpointId || null;
+    save(
+      { has_video: true, video_endpoint_id: nextEndpoint },
+      { has_video: true, video_endpoint_id: nextEndpoint },
+    );
+    setOpen(false);
   };
 
   return (
@@ -1427,6 +1459,7 @@ const VideoEndpointInline = ({ show, setShow, isEditor }) => {
               <div className="max-h-64 overflow-y-auto -mx-1 px-1 space-y-1" data-testid="video-endpoint-list">
                 <button
                   onClick={() => pick('')}
+                  data-testid="pick-endpoint-none"
                   className={`w-full text-left px-2 py-1.5 rounded-md text-sm transition ${
                     !veId ? 'bg-rose-50 text-rose-700' : 'hover:bg-zinc-50 text-zinc-600'
                   }`}

@@ -160,6 +160,7 @@ class ShowResponse(BaseModel):
     # Video reference (added 2026-06)
     has_video: Optional[bool] = False
     video_endpoint_id: Optional[str] = None
+    video_endpoint_name: Optional[str] = None  # denormalised for UI convenience
     video_embed_override: Optional[str] = None
 
 
