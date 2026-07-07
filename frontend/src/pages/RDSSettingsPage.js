@@ -338,9 +338,9 @@ const RDSSettingsPage = () => {
         line_width: typeof station.line_width === 'number' ? station.line_width : parseInt(station.line_width || '0', 10) || 0,
         two_lines_types: Array.isArray(station.two_lines_types) ? station.two_lines_types : [],
       });
-      toast.success(`Instellingen opgeslagen voor ${station.name}`);
+      toast.success(`Settings saved for ${station.name}`);
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Kon instellingen niet opslaan');
+      toast.error(error.response?.data?.detail || 'Could not save settings');
     } finally {
       setSavingDefaultText(null);
     }
@@ -659,22 +659,22 @@ const RDSSettingsPage = () => {
           <h2 className="text-lg font-semibold text-zinc-900">Default show text & Now playing formatting</h2>
         </div>
         <p className="text-zinc-500 text-sm mb-4">
-          Zet de <span className="font-medium text-zinc-700">show-naam</span> die verschijnt wanneer er geen live show loopt, en kies de
-          <span className="font-medium text-zinc-700"> hoofdlettergebruik</span> voor <em>Now playing</em>. De formatting geldt overal — RDS Monitor, DAB, MagicRDS, en de public /live endpoints.
+          Set the <span className="font-medium text-zinc-700">show name</span> shown when no live show is running, and pick the
+          <span className="font-medium text-zinc-700"> capitalisation</span> for <em>Now playing</em>. The formatting applies everywhere — RDS Monitor, DAB, MagicRDS, and the public /live endpoints.
         </p>
 
         {stations.length === 0 && (
-          <p className="text-zinc-500 text-sm italic">Geen stations geconfigureerd. Voeg RDS-stations toe via de site-instellingen.</p>
+          <p className="text-zinc-500 text-sm italic">No stations configured. Add RDS stations from the site settings.</p>
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {stations.map((st, idx) => {
             const npCase = st.now_playing_case || 'mixed';
             const NP_OPTIONS = [
-              { key: 'mixed', label: 'ARTIST - Title', hint: 'Artiest UPPER, titel Title Case (huidige default)' },
-              { key: 'upper', label: 'ARTIST - TITLE', hint: 'Alles HOOFDLETTERS' },
-              { key: 'lower', label: 'artist - title', hint: 'Alles kleine letters' },
-              { key: 'sentence', label: 'Artist - Title', hint: 'Beide delen in Title Case' },
+              { key: 'mixed', label: 'ARTIST - Title', hint: 'Artist UPPER, title Title Case (current default)' },
+              { key: 'upper', label: 'ARTIST - TITLE', hint: 'Everything UPPERCASE' },
+              { key: 'lower', label: 'artist - title', hint: 'Everything lowercase' },
+              { key: 'sentence', label: 'Artist - Title', hint: 'Both parts in Title Case' },
             ];
             return (
               <div key={st.id || st.code} className="border border-zinc-200 rounded-lg p-4 space-y-3">
@@ -692,7 +692,7 @@ const RDSSettingsPage = () => {
                       next[idx] = { ...next[idx], default_text: e.target.value };
                       setStations(next);
                     }}
-                    placeholder={`e.g. ${st.name === 'GRK' ? 'the feelgood station' : 'jouw favoriete hits'}`}
+                    placeholder={`e.g. ${st.name === 'GRK' ? 'the feelgood station' : 'your favourite hits'}`}
                     className="bg-zinc-50 border-zinc-200 text-zinc-900 mt-1"
                     data-testid={`default-show-text-${st.code}`}
                   />
@@ -727,11 +727,11 @@ const RDSSettingsPage = () => {
                   <div className="mt-3 p-3 rounded-md bg-zinc-50 border border-zinc-200">
                     <div className="text-xs font-medium text-zinc-700 mb-2">Two-lines & padding</div>
                     <p className="text-[11px] text-zinc-500 mb-2 leading-snug">
-                      Split artiest/titel over 2 regels en vul de eerste regel op met spaties tot de gekozen breedte —
-                      forceert een line-break op DAB/RDS-displays met vaste karakter-breedte.
+                      Split artist/title over 2 lines and pad the first line with spaces up to the chosen width —
+                      forces a line-break on DAB/RDS displays with a fixed character width.
                     </p>
                     <div className="grid grid-cols-3 gap-2 items-center mb-3">
-                      <Label className="text-[11px] text-zinc-500 col-span-1">Lijnbreedte</Label>
+                      <Label className="text-[11px] text-zinc-500 col-span-1">Line width</Label>
                       <div className="col-span-2 flex items-center gap-2">
                         <Input
                           type="number"
@@ -747,10 +747,10 @@ const RDSSettingsPage = () => {
                           className="h-8 bg-white text-xs"
                           data-testid={`np-line-width-${st.code}`}
                         />
-                        <span className="text-[10px] text-zinc-500 whitespace-nowrap">chars (0 = uit)</span>
+                        <span className="text-[10px] text-zinc-500 whitespace-nowrap">chars (0 = off)</span>
                       </div>
                     </div>
-                    <div className="text-[11px] text-zinc-500 mb-1">Toepassen op:</div>
+                    <div className="text-[11px] text-zinc-500 mb-1">Apply to:</div>
                     <div className="grid grid-cols-2 gap-1.5">
                       {[
                         { key: 'now_playing', label: 'Now playing' },

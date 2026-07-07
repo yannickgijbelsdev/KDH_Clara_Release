@@ -592,7 +592,7 @@ export default function RadioAutomationPage() {
           <div className="flex items-center gap-2 bg-white/[0.04] rounded-xl px-4 py-2 border border-white/[0.06]">
             <Clock className="w-4 h-4 text-zinc-500" />
             <span className="text-xl font-mono font-bold text-white tabular-nums">
-              {now.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+              {now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
             </span>
           </div>
 

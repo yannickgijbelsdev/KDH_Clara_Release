@@ -133,7 +133,7 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
             "status": "no_show",
             "show_id": None,
             "show_title": None,
-            "message": f"Geen live show gevonden voor {brussels_time} (Brussels) | IDs doorzocht: {len(team_ids_list)}",
+            "message": f"No live show found for {brussels_time} (Brussels) | IDs searched: {len(team_ids_list)}",
             "cached_data": None
         }
         await db.rds_cache_logs.insert_one(log_entry)
@@ -142,7 +142,7 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
         
         return {
             "status": "no_show",
-            "message": "Geen live show gevonden",
+            "message": "No live show found",
             "shows_cached": 0,
             "logs": results
         }
@@ -227,7 +227,7 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
                 "status": "success",
                 "show_id": show_id,
                 "show_title": show_title,
-                "message": f"Cache vernieuwd voor '{show_title}' ({len(rundown_items)} items) - RDS: {rds_station}",
+                "message": f"Cache refreshed for '{show_title}' ({len(rundown_items)} items) - RDS: {rds_station}",
                 "cached_data": {
                     "item_count": len(rundown_items),
                     "show_date": show.get("date"),
@@ -249,7 +249,7 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
                 "status": "failed",
                 "show_id": show_id,
                 "show_title": show_title,
-                "message": f"Cache refresh mislukt: {str(e)}",
+                "message": f"Cache refresh failed: {str(e)}",
                 "cached_data": None
             }
             await db.rds_cache_logs.insert_one(log_entry)
@@ -260,7 +260,7 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
     
     return {
         "status": "success",
-        "message": f"Cache vernieuwd voor {len(live_shows)} show(s)",
+        "message": f"Cache refreshed for {len(live_shows)} show(s)",
         "shows_cached": len(live_shows),
         "logs": results
     }

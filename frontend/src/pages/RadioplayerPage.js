@@ -153,7 +153,7 @@ const RadioplayerPage = () => {
                     <span className="text-emerald-400">Auto-sync active</span>
                     {lastRefresh && (
                       <span className="text-zinc-600">
-                        — updated {lastRefresh.toLocaleTimeString('nl-BE', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        — updated {lastRefresh.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                       </span>
                     )}
                   </div>

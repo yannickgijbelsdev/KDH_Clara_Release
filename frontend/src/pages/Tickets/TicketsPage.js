@@ -134,7 +134,7 @@ function TicketList() {
                       </span>
                       <span className="flex items-center gap-1.5">
                         <Clock className="w-3.5 h-3.5" />
-                        {new Date(ticket.created_at).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                        {new Date(ticket.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                       </span>
                       {ticket.message_count > 0 && (
                         <span className="flex items-center gap-1.5">
@@ -273,7 +273,7 @@ function TicketDetail({ ticketId }) {
               <div>
                 <span className="text-sm font-medium">{ticket.creator_name || ticket.creator_email}</span>
                 <span className="text-xs text-zinc-500 ml-3">
-                  {new Date(ticket.created_at).toLocaleString('nl-BE')}
+                  {new Date(ticket.created_at).toLocaleString('en-GB')}
                 </span>
               </div>
             </div>
@@ -301,7 +301,7 @@ function TicketDetail({ ticketId }) {
                   <span className="text-sm font-medium">{msg.user_name || msg.user_email}</span>
                   {msg.is_admin && <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full ml-2">Admin</span>}
                   <span className="text-xs text-zinc-500 ml-3">
-                    {new Date(msg.created_at).toLocaleString('nl-BE')}
+                    {new Date(msg.created_at).toLocaleString('en-GB')}
                   </span>
                 </div>
               </div>
@@ -422,7 +422,7 @@ function VisualJourney({ steps, errorPage }) {
                     )}
                   </span>
                   <span className="text-xs text-zinc-500">
-                    {time.toLocaleTimeString('nl-BE', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                    {time.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                   </span>
                 </div>
                 <p className="text-xs text-zinc-500 mt-1 truncate">{step.url}</p>

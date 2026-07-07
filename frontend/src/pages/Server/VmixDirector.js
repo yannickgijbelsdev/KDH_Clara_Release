@@ -487,7 +487,7 @@ export default function VmixDirector() {
                         <img src={config.logo_url.startsWith('http') ? config.logo_url : `${BASE}${config.logo_url}`} alt="Logo" className="max-w-full max-h-full object-contain" />
                       ) : el.type === 'clock' ? (
                         <span style={{ color: config.clock_text_color, fontSize: `${Math.min(config.clock_font_size, 28)}px`, fontWeight: 700 }}>
-                          {new Date().toLocaleTimeString('nl-BE')}
+                          {new Date().toLocaleTimeString('en-GB')}
                         </span>
                       ) : el.type === 'ticker' ? (
                         <span className="text-xs truncate" style={{ color: config.ticker_text_color }}>

@@ -352,9 +352,9 @@ export default function SiteDashboard() {
   if (!site) {
     return (
       <div className="text-center py-12">
-        <p className="text-zinc-400">Site niet gevonden</p>
+        <p className="text-zinc-400">Site not found</p>
         <Button onClick={() => navigate(mainSiteSlug ? `/${mainSiteSlug}/sites` : '/sites')} className="mt-4">
-          Terug naar overzicht
+          Back to overview
         </Button>
       </div>
     );

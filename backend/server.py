@@ -855,7 +855,7 @@ async def send_test_email(current_user: dict = Depends(require_admin)):
     if success:
         return {"success": True, "message": f"Test e-mail verstuurd naar {current_user['email']}"}
     else:
-        return {"success": False, "message": "Kon geen e-mail versturen. Controleer de SMTP configuratie."}
+        return {"success": False, "message": "Could not send email. Check the SMTP configuration."}
 
 
 # ============== RDS / NOW PLAYING ==============

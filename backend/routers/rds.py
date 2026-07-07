@@ -465,7 +465,7 @@ async def get_cached_rundown():
     if not cached:
         return {
             "status": "no_live_show",
-            "message": "Er is momenteel geen live show",
+            "message": "No live show is currently running",
             "cached_at": None,
             "show": None,
             "items": []
@@ -933,7 +933,7 @@ async def get_mfy_cached_rundown():
     if not cached:
         return {
             "status": "no_live_show",
-            "message": "Er is momenteel geen MFY live show",
+            "message": "No MFY live show is currently running",
             "station": "mfy",
             "cached_at": None,
             "show": None,
@@ -966,7 +966,7 @@ async def get_grk_cached_rundown():
     if not cached:
         return {
             "status": "no_live_show",
-            "message": "Er is momenteel geen GRK live show",
+            "message": "No GRK live show is currently running",
             "station": "grk",
             "cached_at": None,
             "show": None,
@@ -1477,18 +1477,18 @@ def _summarise_failure(checks: list[dict]) -> str:
             hint = ""
             n = name.lower()
             if "dns" in n:
-                hint = " → Controleer dat het stream-domein nog bestaat (DNS/Cloudflare)."
+                hint = " → Check that the stream domain still exists (DNS/Cloudflare)."
             elif "tcp" in n:
-                hint = " → Stream-server is niet bereikbaar op die poort (firewall/server down)."
+                hint = " → Stream server is unreachable on that port (firewall/server down)."
             elif "http" in n:
-                hint = " → Server antwoordt niet met een geldige HTTP-status (check Icecast/Shoutcast process)."
+                hint = " → Server is not responding with a valid HTTP status (check Icecast/Shoutcast process)."
             elif "metadata" in n:
-                hint = " → Endpoint is geen geldige Shoutcast/Icecast metadata-URL (check stream_url path)."
+                hint = " → Endpoint is not a valid Shoutcast/Icecast metadata URL (check stream_url path)."
             elif "broadcasting" in n:
-                hint = " → Server staat aan maar er is geen source/encoder verbonden (DJ-software loopt niet)."
+                hint = " → Server is up but no source/encoder is connected (DJ software isn't running)."
             elif "cache" in n:
-                hint = " → De RDS-scheduler heeft niet recent geschreven — check supervisor logs."
+                hint = " → The RDS scheduler has not written recently — check supervisor logs."
             elif "configured" in n:
-                hint = " → Voeg het station toe via RDS → Settings."
+                hint = " → Add the station via RDS → Settings."
             return f"{name}: {detail}{hint}"
     return ""

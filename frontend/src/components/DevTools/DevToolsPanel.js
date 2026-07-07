@@ -367,7 +367,7 @@ function SnapshotsTabContent() {
                   </span>
                 </div>
                 <p className="text-[10px] text-zinc-500 mt-0.5">
-                  {new Date(snap.created_at).toLocaleString('nl-BE')} — {snap.document_count} docs
+                  {new Date(snap.created_at).toLocaleString('en-GB')} — {snap.document_count} docs
                 </p>
               </div>
               {snap.status === 'completed' && (

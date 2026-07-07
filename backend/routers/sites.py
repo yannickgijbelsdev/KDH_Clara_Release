@@ -183,7 +183,7 @@ async def get_site(
     )
     
     if not site:
-        raise HTTPException(status_code=404, detail="Site niet gevonden")
+        raise HTTPException(status_code=404, detail="Site not found")
     
     return site
 
@@ -216,7 +216,7 @@ async def update_site(
     site = await db.sites.find_one({"id": site_id})
     
     if not site:
-        raise HTTPException(status_code=404, detail="Site niet gevonden")
+        raise HTTPException(status_code=404, detail="Site not found")
     
     # Verify authorization: user must have access to this site
     has_access = False
@@ -244,7 +244,7 @@ async def update_site(
         has_access = True
     
     if not has_access:
-        raise HTTPException(status_code=404, detail="Site niet gevonden")
+        raise HTTPException(status_code=404, detail="Site not found")
     
     # If slug is being changed, check uniqueness
     if site_data.slug and site_data.slug != site.get("slug"):
@@ -293,13 +293,13 @@ async def delete_site(
     result = await db.sites.delete_one({"id": site_id, "team_id": team_id})
     
     if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Site niet gevonden")
+        raise HTTPException(status_code=404, detail="Site not found")
     
     # Also delete related data
     await db.site_submissions.delete_many({"site_id": site_id})
     await db.site_users.delete_many({"site_id": site_id})
     
-    return {"message": "Site verwijderd"}
+    return {"message": "Site deleted"}
 
 
 # ============== SITE LOGO UPLOAD ==============
@@ -315,12 +315,12 @@ async def upload_site_logo(
     
     site = await db.sites.find_one({"id": site_id, "team_id": team_id})
     if not site:
-        raise HTTPException(status_code=404, detail="Site niet gevonden")
+        raise HTTPException(status_code=404, detail="Site not found")
     
     # Validate file type
     allowed_types = ["image/png", "image/jpeg", "image/gif", "image/webp", "image/svg+xml"]
     if file.content_type not in allowed_types:
-        raise HTTPException(status_code=400, detail="Alleen afbeeldingen toegestaan")
+        raise HTTPException(status_code=400, detail="Only images allowed")
     
     content = await file.read()
     ext = file.filename.split(".")[-1] if "." in file.filename else "png"
@@ -372,12 +372,12 @@ async def upload_site_header(
     
     site = await db.sites.find_one({"id": site_id, "team_id": team_id})
     if not site:
-        raise HTTPException(status_code=404, detail="Site niet gevonden")
+        raise HTTPException(status_code=404, detail="Site not found")
     
     # Validate file type
     allowed_types = ["image/png", "image/jpeg", "image/gif", "image/webp"]
     if file.content_type not in allowed_types:
-        raise HTTPException(status_code=400, detail="Alleen afbeeldingen toegestaan")
+        raise HTTPException(status_code=400, detail="Only images allowed")
     
     content = await file.read()
     ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
@@ -429,12 +429,12 @@ async def upload_site_audio(
     
     site = await db.sites.find_one({"id": site_id, "team_id": team_id})
     if not site:
-        raise HTTPException(status_code=404, detail="Site niet gevonden")
+        raise HTTPException(status_code=404, detail="Site not found")
     
     # Validate file type
     allowed_types = ["audio/mpeg", "audio/mp3", "audio/aac", "audio/x-aac"]
     if file.content_type not in allowed_types:
-        raise HTTPException(status_code=400, detail="Alleen MP3 of AAC bestanden toegestaan")
+        raise HTTPException(status_code=400, detail="Only MP3 or AAC files allowed")
     
     content = await file.read()
     ext = file.filename.split(".")[-1] if "." in file.filename else "mp3"
@@ -491,7 +491,7 @@ async def get_site_users(
     
     site = await db.sites.find_one({"id": site_id, "team_id": team_id})
     if not site:
-        raise HTTPException(status_code=404, detail="Site niet gevonden")
+        raise HTTPException(status_code=404, detail="Site not found")
     
     site_users = await db.site_users.find(
         {"site_id": site_id},
@@ -531,12 +531,12 @@ async def add_site_user(
     
     site = await db.sites.find_one({"id": site_id, "team_id": team_id})
     if not site:
-        raise HTTPException(status_code=404, detail="Site niet gevonden")
+        raise HTTPException(status_code=404, detail="Site not found")
     
     # Check if user exists in team
     user = await db.users.find_one({"id": user_role.user_id, "team_id": team_id})
     if not user:
-        raise HTTPException(status_code=404, detail="Gebruiker niet gevonden")
+        raise HTTPException(status_code=404, detail="User not found")
     
     # Upsert user access
     await db.site_users.update_one(
@@ -559,11 +559,11 @@ async def remove_site_user(
     
     site = await db.sites.find_one({"id": site_id, "team_id": team_id})
     if not site:
-        raise HTTPException(status_code=404, detail="Site niet gevonden")
+        raise HTTPException(status_code=404, detail="Site not found")
     
     await db.site_users.delete_one({"site_id": site_id, "user_id": user_id})
     
-    return {"message": "Gebruiker verwijderd"}
+    return {"message": "User deleted"}
 
 
 # ============== SITE SUBMISSIONS ==============
@@ -578,7 +578,7 @@ async def get_site_submissions(
     
     site = await db.sites.find_one({"id": site_id, "team_id": team_id})
     if not site:
-        raise HTTPException(status_code=404, detail="Site niet gevonden")
+        raise HTTPException(status_code=404, detail="Site not found")
     
     submissions = await db.site_submissions.find(
         {"site_id": site_id},
@@ -599,11 +599,11 @@ async def delete_submission(
     
     site = await db.sites.find_one({"id": site_id, "team_id": team_id})
     if not site:
-        raise HTTPException(status_code=404, detail="Site niet gevonden")
+        raise HTTPException(status_code=404, detail="Site not found")
     
     await db.site_submissions.delete_one({"id": submission_id, "site_id": site_id})
     
-    return {"message": "Inzending verwijderd"}
+    return {"message": "Submission deleted"}
 
 
 @sites_router.get("/{site_id}/submissions/count")
@@ -617,7 +617,7 @@ async def get_site_submission_count(
     
     site = await db.sites.find_one({"id": site_id, "team_id": team_id})
     if not site:
-        raise HTTPException(status_code=404, detail="Site niet gevonden")
+        raise HTTPException(status_code=404, detail="Site not found")
     
     # Get last viewed timestamp for this user
     last_viewed = await db.site_submission_views.find_one({
@@ -649,7 +649,7 @@ async def mark_submissions_viewed(
     
     site = await db.sites.find_one({"id": site_id, "team_id": team_id})
     if not site:
-        raise HTTPException(status_code=404, detail="Site niet gevonden")
+        raise HTTPException(status_code=404, detail="Site not found")
     
     now = datetime.now(timezone.utc).isoformat()
     
@@ -673,7 +673,7 @@ async def get_public_site(slug: str):
     )
     
     if not site:
-        raise HTTPException(status_code=404, detail="Pagina niet gevonden")
+        raise HTTPException(status_code=404, detail="Page not found")
     
     return site
 
@@ -684,7 +684,7 @@ async def verify_site_password(slug: str, data: SitePasswordCheck):
     site = await db.sites.find_one({"slug": slug.lower()})
     
     if not site:
-        raise HTTPException(status_code=404, detail="Pagina niet gevonden")
+        raise HTTPException(status_code=404, detail="Page not found")
     
     if not site.get("password_protected"):
         return {"valid": True}
@@ -701,10 +701,10 @@ async def submit_site_form(slug: str, submission: SiteSubmissionCreate):
     site = await db.sites.find_one({"slug": slug.lower()})
     
     if not site:
-        raise HTTPException(status_code=404, detail="Pagina niet gevonden")
+        raise HTTPException(status_code=404, detail="Page not found")
     
     if not site.get("form_enabled"):
-        raise HTTPException(status_code=400, detail="Formulier is niet actief")
+        raise HTTPException(status_code=400, detail="Form is not active")
     
     now = datetime.now(timezone.utc).isoformat()
     submission_id = str(uuid.uuid4())
@@ -734,13 +734,13 @@ async def upload_form_file(
     site = await db.sites.find_one({"slug": slug.lower()})
     
     if not site:
-        raise HTTPException(status_code=404, detail="Pagina niet gevonden")
+        raise HTTPException(status_code=404, detail="Page not found")
     
     if not site.get("form_enabled"):
-        raise HTTPException(status_code=400, detail="Formulier is niet actief")
+        raise HTTPException(status_code=400, detail="Form is not active")
     
     if not site.get("form_file_upload_enabled"):
-        raise HTTPException(status_code=400, detail="Bestandsuploads zijn niet toegestaan")
+        raise HTTPException(status_code=400, detail="File uploads are not allowed")
     
     # Validate file type - allow images, audio, video
     allowed_types = [
@@ -755,7 +755,7 @@ async def upload_form_file(
     if file.content_type not in allowed_types:
         raise HTTPException(
             status_code=400, 
-            detail="Alleen afbeeldingen, audio en video bestanden toegestaan"
+            detail="Only images, audio and video files allowed"
         )
     
     # Check file size (max 50MB)

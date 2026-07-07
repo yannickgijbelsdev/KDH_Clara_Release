@@ -68,7 +68,7 @@ export default function NetworkAdminManager({ open, onClose, inline = false }) {
 
   const handleAdd = async () => {
     if (!formData.name || !formData.email) {
-      toast.error('Naam en e-mail zijn verplicht');
+      toast.error('Name and email are required');
       return;
     }
     setSaving(true);

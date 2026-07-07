@@ -33,7 +33,7 @@ def _detect_format(data):
 def _load_transfer_file(file_id):
     path = os.path.join(UPLOAD_DIR, f"{file_id}.json")
     if not os.path.exists(path):
-        raise HTTPException(status_code=404, detail="Upload niet gevonden. Upload het bestand opnieuw.")
+        raise HTTPException(status_code=404, detail="Upload not found. Please upload the file again.")
     with open(path, "r") as f:
         return json.load(f)
 
@@ -110,7 +110,7 @@ async def upload_export_file(file: UploadFile = File(...), current_user: dict = 
     fmt, collections_data = _detect_format(data)
     main_sites_docs = collections_data.get("main_sites", [])
     if not main_sites_docs:
-        raise HTTPException(status_code=400, detail="Geen main sites gevonden")
+        raise HTTPException(status_code=400, detail="No main sites found")
 
     file_id = str(uuid.uuid4())
     path = os.path.join(UPLOAD_DIR, f"{file_id}.json")
@@ -144,7 +144,7 @@ async def preview_site_import(body: dict, current_user: dict = Depends(require_s
     file_id = body.get("file_id")
     site_id = body.get("site_id")
     if not file_id or not site_id:
-        raise HTTPException(status_code=400, detail="file_id en site_id zijn verplicht")
+        raise HTTPException(status_code=400, detail="file_id and site_id are required")
 
     data = _load_transfer_file(file_id)
     _, collections_data = _detect_format(data)
@@ -178,7 +178,7 @@ async def import_site(body: dict, current_user: dict = Depends(require_system_ad
     file_id = body.get("file_id")
     site_id = body.get("site_id")
     if not file_id or not site_id:
-        raise HTTPException(status_code=400, detail="file_id en site_id zijn verplicht")
+        raise HTTPException(status_code=400, detail="file_id and site_id are required")
 
     data = _load_transfer_file(file_id)
     _, collections_data = _detect_format(data)
@@ -240,7 +240,7 @@ async def import_site(body: dict, current_user: dict = Depends(require_system_ad
 async def cleanup_upload(body: dict, current_user: dict = Depends(require_system_admin)):
     file_id = body.get("file_id")
     if not file_id:
-        raise HTTPException(status_code=400, detail="file_id is verplicht")
+        raise HTTPException(status_code=400, detail="file_id is required")
     path = os.path.join(UPLOAD_DIR, f"{file_id}.json")
     if os.path.exists(path):
         os.remove(path)

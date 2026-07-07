@@ -338,7 +338,7 @@ async def _get_cf_credentials():
     """Get Cloudflare API token and zone ID from DB."""
     config = await db.cloudflare_config.find_one({"type": "global"}, {"_id": 0})
     if not config or not config.get("api_token") or not config.get("zone_id"):
-        raise HTTPException(status_code=400, detail="Cloudflare API niet geconfigureerd. Stel eerst API Token en Zone ID in.")
+        raise HTTPException(status_code=400, detail="Cloudflare API not configured. Set API Token and Zone ID first.")
     return config["api_token"], config["zone_id"], config.get("base_domain", "koodh.com")
 
 
@@ -365,7 +365,7 @@ async def _cf_request(method: str, path: str, token: str, json_data=None):
     except HTTPException:
         raise
     except httpx.ConnectError:
-        raise HTTPException(status_code=502, detail="Kan geen verbinding maken met Cloudflare API")
+        raise HTTPException(status_code=502, detail="Cannot connect to Cloudflare API")
     except httpx.TimeoutException:
         raise HTTPException(status_code=504, detail="Cloudflare API timeout - probeer het opnieuw")
     except Exception as e:
@@ -699,7 +699,7 @@ async def test_cloudflare_worker(current_user: dict = Depends(require_system_adm
                     elif resp.status_code == 404:
                         # Check if it's the Worker's "niet geconfigureerd" page
                         body = resp.text[:500]
-                        if "niet geconfigureerd" in body or "not configured" in body.lower():
+                        if "not configured" in body or "not configured" in body.lower():
                             domain_result["http"] = "not_in_worker"
                         else:
                             domain_result["http"] = "ok"  # 404 from the app is fine
@@ -968,7 +968,7 @@ async def verify_custom_domain(
                     worker_status = "ok"
                 elif resp.status_code == 404:
                     body = resp.text[:500]
-                    if "niet geconfigureerd" in body or "not configured" in body.lower():
+                    if "not configured" in body or "not configured" in body.lower():
                         http_status = "not_in_worker"
                         worker_status = "missing"
                     else:

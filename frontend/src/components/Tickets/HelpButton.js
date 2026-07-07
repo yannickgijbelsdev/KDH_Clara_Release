@@ -84,7 +84,7 @@ export default function HelpButton() {
         setDescription('');
         setPriority('normal');
       } else {
-        toast.error('Kon ticket niet aanmaken');
+        toast.error('Could not create ticket');
       }
     } catch {
       toast.error('Fout bij aanmaken ticket');

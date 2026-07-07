@@ -176,7 +176,7 @@ export default function RackFirewallPanel({ rackId, rackName, onClose }) {
                       {log.ip && <span className="text-[10px] font-mono bg-black/5 px-1.5 py-0.5 rounded">{log.ip}</span>}
                     </div>
                     <p className="text-[11px] opacity-70 mt-0.5 truncate">{log.details}</p>
-                    <p className="text-[10px] opacity-50 mt-1">{new Date(log.timestamp).toLocaleString('nl-BE')}</p>
+                    <p className="text-[10px] opacity-50 mt-1">{new Date(log.timestamp).toLocaleString('en-GB')}</p>
                   </div>
                 </div>
               ))}
@@ -207,7 +207,7 @@ export default function RackFirewallPanel({ rackId, rackName, onClose }) {
                   <Ban className="w-4 h-4 text-red-400 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <span className="text-sm font-mono text-zinc-800">{b.ip}</span>
-                    <p className="text-[11px] text-zinc-400 truncate">{b.reason} &mdash; {new Date(b.blocked_at).toLocaleString('nl-BE')}</p>
+                    <p className="text-[11px] text-zinc-400 truncate">{b.reason} &mdash; {new Date(b.blocked_at).toLocaleString('en-GB')}</p>
                     {b.blocked_by && <p className="text-[10px] text-zinc-300">by {b.blocked_by}</p>}
                   </div>
                   <Button size="sm" variant="outline" onClick={() => handleUnblockIp(b.ip)} disabled={actionLoading === b.ip} className="opacity-0 group-hover:opacity-100 transition-opacity h-7 text-xs border-emerald-200 text-emerald-600 hover:bg-emerald-50" data-testid={`unblock-ip-${i}`}>

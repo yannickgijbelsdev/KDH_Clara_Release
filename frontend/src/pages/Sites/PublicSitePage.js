@@ -322,10 +322,10 @@ export default function PublicSitePage() {
           <div className="text-center mb-6">
             <Lock className="h-12 w-12 mx-auto mb-4" style={{ color: buttonColor }} />
             <h1 className="text-xl font-bold text-zinc-900">
-              Deze pagina is beveiligd
+              This page is protected
             </h1>
             <p className="text-zinc-400 mt-2">
-              Voer het wachtwoord in om toegang te krijgen
+              Enter the password to gain access
             </p>
           </div>
           <form onSubmit={(e) => { e.preventDefault(); verifyPassword(); }}>
@@ -333,11 +333,11 @@ export default function PublicSitePage() {
               type="password"
               value={passwordInput}
               onChange={(e) => setPasswordInput(e.target.value)}
-              placeholder="Wachtwoord"
+              placeholder="Password"
               className="bg-zinc-50 border-zinc-200 mb-4"
             />
             <Button type="submit" className="w-full text-white hover:opacity-90" style={{ backgroundColor: buttonColor }}>
-              Toegang krijgen
+              Get access
             </Button>
           </form>
         </div>
@@ -386,7 +386,7 @@ export default function PublicSitePage() {
               />
             ) : (
               <div className="aspect-video flex items-center justify-center text-zinc-400">
-                Video URL kon niet worden geladen
+                Video URL could not be loaded
               </div>
             )}
           </div>
@@ -467,15 +467,15 @@ export default function PublicSitePage() {
         {/* Contact Form */}
         {site?.form_enabled && (
           <div className="rounded-xl p-5 mt-4 mb-6" style={{ backgroundColor: containerColor }}>
-            <h2 className="text-lg font-bold text-zinc-900 mb-3">Neem contact op</h2>
+            <h2 className="text-lg font-bold text-zinc-900 mb-3">Get in touch</h2>
             
             {submitted ? (
               <div className="text-center py-6">
                 <div className="h-14 w-14 rounded-full flex items-center justify-center mx-auto mb-3" style={{ backgroundColor: `${buttonColor}33` }}>
                   <Send className="h-7 w-7" style={{ color: buttonColor }} />
                 </div>
-                <p className="text-zinc-700 font-medium">Bedankt voor je bericht!</p>
-                <p className="text-zinc-400 mt-1 text-sm">We nemen zo snel mogelijk contact op.</p>
+                <p className="text-zinc-700 font-medium">Thanks for your message!</p>
+                <p className="text-zinc-400 mt-1 text-sm">We&apos;ll get back to you as soon as we can.</p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-3">
@@ -578,7 +578,7 @@ export default function PublicSitePage() {
                 {site.form_file_upload_enabled && (
                   <div>
                     <label className="block text-sm font-medium text-zinc-600 mb-1">
-                      Bestanden toevoegen
+                      Add files
                     </label>
                     <div className="space-y-2">
                       {/* Uploaded files list */}
@@ -621,17 +621,17 @@ export default function PublicSitePage() {
                           {uploading ? (
                             <>
                               <Loader2 className="h-4 w-4 animate-spin" />
-                              <span>Uploaden...</span>
+                              <span>Uploading...</span>
                             </>
                           ) : (
                             <>
                               <Upload className="h-4 w-4" />
-                              <span>Afbeelding, audio of video uploaden</span>
+                              <span>Upload image, audio or video</span>
                             </>
                           )}
                         </div>
                       </label>
-                      <p className="text-xs text-zinc-500">Max 50MB per bestand</p>
+                      <p className="text-xs text-zinc-500">Max 50MB per file</p>
                     </div>
                   </div>
                 )}
@@ -645,12 +645,12 @@ export default function PublicSitePage() {
                   {submitting ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Verzenden...
+                      Sending...
                     </>
                   ) : (
                     <>
                       <Send className="h-4 w-4 mr-2" />
-                      Verstuur
+                      Send
                     </>
                   )}
                 </Button>

@@ -62,7 +62,7 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
       setSetupStep(1);
       setSetupDialogOpen(true);
     } catch (error) {
-      toast.error('Kon 2FA setup niet starten');
+      toast.error('Could not start 2FA setup');
     }
   };
 
@@ -71,7 +71,7 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
     try {
       await axios.post(`${API}/auth/2fa/verify-setup`, { code: verifyCode });
       setSetupStep(3); // Show backup codes
-      toast.success('2FA is nu actief!');
+      toast.success('2FA is now active!');
       fetchStatus();
       if (onUpdate) onUpdate();
     } catch (error) {
@@ -180,7 +180,7 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
             <p className="text-sm text-zinc-400">
               {status.enabled 
                 ? `Active - ${status.backup_codes_remaining} backup codes remaining`
-                : 'Niet actief - Stel in voor extra beveiliging'
+                : 'Not active - Set up for extra security'
               }
             </p>
           </div>
@@ -255,14 +255,14 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
                 />
               </div>
               <p className="text-sm text-zinc-400 text-center">
-                Gebruik Google Authenticator, Authy, of een andere TOTP app
+                Use Google Authenticator, Authy, or another TOTP app
               </p>
               <div className="bg-zinc-100 rounded-lg p-3">
                 <p className="text-xs text-zinc-500 mb-1">Or enter this code manually:</p>
                 <code className="text-sm text-zinc-900 font-mono break-all">{setupData.secret}</code>
               </div>
               <Button onClick={() => setSetupStep(2)} className="w-full">
-                Volgende
+                Next
               </Button>
             </div>
           )}
@@ -284,7 +284,7 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" onClick={() => setSetupStep(1)} className="flex-1">
-                  Terug
+                  Back
                 </Button>
                 <Button 
                   onClick={verifySetup} 
@@ -342,7 +342,7 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
                 setVerifyCode('');
                 setSetupData(null);
               }} className="w-full" data-testid="2fa-setup-done-btn">
-                Klaar
+                Done
               </Button>
             </div>
           )}
@@ -405,8 +405,8 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
               Backup codes
             </DialogTitle>
             <DialogDescription>
-              Je hebt nog {status.backup_codes_remaining} backup codes over.
-              Genereer nieuwe codes als je ze bijna op hebt.
+              You have {status.backup_codes_remaining} backup codes remaining.
+              Generate new codes if you're running low.
             </DialogDescription>
           </DialogHeader>
 
@@ -415,13 +415,13 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
               <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3">
                 <p className="text-amber-200 text-sm flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4" />
-                  Je hebt nog maar weinig backup codes over!
+                  You're running low on backup codes!
                 </p>
               </div>
             )}
 
             <div className="space-y-2">
-              <Label>Authenticator code om nieuwe codes te genereren</Label>
+              <Label>Authenticator code to generate new codes</Label>
               <Input
                 type="text"
                 inputMode="numeric"
@@ -438,13 +438,13 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
               disabled={regenerateCode.length !== 6 || regenerating}
               className="w-full"
             >
-              {regenerating ? 'Genereren...' : 'Nieuwe codes genereren'}
+              {regenerating ? 'Generating...' : 'Generate new codes'}
             </Button>
 
             {backupCodes.length > 0 && (
               <>
                 <div className="border-t border-zinc-200 pt-4">
-                  <p className="text-sm text-zinc-400 mb-2">Je nieuwe backup codes:</p>
+                  <p className="text-sm text-zinc-400 mb-2">Your new backup codes:</p>
                   <div className="grid grid-cols-2 gap-2">
                     {backupCodes.map((code, i) => (
                       <button

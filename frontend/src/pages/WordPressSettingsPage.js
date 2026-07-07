@@ -260,10 +260,10 @@ const WordPressSettingsPage = () => {
         <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-6">
           <ShieldAlert className="w-8 h-8 text-red-400" />
         </div>
-        <h2 className="text-xl font-bold text-zinc-900 mb-2">Geen toegang</h2>
+        <h2 className="text-xl font-bold text-zinc-900 mb-2">No access</h2>
         <p className="text-zinc-400 max-w-md">
-          Je hebt geen beheerdersrechten om WordPress-instellingen te bekijken of aan te passen.
-          Neem contact op met een beheerder als je denkt dat dit een fout is.
+          You don&apos;t have admin permissions to view or edit WordPress settings.
+          Please contact an administrator if you believe this is a mistake.
         </p>
       </div>
     );

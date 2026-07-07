@@ -173,7 +173,7 @@ export default function StatisticsPage() {
         <div className="mb-8" data-testid="report-header">
           <h2 className="text-2xl font-bold">{overview?.main_site_name} — Content Report</h2>
           <p className="text-sm text-zinc-500 mt-1">
-            Generated {new Date().toLocaleDateString('nl-BE', { day: 'numeric', month: 'long', year: 'numeric' })}
+            Generated {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
         </div>
 

@@ -382,7 +382,7 @@ function SessionsTab({ token, mainSiteId }) {
                       <Timer className="w-4 h-4" />
                       <span className="text-sm font-mono font-medium" data-testid={`duration-${session.id}`}>{formatDuration(session.started_at)}</span>
                     </div>
-                    <span className="text-xs text-zinc-600">since {new Date(session.started_at).toLocaleTimeString('nl-BE')}</span>
+                    <span className="text-xs text-zinc-600">since {new Date(session.started_at).toLocaleTimeString('en-GB')}</span>
                   </div>
                   <Button size="sm" variant="outline" className="text-red-400 border-red-500/20 hover:bg-red-500/10" onClick={() => terminateSession(session.id)} data-testid={`terminate-${session.id}`}>
                     <LogOut className="w-4 h-4 mr-1" /> Terminate
@@ -563,7 +563,7 @@ function EndpointsTab({ token, mainSiteId }) {
                               {c.duration_seconds < 60 ? `${c.duration_seconds}s` : `${Math.floor(c.duration_seconds / 60)}m`}
                             </span>
                           )}
-                          <span className="text-zinc-600">{new Date(c.last_seen).toLocaleTimeString('nl-BE')}</span>
+                          <span className="text-zinc-600">{new Date(c.last_seen).toLocaleTimeString('en-GB')}</span>
                         </div>
                       </div>
                     ))}
@@ -795,8 +795,8 @@ function BlocksTab({ token, mainSiteId }) {
                   </div>
                   <p className="text-xs text-zinc-500 mt-1">{block.reason}</p>
                   <div className="flex items-center gap-3 mt-1 text-xs text-zinc-600">
-                    <span>{new Date(block.blocked_at).toLocaleString('nl-BE')}</span>
-                    {block.expires_at ? <span className="flex items-center gap-1"><Clock className="w-3 h-3" />Expires: {new Date(block.expires_at).toLocaleString('nl-BE')}</span> : <span className="text-red-400">Permanent</span>}
+                    <span>{new Date(block.blocked_at).toLocaleString('en-GB')}</span>
+                    {block.expires_at ? <span className="flex items-center gap-1"><Clock className="w-3 h-3" />Expires: {new Date(block.expires_at).toLocaleString('en-GB')}</span> : <span className="text-red-400">Permanent</span>}
                   </div>
                 </div>
               </div>
@@ -880,7 +880,7 @@ function LogsTab({ token, mainSiteId }) {
                   </div>
                 </div>
                 <span className="text-xs text-zinc-600 whitespace-nowrap flex-shrink-0">
-                  {new Date(log.timestamp).toLocaleString('nl-BE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                  {new Date(log.timestamp).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                 </span>
               </div>
             );

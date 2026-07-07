@@ -1363,7 +1363,7 @@ async def run_health_check(
     checks.append({
         "name": "Mini Sites",
         "status": "ok" if child_sites else "warning",
-        "message": f"{len(child_sites)} mini sites gevonden",
+        "message": f"{len(child_sites)} mini sites found",
         "details": [{"name": s.get("name", "?"), "slug": s.get("slug", "?")} for s in child_sites]
     })
     
@@ -1404,7 +1404,7 @@ async def run_health_check(
     checks.append({
         "name": "Users",
         "status": "ok" if users > 0 else "warning",
-        "message": f"{users} gebruikers",
+        "message": f"{users} users",
         "count": users
     })
     

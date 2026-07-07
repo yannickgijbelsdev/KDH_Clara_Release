@@ -31,7 +31,7 @@ export default function ZeroTierAlertHistory({ mainSiteId, token }) {
   const formatTime = (ts) => {
     if (!ts) return '-';
     const d = new Date(ts);
-    return d.toLocaleString('nl-BE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
 
   const timeSince = (ts) => {

@@ -154,7 +154,7 @@ const ClaraFlowsPage = () => {
               Clara Flows
             </h1>
             <p className="text-zinc-500 text-sm mt-1 max-w-xl">
-              Visuele workflow-builder voor notificaties &amp; API flows. Verbind triggers (events, schedule, webhook) met acties (email, HTTP, AI, in-app, Slack, Telegram).
+              Visual workflow builder for notifications &amp; API flows. Connect triggers (events, schedule, webhook) with actions (email, HTTP, AI, in-app, Slack, Telegram).
             </p>
           </div>
           <Button
@@ -233,8 +233,8 @@ const ClaraFlowsPage = () => {
             ) : (
               <Card className="p-10 bg-white border-zinc-200 text-center">
                 <Sparkles className="w-10 h-10 text-violet-300 mx-auto mb-2" />
-                <h2 className="text-zinc-700 font-medium">Selecteer een flow links of maak een nieuwe</h2>
-                <p className="text-zinc-500 text-sm mt-1">Een Clara Flow combineert één trigger met een reeks acties.</p>
+                <h2 className="text-zinc-700 font-medium">Select a flow on the left or create a new one</h2>
+                <p className="text-zinc-500 text-sm mt-1">A Clara Flow combines one trigger with a series of actions.</p>
               </Card>
             )}
           </section>
@@ -733,7 +733,7 @@ const RunsList = ({ runs }) => {
 
 const RunRow = ({ run }) => {
   const [open, setOpen] = useState(false);
-  const dt = run.started_at ? new Date(run.started_at).toLocaleString('nl-BE', { timeZone: 'Europe/Brussels' }) : '';
+  const dt = run.started_at ? new Date(run.started_at).toLocaleString('en-GB', { timeZone: 'Europe/Brussels' }) : '';
   return (
     <div className="px-5 py-3">
       <button

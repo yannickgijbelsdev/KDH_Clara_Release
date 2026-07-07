@@ -73,7 +73,7 @@ export default function ZeroTrustPanel({ token }) {
       setLockouts(lk.data.items || []);
     } catch (err) {
       console.error('Failed to load Zero Trust telemetry', err);
-      toast.error('Kon Zero Trust telemetrie niet laden');
+      toast.error('Could not load Zero Trust telemetry');
     } finally {
       setLoading(false);
     }
@@ -86,9 +86,9 @@ export default function ZeroTrustPanel({ token }) {
     try {
       await axios.post(`${API}/security/anomalies/${id}/acknowledge`, {}, { headers });
       setAnomalies((cur) => cur.map((a) => (a.id === id ? { ...a, acknowledged: true } : a)));
-      toast.success('Anomalie bevestigd');
+      toast.success('Anomaly acknowledged');
     } catch (err) {
-      toast.error('Kon anomalie niet bevestigen');
+      toast.error('Could not acknowledge anomaly');
     }
   };
 
@@ -96,16 +96,16 @@ export default function ZeroTrustPanel({ token }) {
     try {
       await axios.post(`${API}/security/lockouts/${encodeURIComponent(identifier)}/clear`, {}, { headers });
       setLockouts((cur) => cur.filter((l) => l.identifier !== identifier));
-      toast.success('Lockout vrijgegeven');
+      toast.success('Lockout released');
     } catch (err) {
-      toast.error('Kon lockout niet vrijgeven');
+      toast.error('Could not release lockout');
     }
   };
 
   if (loading && !overview) {
     return (
       <div className="flex items-center justify-center py-16 text-zinc-400">
-        <RefreshCw className="w-5 h-5 animate-spin mr-2" /> Zero Trust telemetrie laden…
+        <RefreshCw className="w-5 h-5 animate-spin mr-2" /> Loading Zero Trust telemetry…
       </div>
     );
   }

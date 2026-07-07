@@ -58,8 +58,8 @@ export default function NotificationBroadcast() {
   const [mainSites, setMainSites] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const [title, setTitle] = useState('Geplande onderhoud');
-  const [body, setBody] = useState('<p>Beste gebruikers,</p>\n<p>We voeren geplande onderhoud uit. Tijdens dit venster kan de dienst tijdelijk niet beschikbaar zijn.</p>\n<p><strong>Wanneer:</strong> vannacht tussen 02:00 en 04:00 (CET)</p>');
+  const [title, setTitle] = useState('Scheduled maintenance');
+  const [body, setBody] = useState('<p>Dear users,</p>\n<p>We are performing scheduled maintenance. During this window the service may be temporarily unavailable.</p>\n<p><strong>When:</strong> tonight between 02:00 and 04:00 (CET)</p>');
   const [severity, setSeverity] = useState('maintenance');
   const [audience, setAudience] = useState('system_admins');
   const [mainSiteId, setMainSiteId] = useState('');
@@ -71,7 +71,7 @@ export default function NotificationBroadcast() {
     show_clara_logo: true,
     banner_gradient_from: '#7c1ac8',
     banner_gradient_to: '#dd0c51',
-    footer_text: 'Je ontvangt dit omdat je lid bent van deze omgeving.',
+    footer_text: 'You are receiving this because you belong to this environment.',
   });
   const [savingLayout, setSavingLayout] = useState(false);
 

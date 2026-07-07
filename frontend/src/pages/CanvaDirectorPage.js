@@ -530,7 +530,7 @@ const CanvaDirectorPage = () => {
                           </div>
                           <div className="p-3">
                             <p className="text-sm font-medium text-zinc-900 truncate">{d.title || 'Untitled'}</p>
-                            <p className="text-xs text-zinc-500 mt-1">{d.created_at ? new Date(d.created_at * 1000).toLocaleDateString('nl-BE') : ''}</p>
+                            <p className="text-xs text-zinc-500 mt-1">{d.created_at ? new Date(d.created_at * 1000).toLocaleDateString('en-GB') : ''}</p>
                           </div>
                         </div>
                       );
@@ -555,7 +555,7 @@ const CanvaDirectorPage = () => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-zinc-700"><span className="font-medium">{act.user_name}</span> {act.action === 'create_design' ? 'created' : 'exported'} <span className="text-zinc-400">{act.design_title || act.design_id}</span></p>
-                        <p className="text-xs text-zinc-500">{new Date(act.created_at).toLocaleString('nl-BE')}</p>
+                        <p className="text-xs text-zinc-500">{new Date(act.created_at).toLocaleString('en-GB')}</p>
                       </div>
                     </div>
                   ))

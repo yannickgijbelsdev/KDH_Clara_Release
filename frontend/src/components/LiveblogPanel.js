@@ -198,11 +198,11 @@ const LiveblogPanel = ({ contentId, mainSiteId, token, canEdit, ended = false, e
       const r = await axios.post(`${API}/content/${contentId}/liveblog/publish-drafts`, {}, { headers });
       const { published, skipped_missing_rights } = r.data || {};
       if (published > 0) {
-        toast.success(`${published} entry${published === 1 ? '' : 's'} live gezet`);
+        toast.success(`${published} entry${published === 1 ? '' : 's'} published`);
       } else if (skipped_missing_rights > 0) {
-        toast.error(`${skipped_missing_rights} entries hebben nog geen image-rechten — vul die eerst in`);
+        toast.error(`${skipped_missing_rights} entries are missing image rights — fill those in first`);
       } else {
-        toast.info('Geen drafts om te publiceren');
+        toast.info('No drafts to publish');
       }
       fetchEntries();
     } catch (e) {
@@ -267,7 +267,7 @@ const LiveblogPanel = ({ contentId, mainSiteId, token, canEdit, ended = false, e
                 className="border-amber-300 text-amber-700 hover:bg-amber-50"
                 data-testid="liveblog-publish-all-drafts-btn"
               >
-                <Send className="w-4 h-4 mr-1.5" /> Publiceer alle drafts
+                <Send className="w-4 h-4 mr-1.5" /> Publish all drafts
               </Button>
             )}
             <Button onClick={startNew} className="bg-red-500 hover:bg-red-600 text-white" data-testid="liveblog-new-entry-btn">

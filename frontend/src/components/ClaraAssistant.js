@@ -454,7 +454,7 @@ function EmptyState({ mode, editorContent, onGenerate, onImprove, onSetInput }) 
   if (mode === 'seo') {
     return (
       <div className="p-5 space-y-3">
-        <p className="text-sm text-zinc-500 mb-4">Hoe kan ik je helpen met je content?</p>
+        <p className="text-sm text-zinc-500 mb-4">How can I help with your content?</p>
         <button onClick={onGenerate}
           className="w-full p-4 bg-zinc-50 hover:bg-zinc-100 rounded-2xl text-left transition-colors border border-zinc-100"
           data-testid="clara-action-generate">

@@ -391,9 +391,9 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                               data-testid="show-blocks-room-checkbox"
                             />
                             <div className="text-xs">
-                              <div className="font-medium text-zinc-700">Blokkeer de ruimte</div>
+                              <div className="font-medium text-zinc-700">Block the room</div>
                               <div className="text-zinc-500">
-                                Uit voor voor-opgenomen shows — zo blijft de ruimte beschikbaar voor andere boekingen.
+                                Turn off for pre-recorded shows — this keeps the room free for other bookings.
                               </div>
                             </div>
                           </label>

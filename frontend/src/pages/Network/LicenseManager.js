@@ -516,7 +516,7 @@ export default function LicenseManager() {
                           <span className="text-[10px] text-zinc-400">Requested by</span>
                           <span className="text-[10px] text-zinc-600 truncate">{req.requester_name}</span>
                           <span className="text-[10px] text-zinc-400">Date</span>
-                          <span className="text-[10px] text-zinc-600">{new Date(req.created_at).toLocaleDateString('nl-BE', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+                          <span className="text-[10px] text-zinc-600">{new Date(req.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                         </div>
                         {req.reviewed_by && (
                           <p className="text-[10px] text-zinc-400 mt-2 border-t border-zinc-100 pt-1.5">

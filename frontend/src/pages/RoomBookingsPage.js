@@ -41,10 +41,10 @@ const emptyBooking = {
 const emptyRoom = { name: '', description: '', capacity: 0, color: '#71717a' };
 
 const RECURRENCE_OPTIONS = [
-  { value: 'none', label: 'Eenmalig' },
-  { value: 'daily', label: 'Dagelijks' },
-  { value: 'weekly', label: 'Wekelijks' },
-  { value: 'monthly', label: 'Maandelijks' },
+  { value: 'none', label: 'One-off' },
+  { value: 'daily', label: 'Daily' },
+  { value: 'weekly', label: 'Weekly' },
+  { value: 'monthly', label: 'Monthly' },
 ];
 
 const isoToLocalInput = (iso) => {
@@ -102,11 +102,11 @@ export default function RoomBookingsPage() {
 
   const saveBooking = async () => {
     if (!bookingDraft.room_id || !bookingDraft.title || !bookingDraft.start_at || !bookingDraft.end_at) {
-      toast.error('Vul ruimte, titel en tijd in');
+      toast.error('Pick a room, title and time first');
       return;
     }
     if (bookingDraft.recurrence_type !== 'none' && !bookingDraft.recurrence_end_date) {
-      toast.error('Kies een einddatum voor de herhaling');
+      toast.error('Pick an end date for the recurrence');
       return;
     }
     setSaving(true);
@@ -132,19 +132,19 @@ export default function RoomBookingsPage() {
         // Preserve series propagation when editing a recurring booking
         if (isSeries(bookingDraft) || bookingDraft.parent_booking_id) {
           payload.update_series = window.confirm(
-            'Deze boeking maakt deel uit van een reeks. Wil je de wijzigingen toepassen op de hele reeks? '
-            + 'Kies "Annuleren" om enkel deze boeking bij te werken.',
+            'This booking is part of a series. Apply the changes to the entire series? '
+            + 'Choose "Cancel" to only update this occurrence.',
           );
         }
         await axios.put(`${API}/bookings/${bookingDraft.id}`, payload, { headers });
       }
-      toast.success(isNew ? 'Boeking aangemaakt' : 'Boeking bijgewerkt');
+      toast.success(isNew ? 'Booking created' : 'Booking updated');
       setBookingDraft(null);
       loadBookings();
     } catch (e) {
       const d = e.response?.data?.detail;
       if (typeof d === 'object' && d?.message) toast.error(d.message);
-      else toast.error(typeof d === 'string' ? d : 'Kon boeking niet opslaan');
+      else toast.error(typeof d === 'string' ? d : 'Could not save booking');
     } finally { setSaving(false); }
   };
 
@@ -153,23 +153,23 @@ export default function RoomBookingsPage() {
     let deleteSeries = false;
     if (partOfSeries) {
       deleteSeries = window.confirm(
-        `"${b.title}" hoort bij een reeks. OK = verwijder hele reeks, Annuleren = verwijder enkel deze boeking.`,
+        `"${b.title}" is part of a series. OK = delete the whole series, Cancel = delete only this occurrence.`,
       );
-    } else if (!window.confirm(`Boeking "${b.title}" verwijderen?`)) {
+    } else if (!window.confirm(`Delete booking "${b.title}"?`)) {
       return;
     }
     try {
       const url = `${API}/bookings/${b.id}${deleteSeries ? '?delete_series=true' : ''}`;
       await axios.delete(url, { headers });
-      toast.success('Boeking verwijderd');
+      toast.success('Booking deleted');
       loadBookings();
     } catch (e) {
-      toast.error(e.response?.data?.detail || 'Kon niet verwijderen');
+      toast.error(e.response?.data?.detail || 'Could not delete');
     }
   };
 
   const saveRoom = async () => {
-    if (!roomDraft.name?.trim()) { toast.error('Naam vereist'); return; }
+    if (!roomDraft.name?.trim()) { toast.error('Name required'); return; }
     setSaving(true);
     try {
       const isNew = !roomDraft.id;
@@ -181,22 +181,22 @@ export default function RoomBookingsPage() {
       };
       if (isNew) await axios.post(`${API}/bookings/rooms`, payload, { headers });
       else await axios.put(`${API}/bookings/rooms/${roomDraft.id}`, payload, { headers });
-      toast.success(isNew ? 'Ruimte aangemaakt' : 'Ruimte bijgewerkt');
+      toast.success(isNew ? 'Room created' : 'Room updated');
       setRoomDraft(null);
       loadRooms();
     } catch (e) {
-      toast.error(e.response?.data?.detail || 'Kon ruimte niet opslaan');
+      toast.error(e.response?.data?.detail || 'Could not save room');
     } finally { setSaving(false); }
   };
 
   const removeRoom = async (r) => {
-    if (!window.confirm(`Ruimte "${r.name}" verwijderen?`)) return;
+    if (!window.confirm(`Delete room "${r.name}"?`)) return;
     try {
       await axios.delete(`${API}/bookings/rooms/${r.id}`, { headers });
-      toast.success('Ruimte verwijderd');
+      toast.success('Room deleted');
       loadRooms();
     } catch (e) {
-      toast.error(e.response?.data?.detail || 'Kon niet verwijderen');
+      toast.error(e.response?.data?.detail || 'Could not delete');
     }
   };
 
@@ -204,7 +204,7 @@ export default function RoomBookingsPage() {
     if (!iso) return '';
     const d = new Date(iso);
     if (isNaN(d.getTime())) return iso;
-    return d.toLocaleString('nl-BE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
   };
 
   return (
@@ -217,14 +217,14 @@ export default function RoomBookingsPage() {
             className={`px-4 py-1.5 text-sm rounded-md ${tab === 'bookings' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-600'}`}
             data-testid="tab-bookings"
           >
-            <CalendarClock className="w-3.5 h-3.5 mr-1.5 inline" /> Boekingen
+            <CalendarClock className="w-3.5 h-3.5 mr-1.5 inline" /> Bookings
           </button>
           <button
             onClick={() => setTab('rooms')}
             className={`px-4 py-1.5 text-sm rounded-md ${tab === 'rooms' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-600'}`}
             data-testid="tab-rooms"
           >
-            <DoorOpen className="w-3.5 h-3.5 mr-1.5 inline" /> Ruimtes
+            <DoorOpen className="w-3.5 h-3.5 mr-1.5 inline" /> Rooms
           </button>
         </div>
       </div>
@@ -232,14 +232,14 @@ export default function RoomBookingsPage() {
       {tab === 'bookings' && (
         <div>
           <div className="flex justify-between mb-4">
-            <p className="text-sm text-zinc-500">Boek een ruimte. Radio-shows met dezelfde tijd/ruimte blokkeren de boeking automatisch.</p>
+            <p className="text-sm text-zinc-500">Book a room. Radio shows using the same room and time block the booking automatically.</p>
             <Button onClick={openNewBooking} className="bg-rose-500 text-white hover:bg-rose-600" data-testid="new-booking-btn">
-              <Plus className="w-4 h-4 mr-1" /> Nieuwe boeking
+              <Plus className="w-4 h-4 mr-1" /> New booking
             </Button>
           </div>
           {bookings.length === 0 ? (
             <div className="border border-dashed border-zinc-200 rounded-xl p-12 text-center text-zinc-400" data-testid="bookings-empty">
-              Nog geen boekingen — klik &ldquo;Nieuwe boeking&rdquo; om te starten.
+              No bookings yet — click &ldquo;New booking&rdquo; to get started.
             </div>
           ) : (
             <div className="space-y-2">
@@ -251,12 +251,12 @@ export default function RoomBookingsPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <span className="font-semibold text-zinc-900">{b.title}</span>
-                        <span className="text-xs bg-zinc-100 text-zinc-600 px-2 py-0.5 rounded-full">{b.room_name || 'Onbekende ruimte'}</span>
-                        {!b.blocks_room && <span className="text-xs bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full">geen block</span>}
+                        <span className="text-xs bg-zinc-100 text-zinc-600 px-2 py-0.5 rounded-full">{b.room_name || 'Unknown room'}</span>
+                        {!b.blocks_room && <span className="text-xs bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full">non-blocking</span>}
                         {seriesBadge && (
                           <span className="text-xs bg-sky-50 text-sky-700 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
                             <Repeat className="w-3 h-3" />
-                            {RECURRENCE_OPTIONS.find(o => o.value === b.recurrence_type)?.label || 'Reeks'}
+                            {RECURRENCE_OPTIONS.find(o => o.value === b.recurrence_type)?.label || 'Series'}
                           </span>
                         )}
                         {b.attendees > 0 && (
@@ -296,16 +296,16 @@ export default function RoomBookingsPage() {
         <div>
           <div className="flex justify-between mb-4">
             <p className="text-sm text-zinc-500">
-              Ruimtes worden gedeeld met de radio-planning (Studio&apos;s). {isAdmin ? '' : 'Alleen admins kunnen ruimtes aanmaken/bewerken.'}
+              Rooms are shared with the radio schedule (Studios). {isAdmin ? '' : 'Only admins can create or edit rooms.'}
             </p>
             {isAdmin && (
               <Button onClick={openNewRoom} className="bg-zinc-900 text-white hover:bg-zinc-800" data-testid="new-room-btn">
-                <Plus className="w-4 h-4 mr-1" /> Nieuwe ruimte
+                <Plus className="w-4 h-4 mr-1" /> New room
               </Button>
             )}
           </div>
           {rooms.length === 0 ? (
-            <div className="border border-dashed border-zinc-200 rounded-xl p-12 text-center text-zinc-400">Nog geen ruimtes.</div>
+            <div className="border border-dashed border-zinc-200 rounded-xl p-12 text-center text-zinc-400">No rooms yet.</div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {rooms.map((r) => (
@@ -315,14 +315,14 @@ export default function RoomBookingsPage() {
                     <span className="font-semibold text-zinc-900">{r.name}</span>
                   </div>
                   {r.description && <p className="text-xs text-zinc-500 mb-1">{r.description}</p>}
-                  {r.capacity ? <p className="text-xs text-zinc-400">Capaciteit: {r.capacity}</p> : null}
+                  {r.capacity ? <p className="text-xs text-zinc-400">Capacity: {r.capacity}</p> : null}
                   {isAdmin && (
                     <div className="flex gap-1 mt-3">
                       <Button size="sm" variant="outline" onClick={() => openEditRoom(r)} data-testid={`edit-room-${r.id}`}>
-                        <Pencil className="w-3 h-3 mr-1" /> Bewerken
+                        <Pencil className="w-3 h-3 mr-1" /> Edit
                       </Button>
                       <Button size="sm" variant="outline" onClick={() => removeRoom(r)} data-testid={`delete-room-${r.id}`}>
-                        <Trash2 className="w-3 h-3 mr-1 text-red-500" /> Verwijderen
+                        <Trash2 className="w-3 h-3 mr-1 text-red-500" /> Delete
                       </Button>
                     </div>
                   )}
@@ -337,24 +337,24 @@ export default function RoomBookingsPage() {
       <Dialog open={!!bookingDraft} onOpenChange={(o) => !o && setBookingDraft(null)}>
         <DialogContent className="bg-white max-w-lg max-h-[92vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{bookingDraft?.id ? 'Boeking bewerken' : 'Nieuwe boeking'}</DialogTitle>
+            <DialogTitle>{bookingDraft?.id ? 'Edit booking' : 'New booking'}</DialogTitle>
           </DialogHeader>
           {bookingDraft && (
             <div className="space-y-3">
               <div>
-                <Label className="text-xs text-zinc-500">Ruimte *</Label>
+                <Label className="text-xs text-zinc-500">Room *</Label>
                 <select
                   value={bookingDraft.room_id}
                   onChange={(e) => setBookingDraft({ ...bookingDraft, room_id: e.target.value })}
                   className="mt-1 w-full border border-zinc-200 rounded-md px-3 py-2 text-sm bg-white"
                   data-testid="booking-room-select"
                 >
-                  <option value="">— Kies een ruimte —</option>
+                  <option value="">— Pick a room —</option>
                   {rooms.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
                 </select>
               </div>
               <div>
-                <Label className="text-xs text-zinc-500">Titel *</Label>
+                <Label className="text-xs text-zinc-500">Title *</Label>
                 <Input value={bookingDraft.title} onChange={(e) => setBookingDraft({ ...bookingDraft, title: e.target.value })} data-testid="booking-title-input" />
               </div>
               <div className="grid grid-cols-2 gap-2">
@@ -368,7 +368,7 @@ export default function RoomBookingsPage() {
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-zinc-500">Eind *</Label>
+                  <Label className="text-xs text-zinc-500">End *</Label>
                   <Input
                     type="datetime-local"
                     value={isoToLocalInput(bookingDraft.end_at)}
@@ -381,11 +381,11 @@ export default function RoomBookingsPage() {
               {/* Contact + attendees */}
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <Label className="text-xs text-zinc-500">Contactpersoon</Label>
+                  <Label className="text-xs text-zinc-500">Contact person</Label>
                   <Input
                     value={bookingDraft.contact_person || ''}
                     onChange={(e) => setBookingDraft({ ...bookingDraft, contact_person: e.target.value })}
-                    placeholder="Naam"
+                    placeholder="Name"
                     data-testid="booking-contact-person-input"
                   />
                 </div>
@@ -395,13 +395,13 @@ export default function RoomBookingsPage() {
                     type="email"
                     value={bookingDraft.contact_email || ''}
                     onChange={(e) => setBookingDraft({ ...bookingDraft, contact_email: e.target.value })}
-                    placeholder="naam@bedrijf.be"
+                    placeholder="name@company.com"
                     data-testid="booking-contact-email-input"
                   />
                 </div>
               </div>
               <div>
-                <Label className="text-xs text-zinc-500">Aantal personen</Label>
+                <Label className="text-xs text-zinc-500">Attendees</Label>
                 <Input
                   type="number"
                   min="0"
@@ -414,7 +414,7 @@ export default function RoomBookingsPage() {
               {/* Recurrence — series shape is locked after creation */}
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <Label className="text-xs text-zinc-500">Herhaling</Label>
+                  <Label className="text-xs text-zinc-500">Recurrence</Label>
                   <select
                     value={bookingDraft.recurrence_type || 'none'}
                     onChange={(e) => setBookingDraft({ ...bookingDraft, recurrence_type: e.target.value })}
@@ -427,7 +427,7 @@ export default function RoomBookingsPage() {
                 </div>
                 {(bookingDraft.recurrence_type && bookingDraft.recurrence_type !== 'none') && (
                   <div>
-                    <Label className="text-xs text-zinc-500">Herhaal tot</Label>
+                    <Label className="text-xs text-zinc-500">Repeat until</Label>
                     <Input
                       type="date"
                       value={bookingDraft.recurrence_end_date || ''}
@@ -441,12 +441,12 @@ export default function RoomBookingsPage() {
               {bookingDraft.id && (bookingDraft.recurrence_type !== 'none' || bookingDraft.parent_booking_id) && (
                 <p className="text-xs text-zinc-400 inline-flex items-start gap-1">
                   <Info className="w-3 h-3 mt-0.5" />
-                  Reeksinstellingen kunnen na aanmaak niet worden aangepast. Verwijder de reeks en maak een nieuwe aan om het schema te wijzigen.
+                  Series settings can&apos;t be changed after creation. Delete the series and create a new one to change the schedule.
                 </p>
               )}
 
               <div>
-                <Label className="text-xs text-zinc-500">Beschrijving</Label>
+                <Label className="text-xs text-zinc-500">Description</Label>
                 <Textarea rows={2} value={bookingDraft.description} onChange={(e) => setBookingDraft({ ...bookingDraft, description: e.target.value })} data-testid="booking-desc-input" />
               </div>
               <label className="flex items-start gap-2 cursor-pointer">
@@ -458,16 +458,16 @@ export default function RoomBookingsPage() {
                   data-testid="booking-blocks-checkbox"
                 />
                 <div className="text-xs">
-                  <div className="font-medium text-zinc-700">Blokkeer de ruimte</div>
-                  <div className="text-zinc-500">Uit = ruimte kan gedeeld worden met andere niet-blokkerende items.</div>
+                  <div className="font-medium text-zinc-700">Block the room</div>
+                  <div className="text-zinc-500">Off = the room can be shared with other non-blocking items.</div>
                 </div>
               </label>
             </div>
           )}
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setBookingDraft(null)}><X className="w-4 h-4 mr-1" /> Annuleren</Button>
+            <Button variant="ghost" onClick={() => setBookingDraft(null)}><X className="w-4 h-4 mr-1" /> Cancel</Button>
             <Button onClick={saveBooking} disabled={saving} className="bg-rose-500 text-white hover:bg-rose-600" data-testid="booking-save-btn">
-              {saving ? 'Opslaan…' : 'Opslaan'}
+              {saving ? 'Saving…' : 'Save'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -477,34 +477,34 @@ export default function RoomBookingsPage() {
       <Dialog open={!!roomDraft} onOpenChange={(o) => !o && setRoomDraft(null)}>
         <DialogContent className="bg-white max-w-md">
           <DialogHeader>
-            <DialogTitle>{roomDraft?.id ? 'Ruimte bewerken' : 'Nieuwe ruimte'}</DialogTitle>
+            <DialogTitle>{roomDraft?.id ? 'Edit room' : 'New room'}</DialogTitle>
           </DialogHeader>
           {roomDraft && (
             <div className="space-y-3">
               <div>
-                <Label className="text-xs text-zinc-500">Naam *</Label>
+                <Label className="text-xs text-zinc-500">Name *</Label>
                 <Input value={roomDraft.name} onChange={(e) => setRoomDraft({ ...roomDraft, name: e.target.value })} data-testid="room-name-input" />
               </div>
               <div>
-                <Label className="text-xs text-zinc-500">Beschrijving</Label>
+                <Label className="text-xs text-zinc-500">Description</Label>
                 <Textarea rows={2} value={roomDraft.description || ''} onChange={(e) => setRoomDraft({ ...roomDraft, description: e.target.value })} data-testid="room-desc-input" />
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <Label className="text-xs text-zinc-500">Capaciteit</Label>
+                  <Label className="text-xs text-zinc-500">Capacity</Label>
                   <Input type="number" min="0" value={roomDraft.capacity || 0} onChange={(e) => setRoomDraft({ ...roomDraft, capacity: e.target.value })} data-testid="room-capacity-input" />
                 </div>
                 <div>
-                  <Label className="text-xs text-zinc-500">Kleur</Label>
+                  <Label className="text-xs text-zinc-500">Color</Label>
                   <Input type="color" value={roomDraft.color || '#71717a'} onChange={(e) => setRoomDraft({ ...roomDraft, color: e.target.value })} data-testid="room-color-input" className="h-9" />
                 </div>
               </div>
             </div>
           )}
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setRoomDraft(null)}><X className="w-4 h-4 mr-1" /> Annuleren</Button>
+            <Button variant="ghost" onClick={() => setRoomDraft(null)}><X className="w-4 h-4 mr-1" /> Cancel</Button>
             <Button onClick={saveRoom} disabled={saving} className="bg-zinc-900 text-white hover:bg-zinc-800" data-testid="room-save-btn">
-              {saving ? 'Opslaan…' : 'Opslaan'}
+              {saving ? 'Saving…' : 'Save'}
             </Button>
           </DialogFooter>
         </DialogContent>

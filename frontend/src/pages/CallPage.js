@@ -243,7 +243,7 @@ function CallsTab({ token }) {
                         </a>
                       </div>
                       <span className="text-xs text-zinc-600 mt-1 block">
-                        {new Date(invite.created_at).toLocaleString('nl-BE')}
+                        {new Date(invite.created_at).toLocaleString('en-GB')}
                       </span>
                     </div>
                   </div>
@@ -570,7 +570,7 @@ function HistoryTab({ token }) {
                 <div>
                   <span className="text-sm font-medium">{invite.caller_name || invite.label || 'Unknown'}</span>
                   <div className="flex items-center gap-3 mt-0.5 text-xs text-zinc-500">
-                    <span>{new Date(invite.created_at).toLocaleString('nl-BE')}</span>
+                    <span>{new Date(invite.created_at).toLocaleString('en-GB')}</span>
                     {invite.duration_seconds !== null && (
                       <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatDuration(invite.duration_seconds)}</span>
                     )}

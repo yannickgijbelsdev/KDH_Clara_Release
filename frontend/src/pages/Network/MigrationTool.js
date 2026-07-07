@@ -197,7 +197,7 @@ export default function MigrationTool() {
                     <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 mb-4">
                       <p className="text-blue-400 text-sm">
                         <CheckCircle className="w-4 h-4 inline mr-2" />
-                        Auto-gedetecteerd vanuit {detectedInfo.detected_from === 'team_name' ? 'team naam' : 'RDS instellingen'}: <strong>{detectedInfo.team_name || detectedInfo.suggested_name}</strong>
+                        Auto-detected from {detectedInfo.detected_from === 'team_name' ? 'team name' : 'RDS settings'}: <strong>{detectedInfo.team_name || detectedInfo.suggested_name}</strong>
                       </p>
                     </div>
                   )}

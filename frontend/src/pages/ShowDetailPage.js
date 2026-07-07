@@ -760,7 +760,7 @@ const ShowDetailPage = () => {
 
               {/* Studio / Room + blocks_room toggle */}
               <div className="space-y-2">
-                <Label className="text-zinc-600">Studio / Ruimte</Label>
+                <Label className="text-zinc-600">Studio / Room</Label>
                 <Select
                   value={editData.studio_id || 'none'}
                   onValueChange={(value) => setEditData({ ...editData, studio_id: value === 'none' ? null : value })}
@@ -769,10 +769,10 @@ const ShowDetailPage = () => {
                     data-testid="edit-studio-select"
                     className="bg-zinc-100 border-zinc-300 text-zinc-900"
                   >
-                    <SelectValue placeholder="Geen studio" />
+                    <SelectValue placeholder="No studio" />
                   </SelectTrigger>
                   <SelectContent className="bg-white border-zinc-200">
-                    <SelectItem value="none" className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100">— Geen —</SelectItem>
+                    <SelectItem value="none" className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100">— None —</SelectItem>
                     {studios.map((s) => (
                       <SelectItem key={s.id} value={s.id} className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100">
                         {s.name}
@@ -790,9 +790,9 @@ const ShowDetailPage = () => {
                       data-testid="edit-blocks-room-checkbox"
                     />
                     <div className="text-xs">
-                      <div className="font-medium text-zinc-700">Blokkeer de ruimte</div>
+                      <div className="font-medium text-zinc-700">Block the room</div>
                       <div className="text-zinc-500">
-                        Uit voor voor-opgenomen shows — dan blijft de ruimte vrij voor andere boekingen.
+                        Turn off for pre-recorded shows — the room then stays free for other bookings.
                       </div>
                     </div>
                   </label>

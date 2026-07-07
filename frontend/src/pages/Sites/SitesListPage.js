@@ -305,20 +305,20 @@ export default function SitesListPage() {
       <AlertDialog open={deleteDialog.open} onOpenChange={(open) => !open && setDeleteDialog({ open: false, siteId: null, siteName: '' })}>
         <AlertDialogContent className="bg-white border-zinc-200">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-zinc-900">Site verwijderen</AlertDialogTitle>
+            <AlertDialogTitle className="text-zinc-900">Delete site</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
-              Weet je zeker dat je "{deleteDialog.siteName}" wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.
+              Are you sure you want to delete &quot;{deleteDialog.siteName}&quot;? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel className="bg-zinc-50 border-zinc-200 text-zinc-900 hover:bg-zinc-200">
-              Annuleren
+              Cancel
             </AlertDialogCancel>
             <AlertDialogAction 
               onClick={() => deleteSite(deleteDialog.siteId)}
               className="bg-red-500 hover:bg-red-600 text-white"
             >
-              Verwijderen
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

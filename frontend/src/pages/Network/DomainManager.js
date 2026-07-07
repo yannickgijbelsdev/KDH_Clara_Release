@@ -1331,12 +1331,12 @@ export default function DomainManager() {
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex gap-2" data-testid="apex-domain-warning">
                   <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
                   <div className="text-[11px] text-amber-700 leading-relaxed">
-                    <div className="font-semibold mb-1">Apex/root domain gedetecteerd</div>
-                    <p>DNS-standaarden laten geen CNAME toe op een apex-domein (<code className="font-mono">{domainForm.custom_domain}</code>). Kies een van deze opties:</p>
+                    <div className="font-semibold mb-1">Apex/root domain detected</div>
+                    <p>DNS standards don&apos;t allow a CNAME on an apex domain (<code className="font-mono">{domainForm.custom_domain}</code>). Pick one of these options:</p>
                     <ul className="list-disc pl-4 mt-1 space-y-0.5">
-                      <li><strong>Cloudflare</strong> (aanbevolen): voeg gewoon de CNAME toe — Cloudflare "flattent" hem automatisch.</li>
-                      <li><strong>Andere provider</strong>: gebruik een <strong>ALIAS</strong> of <strong>ANAME</strong> record met dezelfde waarde.</li>
-                      <li><strong>Redirect</strong>: stel <code className="font-mono">{domainForm.custom_domain}</code> in als redirect naar <code className="font-mono">www.{domainForm.custom_domain}</code> en koppel het <code className="font-mono">www</code> subdomein.</li>
+                      <li><strong>Cloudflare</strong> (recommended): just add the CNAME — Cloudflare &quot;flattens&quot; it automatically.</li>
+                      <li><strong>Other provider</strong>: use an <strong>ALIAS</strong> or <strong>ANAME</strong> record with the same value.</li>
+                      <li><strong>Redirect</strong>: set <code className="font-mono">{domainForm.custom_domain}</code> as a redirect to <code className="font-mono">www.{domainForm.custom_domain}</code> and connect the <code className="font-mono">www</code> subdomain.</li>
                     </ul>
                   </div>
                 </div>
@@ -1403,10 +1403,10 @@ export default function DomainManager() {
                       <div className="font-semibold text-zinc-700">Cloudflare Worker &amp; HTTP</div>
                       <p className="text-zinc-600">
                         {verifyResult.worker_status === 'ok' && `Reachable (HTTP ${verifyResult.http_code || 'OK'})`}
-                        {verifyResult.worker_status === 'missing' && 'Worker heeft dit domein nog niet in de route-tabel'}
-                        {verifyResult.worker_status === 'ssl_pending' && 'SSL wordt nog uitgegeven door Cloudflare (kan enkele minuten duren)'}
-                        {verifyResult.worker_status === 'unreachable' && 'Niet bereikbaar — DNS nog niet gepropageerd?'}
-                        {verifyResult.worker_status === 'unknown' && 'Niet getest (hoofd-record ontbreekt)'}
+                        {verifyResult.worker_status === 'missing' && 'Worker does not have this domain in its route table yet'}
+                        {verifyResult.worker_status === 'ssl_pending' && 'SSL is still being issued by Cloudflare (may take a few minutes)'}
+                        {verifyResult.worker_status === 'unreachable' && 'Not reachable — DNS not propagated yet?'}
+                        {verifyResult.worker_status === 'unknown' && 'Not tested (main record missing)'}
                       </p>
                     </div>
                   </div>
