@@ -28,7 +28,7 @@ import {
   CalendarClock, DoorOpen, Plus, Trash2, Pencil, X, Users, Mail, User,
   Repeat, Info,
 } from 'lucide-react';
-import { useMainSite } from '../hooks/useMainSite';
+import { useMainSite } from '../context/MainSiteContext';
 
 const API = process.env.REACT_APP_BACKEND_URL + '/api';
 

@@ -186,3 +186,23 @@ Tests:
 - Encryption available: ✅ (verified via `/api/security/overview`)
 - ProRadio: removed
 - Auto-deploy push to VDC: queued (deployment_id `7a7e6f09-…`)
+
+
+## 2026-07-07 — Room Bookings System
+### What shipped
+- **Backend** (`routers/bookings.py`, `models/bookings.py`): CRUD for room bookings + admin-only Rooms management on top of the existing `studios` collection. Every booking may declare `blocks_room=True/False`; conflict detection compares against overlapping shows AND bookings sharing the same room where both sides block. Half-open interval semantics let back-to-back slots coexist.
+- **Extended booking fields**: `contact_person`, `contact_email`, `attendees`, plus a `recurrence_type` (`none`/`daily`/`weekly`/`monthly`) + `recurrence_end_date`. Creation expands the series into sibling documents linked by `parent_booking_id`; a pre-scan aborts the whole POST if any future occurrence would conflict (no half-populated series).
+- **Series-aware update/delete**: `PUT /api/bookings/{id}?…` accepts `update_series=true` in the body to propagate metadata to every sibling while leaving each start/end intact; `DELETE /api/bookings/{id}?delete_series=true` wipes the parent + siblings.
+- **Shows integration**: `POST /api/shows` now runs the same `find_room_conflict` before insert (previously only `PUT`). `ShowCreate`/`ShowUpdate` carry `blocks_room` (default True); legacy shows without the field default to blocking via `$ne: False` so migrations don't leak room slots.
+- **Frontend** (`RoomBookingsPage.js`): Two-tab surface (Boekingen / Ruimtes). Booking dialog exposes ruimte, titel, start/eind, contactpersoon, contact e-mail, aantal personen, herhaling + einddatum, beschrijving, en "Blokkeer de ruimte" toggle. Series badges + "geen block" chips on the list. Delete/edit surface a confirm prompt for series propagation. Rooms tab hides admin-only actions for non-admins.
+- **CreateShowDialog** + **ShowDetailPage**: added Studio selector + "Blokkeer de ruimte" checkbox in both create + edit modes; 409 payloads surface as friendly toasts.
+- **Nav**: new "Room Bookings" entry under Shows group, auto-enabled when `shows` or `calendar` features are on.
+
+### Bug fixed by testing agent
+- `bookings.py` recurrence loop reused the same `_id` (motor mutates the source dict on insert) → every 2nd sibling raised DuplicateKeyError. Fixed with `base_doc.pop('_id', None)` before the loop. Regression covered by `/app/backend/tests/test_room_bookings.py` (19 pytest scenarios, 100% green).
+
+### Status
+- Backend: ✅ 19/19 room-booking pytests green.
+- Frontend: ✅ admin room-bookings smoke green (page renders, tabs work, dialog contains every new field).
+- Not yet manually verified: non-admin UI restriction on the Rooms tab + ShowDetailPage save flow (API-level 403s + conflict responses are covered by pytest).
+- Next: VDC push once user greenlights.
