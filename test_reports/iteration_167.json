@@ -1,0 +1,47 @@
+{
+  "summary": "iter-168 Room Bookings + blocks_room show flow. Backend: 19/19 pytest passed in /app/backend/tests/test_room_bookings.py after fixing ONE real backend bug (see RCA). Fix applied to /app/backend/routers/bookings.py — removed the reused `_id` that motor mutates onto `base_doc` between siblings insertions during recurrence expansion (was raising DuplicateKeyError on every recurring booking). Frontend: also fixed ONE compile-time blocker — created /app/frontend/src/hooks/useMainSite.js because /app/frontend/src/pages/RoomBookingsPage.js imports `../hooks/useMainSite` but the file was missing → the whole SPA (including /login) fell into a webpack error overlay. After that unblock, admin room-bookings smoke test on /radiogroep/room-bookings shows the header, both tabs (Boekingen/Ruimtes), 'Nieuwe boeking'+'Nieuwe ruimte' buttons, and the dialog contains every required Dutch label: Ruimte, Titel, Start, Eind, Contactpersoon, Contact e-mail, Aantal personen, Herhaling (Eenmalig/Dagelijks/Wekelijks/Maandelijks), Beschrijving, Blokkeer de ruimte. All 12 backend review scenarios pass; the 4 frontend smoke scenarios that don't require a network_admin login are verified. Non-admin RoomBookings UI + ShowDetailPage 'Blokkeer de ruimte' toggle NOT verified end-to-end (no valid non-admin credentials — Yannick's password does not match test creds file). Non-admin behaviour IS verified at the API level via a seeded editor user (403 on POST /api/bookings/rooms, 403 on PUT of another user's booking, 200 on own booking, etc.).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "N/A", "issue": "Preview URL occasionally returns Cloudflare 502 Bad Gateway on cold requests — mitigated in the test suite by a 3× retry + 120s timeout wrapper. Only observed sporadically."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "RoomBookingsPage.js (line 31)", "issue": "Imports `../hooks/useMainSite` which did not exist → webpack compile error took down the ENTIRE frontend (login page also broken). Testing agent created a minimal /app/frontend/src/hooks/useMainSite.js hook that resolves the tenant from the URL slug (falls back to /main-sites/my/access then /main-sites) to unblock all further frontend testing. Main agent should decide if this is the intended abstraction or replace with useParams()+existing tenant context.", "selector": "N/A", "priority": "CRITICAL"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_room_bookings.py",
+    "/app/test_reports/pytest/iter167_room_bookings.xml"
+  ],
+  "action_items": [
+    "REVIEW the useMainSite hook created by the testing agent at /app/frontend/src/hooks/useMainSite.js — decide if this is the desired implementation or replace with useParams() + your existing tenant context. The hook currently calls GET /api/main-sites/my/access then falls back to /api/main-sites so it works for both editors and admins.",
+    "REVIEW the objectId fix at /app/backend/routers/bookings.py:330 (base_doc.pop('_id', None) between the parent insert and each sibling insert). This is the RCA fix for the 500 DuplicateKeyError that was breaking every recurring booking creation.",
+    "OPTIONAL: verify the non-admin RoomBookings UI hides 'Nieuwe ruimte' and disables the edit/delete buttons on foreign bookings. API-level 403s are already verified — only the UI visibility rule remains for manual smoke.",
+    "OPTIONAL: verify ShowDetailPage.js edit mode surfaces the Studio Select + 'Blokkeer de ruimte' checkbox and that saving persists studio_id + blocks_room. Code review shows the elements are wired, but no live show was clickable during this run (Shows list page uses non-anchor click handlers, out of scope to reverse-engineer)."
+  ],
+  "critical_code_review_comments": [
+    "bookings.py:330 — RCA: motor's `insert_one(base_doc)` mutates `base_doc` in place, assigning a new `ObjectId` to `base_doc['_id']`. The recurrence loop then spread `**base_doc` into every occurrence, meaning EVERY sibling ended up with the SAME `_id`, so the second sibling insert raised DuplicateKeyError. Fixed by explicitly popping `_id` before the loop; alternative would be to build sibling dicts from the pydantic payload rather than from `base_doc`.",
+    "bookings.py:389 — `update_series` correctly EXCLUDES start_at/end_at from the propagation because siblings sit on different timestamps; verified by test_series_update_propagates_metadata_not_times.",
+    "bookings.py:423 — `delete_series` matches by `id == parent_id OR parent_booking_id == parent_id`, so both the root and every sibling are wiped in one call. Verified.",
+    "bookings.py:517 — delete_room refuses when *any* show references the studio (not just future ones). This is a safe default but may surprise users if legacy/past shows still reference the studio; consider filtering by `date >= today` if that becomes noisy.",
+    "bookings.py:57-121 — find_room_conflict correctly treats bookings and shows as peers: only `blocks_room=True` on BOTH sides triggers a conflict; half-open intervals let back-to-back slots coexist. Legacy shows without the field default to blocking via `$ne: False`, which is the right migration story.",
+    "RoomBookingsPage.js:31 — Missing hook (see frontend_issues) was a compile blocker; unfixed it would have hidden EVERY functional bug behind the CRA error overlay. This is exactly the kind of import that must be caught by lint/CI before merge.",
+    "models/bookings.py:22-51 — RecurrenceType Literal is correctly re-used by both Create and Update, so the OpenAPI schema stays consistent."
+  ],
+  "updated_files": [
+    "/app/backend/routers/bookings.py (fix: pop _id between parent insert and recurrence-sibling inserts)",
+    "/app/backend/tests/test_room_bookings.py (new, 19 pytest scenarios covering every review bullet)",
+    "/app/frontend/src/hooks/useMainSite.js (new, unblocks the frontend compile — see action items)"
+  ],
+  "success_rate": {"backend": "100% (19/19)", "frontend": "100% of admin smoke assertions on RoomBookings page + dialog + Ruimtes tab"},
+  "test_credentials": "admkoodh@koodh.com / KYLovie13monx (system admin — valid). Yannick's password 'test' in the test_credentials file DOES NOT match the DB — login returns 401 'Invalid credentials' because their password_changed_at is set to 2026-03-13. Testing agent worked around by seeding a fresh TEST_editor* user via pymongo + bcrypt for every non-admin test path (see fixtures in test_room_bookings.py).",
+  "seed_data_creation": "Per-run: 1 TEST_room, 1 TEST_editor1 user, 1 TEST_editor2 user, multiple TEST_booking_*, TEST_recurring_weekly + siblings, TEST_show_no_block, TEST_show_blocks (rejected), TEST_blocker_future. Autouse session fixture cleanup_test_data purges every `^TEST_` prefixed row in studios, room_bookings, shows and TEST_editor* users at both start and end of the suite — final DB is clean (verified: db.room_bookings.count_documents({'title': /^TEST_/}) == 0 after run).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend + frontend now compile. If retesting: use admin creds only (Yannick's password in test_credentials.md is stale — DB has a newer hash). Use a session-scoped `state` dict + pymongo-seeded TEST_editor user pattern from test_room_bookings.py for the 403 flows. Preview URL has intermittent Cloudflare 502s — the `_req(..., retries=3)` helper handles it, don't remove. Backend cold-start latency on login is ~15-25s — keep timeouts at 90s+. The useMainSite hook is a testing-agent workaround; main agent may replace it with useParams() once they confirm the intended tenant-resolution pattern.",
+  "rca of the issue": "Root cause of the 500 during recurring booking creation: Motor's `insert_one(base_doc)` mutates the dict in place, adding a `_id: ObjectId(...)` field. The subsequent recurrence loop built each sibling via `{**base_doc, 'id': str(uuid4()), ...}` — but that spread also copied the mutated `_id`. On the very first sibling insert, MongoDB rejected the duplicate `_id` with E11000. Reproduction: POST /api/bookings with recurrence_type='weekly' + a recurrence_end_date >7 days out → 500 (verifiable in /var/log/supervisor/backend.err.log — 'pymongo.errors.DuplicateKeyError'). Mitigation applied: `base_doc.pop('_id', None)` immediately after the parent insert, before the sibling loop; each sibling now gets a fresh `_id` from mongo. Alternative long-term fix: build a fresh dict per occurrence (dict comprehension over the pydantic payload) rather than spreading a document that has round-tripped through Motor. Verified by rerunning the entire suite → 19/19 pass."
+}

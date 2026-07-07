@@ -84,6 +84,7 @@ from routers.news_public import news_public_router
 from routers.clara_flows import clara_flows_router
 from routers.video_endpoints import video_router, public_video_router
 from routers.liveblog import liveblog_router
+from routers.bookings import bookings_router
 from routers.security import security_router
 from models.wordpress import PublishToWordPressRequest, PublishResponse
 from services.auth import get_current_user, require_editor_or_admin, require_admin
@@ -172,6 +173,7 @@ api_router.include_router(vdc_quick_router)
 api_router.include_router(video_router)
 api_router.include_router(public_video_router)
 api_router.include_router(liveblog_router)
+api_router.include_router(bookings_router)
 
 
 # ============== ADDITIONAL API ROUTES ==============

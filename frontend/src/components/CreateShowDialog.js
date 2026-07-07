@@ -61,6 +61,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
     recurrence: 'none',
     studio_id: '',
     presenter_ids: [],
+    blocks_room: true,
     has_video: false,
     video_endpoint_id: '',
     video_embed_override: '',
@@ -134,7 +135,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
       setFormData({
         title: '', titleId: '', description: '', start_time: '09:00',
         end_time: '10:00', status: 'draft', recurrence: 'none',
-        studio_id: '', presenter_ids: [],
+        studio_id: '', presenter_ids: [], blocks_room: true,
       });
       setDate(null);
       setEndDate(null);
@@ -222,6 +223,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
         status: formData.status,
         studio_id: formData.studio_id || null,
         presenter_ids: formData.presenter_ids || [],
+        blocks_room: formData.blocks_room !== false,
         recurrence_type: isRecurring ? 'weekly' : 'none',
         recurrence_interval: recurrenceOption?.interval || 1,
         recurrence_end_date: isRecurring && endDate ? format(endDate, 'yyyy-MM-dd') : null,
@@ -237,7 +239,12 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
       }
       onShowCreated(response.data);
     } catch (error) {
-      toast.error('Failed to create show');
+      const detail = error.response?.data?.detail;
+      if (typeof detail === 'object' && detail?.message) {
+        toast.error(detail.message);
+      } else {
+        toast.error(typeof detail === 'string' ? detail : 'Failed to create show');
+      }
     } finally {
       setLoading(false);
     }
@@ -374,6 +381,23 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                             ))}
                           </SelectContent>
                         </Select>
+                        {formData.studio_id && (
+                          <label className="flex items-start gap-2 cursor-pointer pt-1" data-testid="show-blocks-room-label">
+                            <input
+                              type="checkbox"
+                              checked={formData.blocks_room !== false}
+                              onChange={(e) => setFormData({ ...formData, blocks_room: e.target.checked })}
+                              className="mt-1 accent-orange-500"
+                              data-testid="show-blocks-room-checkbox"
+                            />
+                            <div className="text-xs">
+                              <div className="font-medium text-zinc-700">Blokkeer de ruimte</div>
+                              <div className="text-zinc-500">
+                                Uit voor voor-opgenomen shows — zo blijft de ruimte beschikbaar voor andere boekingen.
+                              </div>
+                            </div>
+                          </label>
+                        )}
                       </div>
                     )}
                   </div>

@@ -870,7 +870,26 @@ async def create_show(
     
     # Get main_site_id from header for multisite context
     main_site_id = await get_main_site_id_from_header(request)
-    
+
+    # ── Room conflict check ── If a studio is picked and the show blocks the
+    # room, verify the slot is free against other blocking shows/bookings
+    # BEFORE we start inserting occurrences.
+    if show_data.studio_id and (show_data.blocks_room is not False):
+        from routers.bookings import find_room_conflict, _combine_show_datetime
+        s_start = _combine_show_datetime(show_data.date, show_data.start_time)
+        s_end = _combine_show_datetime(show_data.date, show_data.end_time)
+        if s_start and s_end and s_start < s_end:
+            conflict = await find_room_conflict(
+                show_data.studio_id, s_start.isoformat(), s_end.isoformat(),
+                blocks_room=True,
+                main_site_id=main_site_id, team_id=team_id,
+            )
+            if conflict:
+                raise HTTPException(status_code=409, detail={
+                    "message": f"Room is already booked ({conflict['type']}): {conflict.get('title')}",
+                    "conflict": conflict,
+                })
+
     # For recurring shows, create parent and occurrences
     if show_data.recurrence_type == "weekly" and show_data.recurrence_interval >= 1:
         parent_id = str(uuid.uuid4())
@@ -915,6 +934,7 @@ async def create_show(
             "has_video": bool(show_data.has_video),
             "video_endpoint_id": show_data.video_endpoint_id,
             "video_embed_override": show_data.video_embed_override,
+            "blocks_room": bool(show_data.blocks_room) if show_data.blocks_room is not None else True,
             "image": show_image  # Include image from show title
         }
         await db.shows.insert_one(parent_doc)
@@ -952,6 +972,7 @@ async def create_show(
                 "has_video": bool(show_data.has_video),
                 "video_endpoint_id": show_data.video_endpoint_id,
                 "video_embed_override": show_data.video_embed_override,
+                "blocks_room": bool(show_data.blocks_room) if show_data.blocks_room is not None else True,
                 "image": show_image  # Include image from show title
             }
             await db.shows.insert_one(occ_doc)
@@ -1005,6 +1026,7 @@ async def create_show(
             "has_video": bool(show_data.has_video),
             "video_endpoint_id": show_data.video_endpoint_id,
             "video_embed_override": show_data.video_embed_override,
+            "blocks_room": bool(show_data.blocks_room) if show_data.blocks_room is not None else True,
         }
         
         await db.shows.insert_one(show_doc)
@@ -1115,10 +1137,30 @@ async def update_show(
     if 'video_embed_override' in raw and raw['video_embed_override'] in (None, ''):
         update_dict['video_embed_override'] = None
     update_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
-    
+
     # Handle presenter_ids - allow setting to empty list
     if show_data.presenter_ids is not None:
         update_dict["presenter_ids"] = show_data.presenter_ids
+
+    # Room conflict check — if the studio/date/time/blocks_room changed and
+    # the resulting slot blocks the room, look for overlapping bookings +
+    # other shows and reject with a 409 conflict payload.
+    merged_show = {**show, **update_dict}
+    if merged_show.get("studio_id") and (merged_show.get("blocks_room") is not False):
+        from routers.bookings import find_room_conflict, _combine_show_datetime
+        s_start = _combine_show_datetime(merged_show.get("date"), merged_show.get("start_time"))
+        s_end = _combine_show_datetime(merged_show.get("date"), merged_show.get("end_time"))
+        if s_start and s_end and s_start < s_end:
+            conflict = await find_room_conflict(
+                merged_show["studio_id"], s_start.isoformat(), s_end.isoformat(),
+                blocks_room=True, exclude_show_id=show_id,
+                main_site_id=main_site_id, team_id=team_id,
+            )
+            if conflict:
+                raise HTTPException(status_code=409, detail={
+                    "message": f"Room is already booked ({conflict['type']}): {conflict.get('title')}",
+                    "conflict": conflict,
+                })
     
     # Remove date from update_dict if updating all (each occurrence has different date)
     if update_all and 'date' in update_dict:

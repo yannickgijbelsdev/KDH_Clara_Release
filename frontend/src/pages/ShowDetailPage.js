@@ -174,6 +174,8 @@ const ShowDetailPage = () => {
   // Team users for presenter selection
   const [teamUsers, setTeamUsers] = useState([]);
   const [presenterPopoverOpen, setPresenterPopoverOpen] = useState(false);
+  // Studios (rooms) for the studio picker inside the edit view.
+  const [studios, setStudios] = useState([]);
   
   // Image upload state
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -201,6 +203,7 @@ const ShowDetailPage = () => {
     fetchShow();
     fetchLinkedFolders();
     fetchTeamUsers();
+    fetchStudios();
     
     // Refetch when window regains focus (user returns from editing show management)
     const handleFocus = () => {
@@ -217,6 +220,15 @@ const ShowDetailPage = () => {
       setTeamUsers(response.data);
     } catch (error) {
       console.error('Failed to fetch team users:', error);
+    }
+  };
+
+  const fetchStudios = async () => {
+    try {
+      const response = await axios.get(`${API}/shows/studios`);
+      setStudios(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      // Soft-fail: studio picker just stays empty
     }
   };
 
@@ -357,13 +369,20 @@ const ShowDetailPage = () => {
         end_time: editData.end_time,
         status: editData.status,
         presenter_ids: editData.presenter_ids || [],
+        studio_id: editData.studio_id || null,
+        blocks_room: editData.blocks_room !== false,
       });
       setShow(response.data);
       setIsEditing(false);
       setRecurringEditDialogOpen(false);
       toast.success(updateAll ? 'All occurrences updated' : 'Show updated');
     } catch (error) {
-      toast.error('Failed to update show');
+      const detail = error.response?.data?.detail;
+      if (typeof detail === 'object' && detail?.message) {
+        toast.error(detail.message);
+      } else {
+        toast.error(typeof detail === 'string' ? detail : 'Failed to update show');
+      }
     } finally {
       setSaving(false);
     }
@@ -737,6 +756,47 @@ const ShowDetailPage = () => {
                     </div>
                   </PopoverContent>
                 </Popover>
+              </div>
+
+              {/* Studio / Room + blocks_room toggle */}
+              <div className="space-y-2">
+                <Label className="text-zinc-600">Studio / Ruimte</Label>
+                <Select
+                  value={editData.studio_id || 'none'}
+                  onValueChange={(value) => setEditData({ ...editData, studio_id: value === 'none' ? null : value })}
+                >
+                  <SelectTrigger
+                    data-testid="edit-studio-select"
+                    className="bg-zinc-100 border-zinc-300 text-zinc-900"
+                  >
+                    <SelectValue placeholder="Geen studio" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border-zinc-200">
+                    <SelectItem value="none" className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100">— Geen —</SelectItem>
+                    {studios.map((s) => (
+                      <SelectItem key={s.id} value={s.id} className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100">
+                        {s.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {editData.studio_id && (
+                  <label className="flex items-start gap-2 cursor-pointer pt-1">
+                    <input
+                      type="checkbox"
+                      checked={editData.blocks_room !== false}
+                      onChange={(e) => setEditData({ ...editData, blocks_room: e.target.checked })}
+                      className="mt-1 accent-rose-500"
+                      data-testid="edit-blocks-room-checkbox"
+                    />
+                    <div className="text-xs">
+                      <div className="font-medium text-zinc-700">Blokkeer de ruimte</div>
+                      <div className="text-zinc-500">
+                        Uit voor voor-opgenomen shows — dan blijft de ruimte vrij voor andere boekingen.
+                      </div>
+                    </div>
+                  </label>
+                )}
               </div>
             </div>
           </div>

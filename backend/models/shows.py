@@ -110,6 +110,10 @@ class ShowCreate(BaseModel):
     has_video: Optional[bool] = False
     video_endpoint_id: Optional[str] = None  # FK → video_endpoints.id
     video_embed_override: Optional[str] = None  # Inline embed code if no endpoint chosen
+    # Room-booking coordination — when False the show does NOT block the
+    # room, so parallel bookings/pre-recorded shows are allowed. Defaults
+    # to True (legacy live-show behaviour).
+    blocks_room: Optional[bool] = True
     # Recurrence fields
     recurrence_type: Literal["none", "weekly"] = "none"
     recurrence_interval: int = Field(default=1, ge=1, le=4, description="Repeat every N weeks (1-4)")
@@ -128,6 +132,7 @@ class ShowUpdate(BaseModel):
     has_video: Optional[bool] = None
     video_endpoint_id: Optional[str] = None
     video_embed_override: Optional[str] = None
+    blocks_room: Optional[bool] = None
     # For updating single occurrence vs all
     update_all_occurrences: Optional[bool] = False
 
@@ -162,6 +167,7 @@ class ShowResponse(BaseModel):
     video_endpoint_id: Optional[str] = None
     video_endpoint_name: Optional[str] = None  # denormalised for UI convenience
     video_embed_override: Optional[str] = None
+    blocks_room: Optional[bool] = True
 
 
 class RundownItemCreate(BaseModel):

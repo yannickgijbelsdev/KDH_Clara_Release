@@ -24,7 +24,7 @@ import {
   ScrollText, ClipboardCheck, Trash2, Users, ChevronDown, ChevronRight,
   UserCog, ArrowLeftRight, FileCheck, Radio, Headphones, Wand2, Play,
   ArrowLeft, Send, Palette, Network, Activity, Shield, Phone, Monitor,
-  KeyRound, FileCode, Video, Ban, Lock, Check, Search, Image, Loader2, Sparkles, Terminal, Plug, Zap
+  KeyRound, FileCode, Video, Ban, Lock, Check, Search, Image, Loader2, Sparkles, Terminal, Plug, Zap, DoorOpen
 } from 'lucide-react';
 import { Button } from './ui/button';
 import RadioplayerIcon from './icons/RadioplayerIcon';
@@ -101,6 +101,11 @@ function withImplicitFeatures(enabledFeatures, siteType) {
   if (hasPublicSurface) {
     set.add('api_endpoints');
   }
+  // Room Bookings — surface next to Shows/Calendar whenever they are on so
+  // the calendar and booking flows stay linked.
+  if (set.has('shows') || set.has('calendar')) {
+    set.add('room_bookings');
+  }
   return Array.from(set);
 }
 
@@ -150,6 +155,7 @@ const FEATURE_NAV_ITEMS = {
   radio_automation: { to: 'radio-automation', icon: Disc3, label: 'Radio Automation', adminOnly: true },
   api_endpoints: { to: 'api-endpoints', icon: Zap, label: 'API Endpoints', adminOnly: true },
   video_endpoints: { to: 'video-endpoints', icon: Video, label: 'Video Endpoints' },
+  room_bookings: { to: 'room-bookings', icon: DoorOpen, label: 'Room Bookings' },
   clara_flows: { to: 'clara-flows', icon: Sparkles, label: 'Clara Flows', adminOnly: true },
 };
 
@@ -159,7 +165,7 @@ const NAV_GROUPS = [
     id: 'shows',
     label: 'Shows',
     icon: LayoutList,
-    features: ['shows', 'calendar', 'show_management']
+    features: ['shows', 'calendar', 'show_management', 'room_bookings']
   },
   {
     id: 'content',
@@ -255,6 +261,8 @@ const MainSiteDashboardContent = () => {
     validRoutes.add('clara-flows');
     // Video Endpoints is always available for editors and admins
     validRoutes.add('video-endpoints');
+    // Room Bookings is available for every tenant — non-admins book, admins manage rooms
+    validRoutes.add('room-bookings');
     // Technical sites always have zerotier + team access
     if (mainSite.site_type === 'technical') {
       validRoutes.add('zerotier');

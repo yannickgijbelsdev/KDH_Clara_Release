@@ -37,6 +37,7 @@ import { fetchSubdomainConfig, buildLoginRedirectUrl } from './services/subdomai
 import RDSPage from './pages/RDSPage';
 import ClaraFlowsPage from './pages/ClaraFlowsPage';
 import VideoEndpointsPage from './pages/VideoEndpointsPage';
+import RoomBookingsPage from './pages/RoomBookingsPage';
 import ClaraCustomPage from './pages/ClaraCustomPage';
 import RDSMonitorPage from './pages/RDSMonitorPage';
 import StreamMonitorPage from './pages/StreamMonitorPage';
@@ -289,6 +290,7 @@ const AppRoutes = () => {
         <Route path="api-endpoints" element={<ApiEndpointsPage />} />
         <Route path="clara-flows" element={<ClaraFlowsPage />} />
         <Route path="video-endpoints" element={<VideoEndpointsPage />} />
+        <Route path="room-bookings" element={<RoomBookingsPage />} />
       </Route>
 
       {/* Public Call Page - /call/:callToken (no auth required) */}
