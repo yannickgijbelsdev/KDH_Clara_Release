@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { useState, useEffect, useCallback, useRef, memo } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo, memo } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import {
@@ -173,9 +173,22 @@ const TroubleshootButton = ({ station }) => {
 const StationCard = memo(({ station, data, stationName, staleCountdown, showEndCountdown, scheduledTextCountdown }) => {
   const isLive = data?.live_show?.title;
   const calendarLive = data?.calendar_live_show;
-  const isOnline = data?.now_playing?.online;
+  const streamOnline = data?.now_playing?.online;
   const isStale = data?.now_playing?.is_stale;
   const cacheStale = data?.cache_stale;
+
+  // "RDS active" means the builder scheduler is still pushing output to the
+  // API endpoints. The audio stream going down should NOT flip the whole
+  // station offline — the scheduler keeps sending show-name / static text
+  // to MagicRDS + downstream consumers. We consider RDS active when
+  // `updated_at` was written within the last 3 minutes.
+  const rdsActive = useMemo(() => {
+    const ts = data?.updated_at;
+    if (!ts) return false;
+    const then = new Date(ts).getTime();
+    if (isNaN(then)) return false;
+    return Date.now() - then < 3 * 60 * 1000;
+  }, [data?.updated_at]);
 
   const shouldSkipCustom = data?.current_item_type === 'custom_text';
   const displayType = shouldSkipCustom
@@ -219,17 +232,34 @@ const StationCard = memo(({ station, data, stationName, staleCountdown, showEndC
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {isOnline ? (
-            <span className="flex items-center gap-1 text-green-400 text-sm">
+          {rdsActive ? (
+            <span
+              className="flex items-center gap-1 text-green-400 text-sm"
+              title="The RDS scheduler is pushing updates to the API endpoints"
+              data-testid={`rds-status-online-${station}`}
+            >
               <Wifi className="w-4 h-4" /> Online
             </span>
           ) : (
             <>
-              <span className="flex items-center gap-1 text-red-400 text-sm">
+              <span
+                className="flex items-center gap-1 text-red-400 text-sm"
+                title="The RDS scheduler has not written an update recently"
+                data-testid={`rds-status-offline-${station}`}
+              >
                 <WifiOff className="w-4 h-4" /> Offline
               </span>
               <TroubleshootButton station={station} />
             </>
+          )}
+          {rdsActive && !streamOnline && (
+            <span
+              className="flex items-center gap-1 text-amber-500 text-xs px-2 py-0.5 rounded-full bg-amber-500/10"
+              title="The audio stream is offline — Clara keeps sending show name / static text"
+              data-testid={`stream-offline-badge-${station}`}
+            >
+              <WifiOff className="w-3 h-3" /> Stream offline
+            </span>
           )}
         </div>
       </div>
