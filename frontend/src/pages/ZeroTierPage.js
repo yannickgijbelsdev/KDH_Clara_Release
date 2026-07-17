@@ -309,11 +309,11 @@ const ZeroTierPage = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-            <Monitor className="w-5 h-5 text-emerald-400" />
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-400/20 to-emerald-600/10 border border-emerald-500/20 flex items-center justify-center">
+            <Monitor className="w-5 h-5 text-emerald-500" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-zinc-900">ZeroTier Network Monitor</h1>
+            <h1 className="text-xl font-bold text-zinc-900 tracking-tight">ZeroTier Network Monitor</h1>
             <p className="text-sm text-zinc-500">Real-time network member monitoring</p>
           </div>
         </div>
@@ -324,30 +324,30 @@ const ZeroTierPage = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => setConfigOpen(!configOpen)}
-                className="border-zinc-300 text-zinc-600"
+                className="h-9 border-zinc-200 text-zinc-600 hover:bg-zinc-50"
                 data-testid="zt-config-btn"
               >
-                <Settings className="w-4 h-4 mr-1" /> Config
+                <Settings className="w-4 h-4 mr-1.5" /> Config
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleSendDailySummary}
                 disabled={sendingSummary}
-                className="border-zinc-300 text-zinc-600"
+                className="h-9 border-zinc-200 text-zinc-600 hover:bg-zinc-50"
                 data-testid="zt-send-summary-btn"
               >
-                <Mail className={`w-4 h-4 mr-1 ${sendingSummary ? 'animate-pulse' : ''}`} /> {sendingSummary ? 'Sending...' : 'Send Summary'}
+                <Mail className={`w-4 h-4 mr-1.5 ${sendingSummary ? 'animate-pulse' : ''}`} /> {sendingSummary ? 'Sending...' : 'Send Summary'}
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleRefresh}
                 disabled={refreshing}
-                className="border-zinc-300 text-zinc-600"
+                className="h-9 border-zinc-200 text-zinc-600 hover:bg-zinc-50"
                 data-testid="zt-refresh-btn"
               >
-                <RefreshCw className={`w-4 h-4 mr-1 ${refreshing ? 'animate-spin' : ''}`} /> Refresh
+                <RefreshCw className={`w-4 h-4 mr-1.5 ${refreshing ? 'animate-spin' : ''}`} /> Refresh
               </Button>
             </>
           )}
@@ -356,11 +356,11 @@ const ZeroTierPage = () => {
 
       {/* Tab Navigation */}
       {isConfigured && (
-        <div className="flex gap-1 bg-white/80 backdrop-blur rounded-lg p-1 mb-6 w-fit" data-testid="zt-tabs">
+        <div className="flex gap-1 bg-zinc-100 rounded-lg p-1 mb-6 w-fit" data-testid="zt-tabs">
           <button
             onClick={() => setActiveTab('members')}
             className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'members' ? 'bg-orange-600 text-white' : 'text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100'
+              activeTab === 'members' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'
             }`}
             data-testid="zt-tab-members"
           >
@@ -369,7 +369,7 @@ const ZeroTierPage = () => {
           <button
             onClick={() => setActiveTab('history')}
             className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'history' ? 'bg-orange-600 text-white' : 'text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100'
+              activeTab === 'history' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'
             }`}
             data-testid="zt-tab-history"
           >
@@ -437,44 +437,53 @@ const ZeroTierPage = () => {
         <>
           {/* Network Overview */}
           {network && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-white/70 border border-zinc-200 rounded-xl p-4">
-                <div className="flex items-center gap-2 text-zinc-500 text-xs mb-2">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+              <div className="relative bg-white border border-zinc-200 rounded-xl p-5 overflow-hidden">
+                <div className="absolute inset-y-0 left-0 w-1 bg-zinc-300" />
+                <div className="flex items-center gap-2 text-zinc-500 text-xs mb-3 font-medium uppercase tracking-wide">
                   <Globe className="w-3.5 h-3.5" /> Network
                 </div>
-                <p className="text-white font-semibold truncate">{network.name || network.id}</p>
+                <p className="text-zinc-900 font-semibold text-lg truncate">{network.name || network.id}</p>
               </div>
-              <div className="bg-white/70 border border-zinc-200 rounded-xl p-4">
-                <div className="flex items-center gap-2 text-zinc-500 text-xs mb-2">
+              <div className="relative bg-white border border-zinc-200 rounded-xl p-5 overflow-hidden">
+                <div className="absolute inset-y-0 left-0 w-1 bg-zinc-400" />
+                <div className="flex items-center gap-2 text-zinc-500 text-xs mb-3 font-medium uppercase tracking-wide">
                   <Server className="w-3.5 h-3.5" /> Total Members
                 </div>
-                <p className="text-white font-semibold text-2xl">{members?.total || 0}</p>
+                <p className="text-zinc-900 font-semibold text-3xl tabular-nums leading-none">{members?.total || 0}</p>
               </div>
-              <div className="bg-white/70 border border-zinc-200 rounded-xl p-4">
-                <div className="flex items-center gap-2 text-emerald-500 text-xs mb-2">
+              <div className="relative bg-white border border-zinc-200 rounded-xl p-5 overflow-hidden">
+                <div className="absolute inset-y-0 left-0 w-1 bg-emerald-500" />
+                <div className="flex items-center gap-2 text-emerald-600 text-xs mb-3 font-medium uppercase tracking-wide">
                   <Wifi className="w-3.5 h-3.5" /> Online
                 </div>
-                <p className="text-emerald-400 font-semibold text-2xl">{members?.online || 0}</p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-emerald-600 font-semibold text-3xl tabular-nums leading-none">{members?.online || 0}</p>
+                  {members?.total > 0 && (
+                    <span className="text-xs text-zinc-400 tabular-nums">/ {members.total}</span>
+                  )}
+                </div>
               </div>
-              <div className="bg-white/70 border border-zinc-200 rounded-xl p-4">
-                <div className="flex items-center gap-2 text-red-500 text-xs mb-2">
+              <div className="relative bg-white border border-zinc-200 rounded-xl p-5 overflow-hidden">
+                <div className="absolute inset-y-0 left-0 w-1 bg-rose-500" />
+                <div className="flex items-center gap-2 text-rose-500 text-xs mb-3 font-medium uppercase tracking-wide">
                   <WifiOff className="w-3.5 h-3.5" /> Offline
                 </div>
-                <p className="text-red-400 font-semibold text-2xl">{members?.offline || 0}</p>
+                <p className="text-rose-500 font-semibold text-3xl tabular-nums leading-none">{members?.offline || 0}</p>
               </div>
             </div>
           )}
 
           {/* Members List */}
-          <div className="bg-white/70 border border-zinc-200 rounded-xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-zinc-200 flex items-center justify-between">
+          <div className="bg-white border border-zinc-200 rounded-xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-zinc-100 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
               <div>
-                <h3 className="text-zinc-900 font-medium">Network Members</h3>
-                <p className="text-xs text-zinc-600 mt-0.5">Clients offline for 30+ days are automatically deauthorized</p>
+                <h3 className="text-zinc-900 font-semibold">Network Members</h3>
+                <p className="text-xs text-zinc-500 mt-0.5">Clients offline for 30+ days are automatically deauthorized</p>
               </div>
               <div className="flex items-center gap-3">
                 {/* Category filter */}
-                <div className="flex bg-zinc-50 rounded-lg p-0.5" data-testid="zt-category-filter">
+                <div className="flex bg-zinc-100 rounded-lg p-0.5" data-testid="zt-category-filter">
                   {[
                     { key: 'all', label: 'All' },
                     { key: 'client', label: 'Clients', icon: Monitor },
@@ -483,10 +492,10 @@ const ZeroTierPage = () => {
                     <button
                       key={f.key}
                       onClick={() => setCategoryFilter(f.key)}
-                      className={`flex items-center gap-1 px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                      className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-colors ${
                         categoryFilter === f.key
-                          ? 'bg-zinc-200 text-zinc-700'
-                          : 'text-zinc-500 hover:text-zinc-600'
+                          ? 'bg-white text-zinc-900 shadow-sm'
+                          : 'text-zinc-500 hover:text-zinc-700'
                       }`}
                       data-testid={`zt-filter-${f.key}`}
                     >
@@ -495,28 +504,42 @@ const ZeroTierPage = () => {
                     </button>
                   ))}
                 </div>
-                <span className="text-xs text-zinc-500">Auto-refresh: 30s</span>
+                <span className="flex items-center gap-1.5 text-xs text-zinc-400">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Auto-refresh 30s
+                </span>
               </div>
             </div>
+
+            {/* Column headers */}
+            {filteredMembers.length > 0 && (
+              <div className="hidden md:grid grid-cols-[minmax(220px,2fr)_minmax(140px,1fr)_auto_120px_90px_24px] gap-4 px-5 py-2 bg-zinc-50/60 border-b border-zinc-100 text-[10px] uppercase tracking-wider text-zinc-400 font-semibold">
+                <div>Member</div>
+                <div>Address</div>
+                <div className="text-center">Alert</div>
+                <div>Access</div>
+                <div className="text-right">Status</div>
+                <div />
+              </div>
+            )}
+
             {!filteredMembers.length ? (
               <div className="p-8 text-center text-zinc-500">
                 {members === null ? 'Loading members...' : categoryFilter !== 'all' ? `No ${categoryFilter}s found` : 'No members found'}
               </div>
             ) : (
-              <div className="divide-y divide-zinc-800/50">
+              <div className="divide-y divide-zinc-100">
                 {filteredMembers.map(member => (
                   <div key={member.id}>
                     <div
-                      className="px-5 py-3 flex items-center gap-4 hover:bg-zinc-100/30 transition-colors cursor-pointer group"
+                      className="grid grid-cols-[minmax(220px,2fr)_minmax(140px,1fr)_auto_120px_90px_24px] gap-4 items-center px-5 py-3 hover:bg-zinc-50 transition-colors cursor-pointer group"
                       onClick={() => setSelectedMember(selectedMember?.id === member.id ? null : member)}
                       data-testid={`zt-member-${member.id}`}
                     >
-                      {/* Status indicator */}
-                      <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${member.online ? 'bg-emerald-400 shadow-lg shadow-emerald-400/30' : 'bg-zinc-600'}`} />
-
-                      {/* Name & ID */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
+                      {/* Column 1 — Member name + node id */}
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${member.online ? 'bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,0.15)]' : 'bg-zinc-300'}`} />
+                        <div className="min-w-0 flex-1">
                           {editingName === member.id ? (
                             <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
                               <Input
@@ -528,7 +551,7 @@ const ZeroTierPage = () => {
                                 data-testid={`zt-rename-input-${member.id}`}
                               />
                               <Button size="icon" variant="ghost" className="w-7 h-7" onClick={() => handleRenameMember(member.id)} data-testid={`zt-rename-save-${member.id}`}>
-                                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                <Check className="w-3.5 h-3.5 text-emerald-500" />
                               </Button>
                               <Button size="icon" variant="ghost" className="w-7 h-7" onClick={() => setEditingName(null)}>
                                 <X className="w-3.5 h-3.5 text-zinc-400" />
@@ -536,60 +559,64 @@ const ZeroTierPage = () => {
                             </div>
                           ) : (
                             <>
-                              <span className="text-zinc-700 font-medium truncate">
-                                {member.name || member.id}
-                              </span>
-                              <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
-                                member.category === 'server'
-                                  ? 'bg-blue-500/15 text-blue-400 border border-blue-500/25'
-                                  : 'bg-zinc-700/50 text-zinc-500 border border-zinc-600/25'
-                              }`} data-testid={`zt-category-badge-${member.id}`}>
-                                {member.category === 'server' ? 'Server' : 'Client'}
-                              </span>
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                className="w-6 h-6 opacity-0 group-hover:opacity-100 hover:!opacity-100"
-                                onClick={e => { e.stopPropagation(); setEditingName(member.id); setEditNameValue(member.name || ''); }}
-                                data-testid={`zt-rename-btn-${member.id}`}
-                              >
-                                <Pencil className="w-3 h-3 text-zinc-500" />
-                              </Button>
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <span className="text-sm text-zinc-900 font-medium truncate">
+                                  {member.name || member.id}
+                                </span>
+                                <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium flex-shrink-0 ${
+                                  member.category === 'server'
+                                    ? 'bg-sky-50 text-sky-700 border border-sky-100'
+                                    : 'bg-zinc-100 text-zinc-500 border border-zinc-200'
+                                }`} data-testid={`zt-category-badge-${member.id}`}>
+                                  {member.category === 'server' ? 'Server' : 'Client'}
+                                </span>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="w-5 h-5 opacity-0 group-hover:opacity-100 hover:!opacity-100 flex-shrink-0"
+                                  onClick={e => { e.stopPropagation(); setEditingName(member.id); setEditNameValue(member.name || ''); }}
+                                  data-testid={`zt-rename-btn-${member.id}`}
+                                >
+                                  <Pencil className="w-3 h-3 text-zinc-400" />
+                                </Button>
+                              </div>
                               {member.name && (
-                                <span className="text-xs text-zinc-600 font-mono">{member.id}</span>
+                                <span className="text-[11px] text-zinc-400 font-mono">{member.id}</span>
                               )}
                             </>
                           )}
                         </div>
-                        <div className="flex items-center gap-3 mt-0.5">
-                          {member.ip_assignments?.length > 0 && (
-                            <span className="text-xs text-zinc-500 font-mono">{member.ip_assignments[0]}</span>
-                          )}
-                          {member.physical_address && (
-                            <span className="text-xs text-zinc-600">{member.physical_address}</span>
-                          )}
-                        </div>
                       </div>
 
-                      {/* Alert toggle */}
-                      <div className="flex-shrink-0" onClick={e => e.stopPropagation()}>
+                      {/* Column 2 — Address */}
+                      <div className="min-w-0">
+                        {member.ip_assignments?.length > 0 && (
+                          <div className="text-xs text-zinc-700 font-mono truncate">{member.ip_assignments[0]}</div>
+                        )}
+                        {member.physical_address && (
+                          <div className="text-[11px] text-zinc-400 truncate">{member.physical_address}</div>
+                        )}
+                      </div>
+
+                      {/* Column 3 — Alert toggle */}
+                      <div className="flex-shrink-0 flex justify-center" onClick={e => e.stopPropagation()}>
                         {alertSettings[member.id]?.enabled ? (
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="w-8 h-8 text-amber-400 hover:text-amber-300 relative"
+                            className="w-8 h-8 text-amber-500 hover:text-amber-600 relative"
                             onClick={() => openAlertDialog(member)}
                             title={`Alert active (${alertSettings[member.id]?.recipients?.length || 0} recipients)`}
                             data-testid={`zt-alert-on-${member.id}`}
                           >
                             <Bell className="w-4 h-4" />
-                            <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-amber-400 rounded-full border border-zinc-900" />
+                            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-amber-500 rounded-full border border-white" />
                           </Button>
                         ) : (
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="w-8 h-8 text-zinc-600 hover:text-amber-400 opacity-0 group-hover:opacity-100"
+                            className="w-8 h-8 text-zinc-300 hover:text-amber-500 opacity-0 group-hover:opacity-100"
                             onClick={() => openAlertDialog(member)}
                             title="Enable alert"
                             data-testid={`zt-alert-off-${member.id}`}
@@ -599,13 +626,13 @@ const ZeroTierPage = () => {
                         )}
                       </div>
 
-                      {/* Auth toggle */}
-                      <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                      {/* Column 4 — Auth toggle */}
+                      <div className="flex items-center" onClick={e => e.stopPropagation()}>
                         {member.authorized ? (
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="h-7 px-2 text-xs text-emerald-400 hover:text-red-400 hover:bg-red-500/10 border border-emerald-500/20 hover:border-red-500/20"
+                            className="h-7 px-2.5 text-xs text-emerald-600 hover:text-rose-500 hover:bg-rose-50 border border-emerald-200 hover:border-rose-200 bg-emerald-50/50"
                             onClick={() => handleAuthorize(member.id, false)}
                             data-testid={`zt-deauth-inline-${member.id}`}
                           >
@@ -614,7 +641,7 @@ const ZeroTierPage = () => {
                         ) : (
                           <Button
                             size="sm"
-                            className="h-7 px-2 text-xs bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/20"
+                            className="h-7 px-2.5 text-xs bg-rose-500 hover:bg-rose-600 text-white"
                             onClick={() => handleAuthorize(member.id, true)}
                             data-testid={`zt-auth-inline-${member.id}`}
                           >
@@ -623,19 +650,20 @@ const ZeroTierPage = () => {
                         )}
                       </div>
 
-                      {/* Last seen */}
-                      <div className="text-right flex-shrink-0 w-20">
-                        <span className={`text-xs ${member.online ? 'text-emerald-400' : 'text-zinc-500'}`}>
+                      {/* Column 5 — Last seen */}
+                      <div className="text-right">
+                        <span className={`text-xs font-medium tabular-nums ${member.online ? 'text-emerald-600' : 'text-zinc-400'}`}>
                           {member.online ? 'Online' : formatLastSeen(member.last_seen)}
                         </span>
                       </div>
 
-                      <ChevronRight className={`w-4 h-4 text-zinc-600 transition-transform ${selectedMember?.id === member.id ? 'rotate-90' : ''}`} />
+                      {/* Column 6 — Chevron */}
+                      <ChevronRight className={`w-4 h-4 text-zinc-300 transition-transform ${selectedMember?.id === member.id ? 'rotate-90' : ''}`} />
                     </div>
 
                     {/* Expanded member detail */}
                     {selectedMember?.id === member.id && (
-                      <div className="px-5 py-4 bg-zinc-100/50 border-t border-zinc-200">
+                      <div className="px-5 py-4 bg-zinc-50 border-t border-zinc-100">
                         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
                           <div>
                             <span className="text-xs text-zinc-500 block">Node ID</span>
