@@ -414,12 +414,13 @@ const MainSiteDashboardContent = () => {
     if (!container) return;
     const DASHBOARD_WIDTH = 130;
     const MORE_WIDTH = 90;
-    const PILL_PADDING = 44;
-    const PX_PER_CHAR = 7.2;
+    const PILL_PADDING = 52; // px-5 (=40) + gap + margin
+    const PX_PER_CHAR = 8.4; // text-sm font-medium is ~14px, chars avg ~8-9px
 
     const calculate = () => {
       const totalWidth = container.offsetWidth;
-      const available = Math.max(0, totalWidth - DASHBOARD_WIDTH - MORE_WIDTH);
+      // Leave a safety margin so labels never touch the ellipsis threshold.
+      const available = Math.max(0, totalWidth - DASHBOARD_WIDTH - MORE_WIDTH - 16);
       let used = 0;
       let count = 0;
       for (const item of flatNavItemsRef.current) {
@@ -596,8 +597,31 @@ const MainSiteDashboardContent = () => {
   };
 
   // Brand: always "Clara", labels only in page header bar
-  const siteTypeLabel = mainSite?.site_type === 'server' ? 'Virtual Datacenter' : mainSite?.site_type === 'technical' ? 'Data Connection' : mainSite?.site_type === 'task_scheduler' ? 'Tasks' : mainSite?.site_type === 'custom' ? 'Custom' : 'Radio';
-  const siteTypeLabelColor = mainSite?.site_type === 'server' ? 'bg-red-500/15 text-red-400 border-red-500/25' : mainSite?.site_type === 'technical' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' : mainSite?.site_type === 'task_scheduler' ? 'bg-violet-500/15 text-violet-400 border-violet-500/25' : mainSite?.site_type === 'custom' ? 'bg-fuchsia-500/15 text-fuchsia-400 border-fuchsia-500/25' : 'bg-zinc-500/15 text-zinc-400 border-zinc-500/25';
+  const SITE_TYPE_LABEL_MAP = {
+    radio: 'Radio',
+    server: 'Virtual Datacenter',
+    technical: 'Data Connection',
+    task_scheduler: 'Tasks',
+    external_host: 'External Host',
+    wp_security: 'WP Security',
+    code_studio: 'Code Studio',
+    clara_custom: 'Clara Custom',
+    custom: 'Custom',
+  };
+  const SITE_TYPE_COLOR_MAP = {
+    radio: 'bg-orange-500/15 text-orange-500 border-orange-500/25',
+    server: 'bg-red-500/15 text-red-400 border-red-500/25',
+    technical: 'bg-emerald-500/15 text-emerald-500 border-emerald-500/25',
+    task_scheduler: 'bg-violet-500/15 text-violet-500 border-violet-500/25',
+    external_host: 'bg-cyan-500/15 text-cyan-500 border-cyan-500/25',
+    wp_security: 'bg-red-500/15 text-red-500 border-red-500/25',
+    code_studio: 'bg-purple-500/15 text-purple-500 border-purple-500/25',
+    clara_custom: 'bg-fuchsia-500/15 text-fuchsia-500 border-fuchsia-500/25',
+    custom: 'bg-fuchsia-500/15 text-fuchsia-500 border-fuchsia-500/25',
+  };
+  const siteTypeKey = mainSite?.site_type || 'radio';
+  const siteTypeLabel = SITE_TYPE_LABEL_MAP[siteTypeKey] || 'Site';
+  const siteTypeLabelColor = SITE_TYPE_COLOR_MAP[siteTypeKey] || 'bg-zinc-500/15 text-zinc-500 border-zinc-500/25';
   // Display name: for server sites, show linked main site name
   const displayName = mainSite?.site_type === 'server' && mainSite?.linked_main_site_name
     ? mainSite.linked_main_site_name
@@ -1232,7 +1256,7 @@ const MainSiteDashboardContent = () => {
                   ) : (
                     <Globe className="w-3.5 h-3.5 text-zinc-400" />
                   )}
-                  <span className="max-w-[140px] truncate hidden sm:inline">{displayName || mainSite?.name}</span>
+                  <span className="max-w-[200px] truncate hidden sm:inline">{displayName || mainSite?.name}</span>
                   <ChevronDown className="w-3 h-3 text-zinc-400" />
                 </button>
               </DropdownMenuTrigger>
