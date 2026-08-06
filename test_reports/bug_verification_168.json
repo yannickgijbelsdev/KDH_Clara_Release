@@ -1,0 +1,35 @@
+{
+  "verdict": "fixed",
+  "user_reported_bug": "Ik moet elke keer de foto van Dan Lopez manueel overschrijven, als ik een nieuw programma aanmaak, dan komt de hele tijd de foto in plaats van de plaat. Verschijnt op de RDS / player / homepage. Gebeurt bij het aanmaken van een nieuwe show template. Gewenste oplossing: standaard geen foto overnemen bij een nieuwe show — per-aflevering cover moet winnen.",
+  "summary": "Backend-only focused verification passed. Loaded the ai-testing-image-video testing skill, inspected git status/diff and the changed shows.py/rds.py code, then ran API + MongoDB checks proving new shows do not persist template images and RDS image endpoints now prefer per-show images while keeping template fallback and transparent PNG behavior.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/tests/verify_rds_show_cover_bug.py",
+    "/app/test_reports/bug_verification_168.json",
+    "/app/test_reports/iteration_168.json"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/tests/verify_rds_show_cover_bug.py",
+    "/app/test_reports/bug_verification_168.json",
+    "/app/test_reports/iteration_168.json"
+  ],
+  "success_rate": {
+    "backend": "100%",
+    "frontend": "N/A - backend-only bug verification"
+  },
+  "seed_data_creation": "Created isolated temporary team/admin, show_titles, shows, and station-specific rds_cached_rundowns with qa-cover/qa station prefixes. Latest run cleaned MongoDB artifacts and the S3 object uploaded through /api/shows/{id}/image.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Script run: python3 /app/tests/verify_rds_show_cover_bug.py. It verified recurring POST /api/shows, non-recurring POST /api/shows, POST /api/shows/{id}/enable-recurrence with/without parent image, /api/rds/{station}/image, /api/rds/{station}/image-url.json, /api/rds/{station}/image.jpg, and legacy show.image compatibility. All checks passed on localhost:8001.",
+  "rca_of_the_issue": "The prior behavior baked show_title.image into shows.image and the RDS resolver preferred templates over per-show images. The tested fix removes create/recurrence-time template image copying and changes resolver priority to shows.image first, then show_titles.image fallback, then cached rundown image. No MOCKED APIs were used."
+}

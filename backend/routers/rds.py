@@ -1063,14 +1063,13 @@ async def update_shoutcast_filters(
 async def _resolve_show_image_for_station(station: str) -> tuple[dict | None, str | None]:
     """Find the S3 image URL for the currently LIVE show on `station`.
 
-    Same priority as `/api/public/schedule/*` so the homepage, player and
-    banner all show the **exact same artwork**:
+    Priority order (chosen so per-episode plate art can override the
+    template):
 
-    1. `show_titles.{name}.image.s3_url`  — Show Management template (S3)
-       This is the radio team's "official" artwork — wins over per-show
-       and pre-cached variants.
-    2. `shows.{show_id}.image.s3_url`     — per-show upload, used when a
-       title has no image of its own.
+    1. `shows.{show_id}.image.s3_url`     — per-episode upload. The radio
+       team's explicit override for THIS airing (e.g. weekly plate cover).
+    2. `show_titles.{name}.image.s3_url`  — Show Management template. Used
+       as fallback when no per-episode plate has been uploaded.
     3. `rds_cached_rundowns.show_image`   — pre-baked snapshot.
 
     Only S3 URLs are returned. Local `/uploads/...` paths are treated as
@@ -1110,12 +1109,17 @@ async def _resolve_show_image_for_station(station: str) -> tuple[dict | None, st
             "filename": raw.get("filename") or raw.get("file_name"),
         }
 
-    # 1. Show title template — Show Management is source of truth.
-    # We ONLY accept a title doc that belongs to the same main_site/team as
-    # the cached rundown. The non-scoped fallback that used to live here was
-    # the cause of "wrong presenter on a show without an image" — a sibling
-    # site's show with the same name would steal the image. Better to
-    # return nothing (consumer renders placeholder) than the wrong face.
+    # 1. Per-episode upload — wins over the template so weekly plate art
+    #    can be swapped per airing without touching the show template.
+    if show_id:
+        show_doc = await db.shows.find_one({"id": show_id}, {"_id": 0, "image": 1})
+        img = s3_only((show_doc or {}).get("image"))
+        if img:
+            return img, show_title
+
+    # 2. Show title template — fallback when the episode has no cover of
+    #    its own. Scoped to the same main_site/team as the cached rundown
+    #    so a sibling site's show with the same name can't steal the image.
     if show_title and scope_id:
         title_doc = await db.show_titles.find_one(
             {
@@ -1125,13 +1129,6 @@ async def _resolve_show_image_for_station(station: str) -> tuple[dict | None, st
             {"_id": 0, "image": 1},
         )
         img = s3_only((title_doc or {}).get("image"))
-        if img:
-            return img, show_title
-
-    # 2. Per-show upload
-    if show_id:
-        show_doc = await db.shows.find_one({"id": show_id}, {"_id": 0, "image": 1})
-        img = s3_only((show_doc or {}).get("image"))
         if img:
             return img, show_title
 

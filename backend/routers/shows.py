@@ -893,23 +893,17 @@ async def create_show(
     # For recurring shows, create parent and occurrences
     if show_data.recurrence_type == "weekly" and show_data.recurrence_interval >= 1:
         parent_id = str(uuid.uuid4())
-        
-        # Try to get image from show title if exists
-        show_image = None
-        if show_data.title:
-            # Use main_site_id filter if available, otherwise team_id
-            title_query = {"name": show_data.title}
-            if main_site_id:
-                title_query["main_site_id"] = main_site_id
-            else:
-                title_query["team_id"] = team_id
-            show_title = await db.show_titles.find_one(
-                title_query,
-                {"_id": 0, "image": 1}
-            )
-            if show_title and show_title.get("image"):
-                show_image = show_title["image"]
-        
+
+        # NOTE: We intentionally do NOT auto-inherit the show_title's image
+        # onto per-episode documents. Baking it in caused stale presenter
+        # photos (e.g. Dan Lopez) to keep showing up on RDS/player/homepage
+        # even after the show template was rebranded — the user then had to
+        # manually overwrite every occurrence.
+        # The RDS resolver (`_resolve_show_image_for_station`) still falls
+        # back to the show_title's live image when the per-show `image`
+        # field is empty, so shared cover art keeps working while a
+        # per-episode upload always wins as an explicit override.
+
         # Create parent show (first occurrence)
         parent_doc = {
             "id": parent_id,
@@ -935,7 +929,6 @@ async def create_show(
             "video_endpoint_id": show_data.video_endpoint_id,
             "video_embed_override": show_data.video_embed_override,
             "blocks_room": bool(show_data.blocks_room) if show_data.blocks_room is not None else True,
-            "image": show_image  # Include image from show title
         }
         await db.shows.insert_one(parent_doc)
         
@@ -973,7 +966,6 @@ async def create_show(
                 "video_endpoint_id": show_data.video_endpoint_id,
                 "video_embed_override": show_data.video_embed_override,
                 "blocks_room": bool(show_data.blocks_room) if show_data.blocks_room is not None else True,
-                "image": show_image  # Include image from show title
             }
             await db.shows.insert_one(occ_doc)
         
@@ -1506,16 +1498,17 @@ async def enable_recurrence(
     
     # Create future occurrences
     if future_dates:
-        # Get image from parent show or show title
+        # NOTE: New occurrences no longer inherit the show_title's image.
+        # The RDS/player/homepage resolver walks show_title → show → cache
+        # at read-time, so uploading the cover art to the show template
+        # keeps every occurrence in sync. Per-episode uploads still win as
+        # an explicit override. Baking the template image into each
+        # occurrence caused stale presenter photos to stick after a
+        # rebrand — see the note in create_show.
+        # Copy the parent's existing per-show image if the user already
+        # uploaded one; otherwise leave `image` unset so the fallback runs.
         show_image = show.get('image')
-        if not show_image and show.get('title'):
-            show_title = await db.show_titles.find_one(
-                {"name": show['title'], "team_id": team_id},
-                {"_id": 0, "image": 1}
-            )
-            if show_title and show_title.get("image"):
-                show_image = show_title["image"]
-        
+
         child_docs = []
         for date in future_dates:
             child_doc = {
@@ -1537,8 +1530,10 @@ async def enable_recurrence(
                 "recurrence_end_date": recurrence_end_date,
                 "parent_show_id": parent_id,
                 "is_recurring": True,
-                "image": show_image  # Include image from parent or show title
             }
+            if show_image:
+                # Only propagate an image the parent explicitly owns.
+                child_doc["image"] = show_image
             child_docs.append(child_doc)
         
         if child_docs:
