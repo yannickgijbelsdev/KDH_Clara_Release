@@ -1193,16 +1193,12 @@ async def get_station_show_image_redirect(station: str):
     Used by MagicRDS, grk.fm/mfy.fm players and similar systems that
     embed `<img src=".../image.jpg">` directly.
 
-    URL format: /api/rds/{station}/image.jpg
-
-    When a show has an image: 302 redirect to the S3 URL.
-    When a show has NO image: return a 1×1 transparent PNG (HTTP 200).
-    A 200 is required because returning 404 makes iOS Safari and most
-    desktop browsers KEEP the previously cached `<img>` on screen —
-    that's how stale presenter photos (e.g. Hadewig) ended up "sticking"
-    on the next show. The transparent pixel forces the browser to
-    overwrite the visual with nothing, so the player can render its own
-    placeholder via CSS.
+    Priority:
+      1. Per-show / show_title / cached image (via `_resolve_show_image_for_station`).
+      2. Presenter-composite of the current show's presenters. Overlapping
+         circular avatars — feels like the presenters are standing together.
+      3. Transparent placeholder (kept as HTTP 200 to overwrite stale
+         browser-cached photos; see history note about Hadewig sticking).
     """
     from fastapi.responses import RedirectResponse
 
@@ -1210,7 +1206,112 @@ async def get_station_show_image_redirect(station: str):
     image_url = _image_url_from(image_data)
     if image_url:
         return RedirectResponse(url=image_url, status_code=302)
+    # Fallback: build presenter composite on the fly. Redirect to the
+    # composite endpoint so browsers/CDNs can cache it independently and
+    # we don't do the PIL work twice for the same station on this route.
+    composite_available = await _station_has_presenters(station)
+    if composite_available:
+        return RedirectResponse(url=f"./presenter-composite.png", status_code=302)
+    return _placeholder_image_response()
+
+
+async def _station_has_presenters(station: str) -> bool:
+    """Return True when the currently live show on `station` has at least
+    one presenter with an avatar we can composite."""
+    cached = await db.rds_cached_rundowns.find_one(
+        {"is_active": True, "rds_station": {"$in": [station, "both"]}},
+        {"_id": 0, "show_id": 1},
+    )
+    if not cached:
+        return False
+    show = await db.shows.find_one({"id": cached.get("show_id")}, {"_id": 0, "presenter_ids": 1})
+    if not show or not show.get("presenter_ids"):
+        return False
+    users = db.users.find(
+        {"id": {"$in": show["presenter_ids"]}, "avatar_url": {"$nin": [None, ""]}},
+        {"_id": 0, "avatar_url": 1},
+    )
+    return await users.to_list(1) != []
+
+
+def _placeholder_image_response():
+    """Serve the packaged transparent show placeholder — the file the
+    user attached in the bug report (1366×808 transparent PNG)."""
+    from fastapi.responses import FileResponse
+    from pathlib import Path
+    ph = Path(__file__).parent.parent / "static" / "show_placeholder.png"
+    if ph.exists():
+        return FileResponse(
+            str(ph),
+            media_type="image/png",
+            headers={"Cache-Control": "public, max-age=60"},
+        )
     return _empty_image_response()
+
+
+@rds_router.get("/{station}/presenter-composite.png")
+async def get_station_presenter_composite(station: str):
+    """Public endpoint: PIL-composited overlapping circular avatars of the
+    presenters on the currently live show. Falls back to the packaged
+    transparent placeholder when nothing is presentable."""
+    from fastapi.responses import Response
+    from io import BytesIO
+    import httpx
+    from PIL import Image, ImageDraw
+
+    cached = await db.rds_cached_rundowns.find_one(
+        {"is_active": True, "rds_station": {"$in": [station, "both"]}},
+        {"_id": 0, "show_id": 1},
+    )
+    if not cached:
+        return _placeholder_image_response()
+    show = await db.shows.find_one({"id": cached.get("show_id")}, {"_id": 0, "presenter_ids": 1})
+    presenter_ids = (show or {}).get("presenter_ids") or []
+    urls: list[str] = []
+    if presenter_ids:
+        async for u in db.users.find(
+            {"id": {"$in": presenter_ids}, "avatar_url": {"$nin": [None, ""]}},
+            {"_id": 0, "avatar_url": 1},
+        ):
+            urls.append(u["avatar_url"])
+    if not urls:
+        return _placeholder_image_response()
+
+    # Fetch each avatar, crop to circle, overlap ~35% of avatar width.
+    canvas_h = 512
+    avatar_size = 384
+    overlap = int(avatar_size * 0.35)
+    canvas_w = avatar_size + (len(urls) - 1) * (avatar_size - overlap)
+    canvas = Image.new("RGBA", (canvas_w, canvas_h), (0, 0, 0, 0))
+
+    async with httpx.AsyncClient(timeout=6.0, follow_redirects=True) as client:
+        for i, url in enumerate(urls):
+            try:
+                r = await client.get(url)
+                r.raise_for_status()
+                avatar = Image.open(BytesIO(r.content)).convert("RGBA")
+            except Exception:
+                continue
+            # Center-crop to a square then resize.
+            side = min(avatar.size)
+            left = (avatar.width - side) // 2
+            top = (avatar.height - side) // 2
+            avatar = avatar.crop((left, top, left + side, top + side)).resize(
+                (avatar_size, avatar_size), Image.LANCZOS
+            )
+            mask = Image.new("L", (avatar_size, avatar_size), 0)
+            ImageDraw.Draw(mask).ellipse((0, 0, avatar_size, avatar_size), fill=255)
+            x = i * (avatar_size - overlap)
+            y = (canvas_h - avatar_size) // 2
+            canvas.paste(avatar, (x, y), mask)
+
+    buf = BytesIO()
+    canvas.save(buf, format="PNG", optimize=True)
+    return Response(
+        content=buf.getvalue(),
+        media_type="image/png",
+        headers={"Cache-Control": "public, max-age=60"},
+    )
 
 
 @rds_router.get("/{station}/image-url.txt")

@@ -174,15 +174,11 @@ async def create_show_title(
     main_site_id = await get_main_site_id_from_header(request)
     team_id = current_user.get('team_id')
     
-    # Check for duplicate name within the same context
-    if main_site_id:
-        dup_query = {"main_site_id": main_site_id, "name": {"$regex": f"^{title_data.name}$", "$options": "i"}}
-    else:
-        dup_query = {"team_id": team_id, "name": {"$regex": f"^{title_data.name}$", "$options": "i"}}
-    
-    existing = await db.show_titles.find_one(dup_query)
-    if existing:
-        raise HTTPException(status_code=400, detail="A show title with this name already exists")
+    # Duplicate name check REMOVED — teams asked to be able to run two shows
+    # with the same title in parallel (e.g. re-run seasons, replay slots).
+    # Downstream lookups (RDS resolver, calendar, public API) will pick the
+    # newest matching title so behaviour stays deterministic; we keep the
+    # uniqueness relaxed instead of hard-blocking creation.
     
     title_doc = {
         "id": title_id,
