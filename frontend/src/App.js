@@ -5,7 +5,6 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { MainSiteProvider, useMainSite } from './context/MainSiteContext';
 import { Toaster } from './components/ui/sonner';
 import ClaraScanWidget from './components/ClaraScanWidget';
-import PwaInstallPrompt from './components/PwaInstallPrompt';
 import ClaraGuideOverlay from './components/ClaraGuideOverlay';
 import { TopLoaderProvider } from './components/TopLoader';
 import SessionWarningModal from './components/SessionWarningModal';
@@ -348,7 +347,6 @@ function App() {
               <AppRoutes />
               <CallWidget />
               <SessionWarningModal />
-              <PwaInstallPrompt />
               <ClaraGuideOverlay />
               <ClaraHealthScanWrapper />
               <Toaster position="bottom-right" richColors />
