@@ -1,0 +1,42 @@
+{
+  "summary": "Backend-only verification of three bug fixes on Radio SaaS (FastAPI+Mongo): (1) duplicate show_title creation, (2) presenter-composite fallback for /api/rds/{station}/image.jpg, (3) packaged transparent placeholder when nothing else is available. All 6 pytest assertions pass against the public preview URL. IMPORTANT caveat: the new fallback chain queries db.users.avatar_url as a top-level string field, but production users store avatars under the avatar sub-doc (avatar.file_key / avatar.s3_url) — no user in the current tenant has avatar_url populated, so the composite path never fires for real data.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "GET /api/rds/{station}/presenter-composite.png (routers/rds.py L1218-1234, L1252-1314)",
+        "issue": "Both _station_has_presenters() and get_station_presenter_composite() only look at users.avatar_url (a top-level string). All 41 real users store avatars in the `avatar` sub-doc (avatar.file_key, sometimes avatar.s3_url). Result: for real shows the fallback silently skips composite and serves the transparent placeholder — the user's original request 'gebruik presenter avatars' won't happen in practice. Recommend using resolve_avatar_url(user.avatar) fallback (already exists in shows.py) or reading avatar.s3_url. Also, when resolved avatar URL is a relative /api/uploads/avatars/... path, httpx.get will fail because it needs an absolute URL — need to prepend base URL or fetch from disk."
+      },
+      {
+        "endpoint": "GET /api/rds/{station}/image.jpg",
+        "issue": "Uses a relative redirect target 'presenter-composite.png' (no leading slash). Works correctly when the request URL is /api/rds/{station}/image.jpg because the browser resolves it to /api/rds/{station}/presenter-composite.png, but if any reverse proxy strips the trailing filename oddly or rewrites the path, this could break. Prefer an absolute path like f'/api/rds/{station}/presenter-composite.png'."
+      }
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_show_image_fallback_and_duplicate_titles.py",
+    "/app/test_reports/pytest/iteration_169.xml"
+  ],
+  "action_items": [
+    "Update _station_has_presenters and get_station_presenter_composite in /app/backend/routers/rds.py to source presenter photos from users.avatar.s3_url (and users.avatar.file_key resolved to an absolute URL) in addition to users.avatar_url — otherwise the composite fallback is dead code for existing tenants.",
+    "Consider absolute redirect path for the presenter-composite fallback in get_station_show_image_redirect."
+  ],
+  "critical_code_review_comments": [
+    "shows.py: duplicate-name check removed only from create_show_title but update_show_title (L242-244) still rejects renaming to a duplicate. That's inconsistent with the new 'two shows can share a title' contract — either drop it there too or document why rename is stricter.",
+    "rds.py get_station_presenter_composite silently continues on per-avatar httpx errors — a broken remote URL could produce a mostly-empty canvas that still returns 200. Consider a minimum success threshold before falling back to the placeholder.",
+    "The presenter-composite endpoint does no width capping — 20 presenters would produce a ~5000px-wide PNG. Add a max presenter count (e.g. cap at 6)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_show_image_fallback_and_duplicate_titles.py",
+    "/app/test_reports/iteration_169.json",
+    "/app/test_reports/pytest/iteration_169.xml"
+  ],
+  "success_rate": {"backend": "100% (6/6 assertions pass)", "frontend": "N/A - backend only"},
+  "test_credentials": "admin: admkoodh@koodh.com / KYLovie13monx",
+  "seed_data_creation": "Per-test: transient TEST169_* users (with seeded avatar_url), show_titles, shows, and rds_cached_rundowns scoped to main_site_id 63154708-3320-444c-932d-aa3642b5090c (Radiogroep MFY/GRK) on station 'grk'. Cleanup fixture verified — 0 leftover docs after the run.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Run `pytest backend/tests/test_show_image_fallback_and_duplicate_titles.py -v`. The tests temporarily deactivate ALL existing active cached rundowns and mark them with _test169_was_active so they're restored in a finally block — if the process is killed mid-test the marker cleanup script in this iteration's report can restore state. Real users in prod have avatar under `avatar.s3_url`/`avatar.file_key`, not `avatar_url` — flag when checking composite path with production data.",
+  "rca of the issue": "The three bugs are fixed at the API layer as designed and verified end-to-end via the public preview URL. However, the presenter-composite fallback branch will NOT fire for real MFY/GRK data because the query filter demands users.avatar_url ($nin [null,'']) which is empty for all 41 current users; their avatars are stored under the `avatar` embedded document (avatar.file_key / avatar.s3_url). The test seeded synthetic users with avatar_url set to a real PNG URL, so the code path is exercised and correct — the gap is purely in the field selection. See action_items."
+}

@@ -1211,8 +1211,28 @@ async def get_station_show_image_redirect(station: str):
     # we don't do the PIL work twice for the same station on this route.
     composite_available = await _station_has_presenters(station)
     if composite_available:
-        return RedirectResponse(url=f"./presenter-composite.png", status_code=302)
+        return RedirectResponse(url=f"/api/rds/{station}/presenter-composite.png", status_code=302)
     return _placeholder_image_response()
+
+
+def _extract_avatar_url(user: dict) -> str | None:
+    """Return the best avatar URL for a user doc.
+
+    Users may carry either the legacy top-level `avatar_url` string OR
+    the newer `avatar` sub-document (`file_key` / `s3_url`). Return an
+    absolute URL when we have one, otherwise a relative `/uploads/...`
+    path (fetched from disk below)."""
+    if not user:
+        return None
+    if user.get("avatar_url"):
+        return user["avatar_url"]
+    av = user.get("avatar") or {}
+    if isinstance(av, dict):
+        if av.get("s3_url"):
+            return av["s3_url"]
+        if av.get("file_key"):
+            return f"/uploads/avatars/{av['file_key']}"
+    return None
 
 
 async def _station_has_presenters(station: str) -> bool:
@@ -1227,11 +1247,13 @@ async def _station_has_presenters(station: str) -> bool:
     show = await db.shows.find_one({"id": cached.get("show_id")}, {"_id": 0, "presenter_ids": 1})
     if not show or not show.get("presenter_ids"):
         return False
-    users = db.users.find(
-        {"id": {"$in": show["presenter_ids"]}, "avatar_url": {"$nin": [None, ""]}},
-        {"_id": 0, "avatar_url": 1},
-    )
-    return await users.to_list(1) != []
+    async for u in db.users.find(
+        {"id": {"$in": show["presenter_ids"]}},
+        {"_id": 0, "avatar_url": 1, "avatar": 1},
+    ):
+        if _extract_avatar_url(u):
+            return True
+    return False
 
 
 def _placeholder_image_response():
@@ -1270,10 +1292,12 @@ async def get_station_presenter_composite(station: str):
     urls: list[str] = []
     if presenter_ids:
         async for u in db.users.find(
-            {"id": {"$in": presenter_ids}, "avatar_url": {"$nin": [None, ""]}},
-            {"_id": 0, "avatar_url": 1},
+            {"id": {"$in": presenter_ids}},
+            {"_id": 0, "avatar_url": 1, "avatar": 1},
         ):
-            urls.append(u["avatar_url"])
+            url = _extract_avatar_url(u)
+            if url:
+                urls.append(url)
     if not urls:
         return _placeholder_image_response()
 
@@ -1284,13 +1308,28 @@ async def get_station_presenter_composite(station: str):
     canvas_w = avatar_size + (len(urls) - 1) * (avatar_size - overlap)
     canvas = Image.new("RGBA", (canvas_w, canvas_h), (0, 0, 0, 0))
 
+    from pathlib import Path
+    UPLOADS_ROOT = Path(__file__).parent.parent / "uploads"
+
+    async def _load_avatar(url: str):
+        # Relative /uploads/... paths → read from disk (fastest, no self-HTTP).
+        if url.startswith("/uploads/"):
+            path = UPLOADS_ROOT / url[len("/uploads/"):]
+            if path.exists():
+                return Image.open(path).convert("RGBA")
+            return None
+        # Absolute URL → HTTP fetch.
+        try:
+            r = await client.get(url)
+            r.raise_for_status()
+            return Image.open(BytesIO(r.content)).convert("RGBA")
+        except Exception:
+            return None
+
     async with httpx.AsyncClient(timeout=6.0, follow_redirects=True) as client:
         for i, url in enumerate(urls):
-            try:
-                r = await client.get(url)
-                r.raise_for_status()
-                avatar = Image.open(BytesIO(r.content)).convert("RGBA")
-            except Exception:
+            avatar = await _load_avatar(url)
+            if avatar is None:
                 continue
             # Center-crop to a square then resize.
             side = min(avatar.size)
