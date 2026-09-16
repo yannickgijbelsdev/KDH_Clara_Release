@@ -1,0 +1,28 @@
+{
+  "summary": "Backend-only retest of iteration_169's two minor items. Both fixes confirmed on the public preview URL. All 7 pytest assertions pass in 3.12s. Coverage: (A) /api/rds/{station}/image.jpg now 302s to an ABSOLUTE '/api/rds/{station}/presenter-composite.png' path (not the previous relative filename). (B) _extract_avatar_url resolves the modern `avatar` sub-doc — verified for both `avatar.file_key` (loaded from local disk /app/backend/uploads/avatars/{file_key} without any self-HTTP call) AND mixed populations combining legacy `avatar_url` string with modern sub-doc. Width scales correctly with presenter count (n=2 → ~634px, n=3 → ~884px, height 512). Placeholder still returned 200 with packaged 1366×808 RGBA PNG when NO presenter has any avatar. Duplicate show_title creation regression still passes.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_iteration170_avatar_subdoc_and_absolute_redirect.py",
+    "/app/test_reports/pytest/iteration_170.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "rds.py L1329: `async with httpx.AsyncClient(...)` is opened even when all URLs are local /uploads/... paths (never used). Minor inefficiency — wrap in a conditional.",
+    "rds.py L1308: still no upper cap on presenter count — 10+ presenters produce a very wide PNG (avatar_size=384 * n). Consider capping at 6 for RDS billboard rendering.",
+    "rds.py L1218 _extract_avatar_url: for `avatar.file_key` returns `/uploads/avatars/{file_key}`, but the public serving mount in main.py is `/api/uploads/...` for external URLs. Internal disk fetch works fine (loads from UPLOADS_ROOT), but if that branch is ever changed to httpx it would need /api prefix.",
+    "shows.py update_show_title still rejects duplicate rename (per iteration_169 review) — inconsistent with the loosened create rule; left as-is for now."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration170_avatar_subdoc_and_absolute_redirect.py",
+    "/app/test_reports/iteration_170.json",
+    "/app/test_reports/pytest/iteration_170.xml"
+  ],
+  "success_rate": {"backend": "100% (7/7)", "frontend": "N/A - backend only"},
+  "test_credentials": "admin: admkoodh@koodh.com / KYLovie13monx",
+  "seed_data_creation": "Per-run under tag TEST170_{6-hex}: transient users (with `avatar` sub-doc having file_key pointing to freshly-written PNGs in /app/backend/uploads/avatars/), shows, show_titles, and rds_cached_rundowns scoped to main_site 63154708-3320-444c-932d-aa3642b5090c on station 'grk'. Active live rundowns temporarily deactivated with marker _test170_was_active and restored in teardown. Avatar PNG files written to disk are removed after the run. Verified 0 leftover TEST170_* docs.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Run `pytest backend/tests/test_iteration170_avatar_subdoc_and_absolute_redirect.py -v`. This file is the successor to test_show_image_fallback_and_duplicate_titles.py (iteration_169) and covers the same features PLUS the newer avatar sub-doc + absolute redirect logic. Real MFY/GRK users store avatars in avatar.file_key served publicly at /uploads/avatars/{file_key}; the composite endpoint reads them from disk directly (UPLOADS_ROOT = /app/backend/uploads).",
+  "rca of the issue": "N/A — both prior minor issues are correctly fixed and verified end-to-end."
+}
