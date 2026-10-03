@@ -1159,7 +1159,7 @@ const MainSiteDashboardContent = () => {
     <DevToolsProvider enabled={isClone}>
     <TooltipProvider delayDuration={0}>
       {/* Outer shell: banners + workspace */}
-      <div className="h-screen flex flex-col overflow-hidden bg-white" style={{ height: '100dvh' }}>
+      <div className="h-screen flex flex-col overflow-hidden bg-[#F5F6F8]" style={{ height: '100dvh' }}>
         {/* Maintenance/announcement banners (active broadcasts) */}
         <MaintenanceBanner mainSiteId={mainSite?.id || ''} />
         {/* Banners */}
@@ -1189,20 +1189,28 @@ const MainSiteDashboardContent = () => {
           </div>
         )}
 
-        {/* ─── Horizontal Top Navigation ─── */}
-        <nav className="h-[64px] flex-shrink-0 flex items-center px-5 gap-4 bg-transparent z-50" data-testid="workspace-topbar">
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} data-testid="mobile-menu-btn" className="lg:hidden w-9 h-9 flex items-center justify-center rounded-xl text-zinc-500 hover:text-zinc-900 hover:bg-black/5 transition-colors">
+        {/* ─── Horizontal Top Navigation (Clara Campaigns layout) ─── */}
+        <nav className="h-16 flex-shrink-0 sticky top-0 z-50 bg-[#F5F6F8]/90 backdrop-blur-xl" data-testid="workspace-topbar">
+         <div className="max-w-[1400px] mx-auto px-6 h-full flex items-center gap-3">
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} data-testid="mobile-menu-btn" className="lg:hidden w-9 h-9 flex items-center justify-center rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors">
             <Menu className="w-5 h-5" />
           </button>
-          <button onClick={() => navigate(`/${mainSiteSlug}`)} className={brandingData.logo_type === 'image' && brandingData.logo_url
-            ? "flex items-center flex-shrink-0 hover:opacity-80 transition-opacity"
-            : "bg-zinc-900 text-white rounded-full px-4 py-2 flex items-center gap-2 text-sm font-semibold hover:bg-zinc-800 transition-colors flex-shrink-0"} data-testid="logo-pill">
-            {brandingData.logo_type === 'image' && brandingData.logo_url ? (
-              <img src={brandingData.logo_url.startsWith('/') ? `${process.env.REACT_APP_BACKEND_URL}${brandingData.logo_url}` : brandingData.logo_url} alt={brandName} className="h-7 object-contain" />
-            ) : (
-              <><Radio className="w-4 h-4" /><span className="hidden sm:inline">{brandName}</span></>
-            )}
-          </button>
+          {/* Logo lockup — mark + divider + wordmark */}
+          <div className="flex items-center gap-2.5 shrink-0">
+            <button onClick={() => navigate(`/${mainSiteSlug}`)} className="hover:opacity-80 transition-opacity" data-testid="logo-pill">
+              {brandingData.logo_type === 'image' && brandingData.logo_url ? (
+                <img src={brandingData.logo_url.startsWith('/') ? `${process.env.REACT_APP_BACKEND_URL}${brandingData.logo_url}` : brandingData.logo_url} alt={brandName} className="h-6 w-6 object-contain" />
+              ) : (
+                <span className="h-6 w-6 rounded-md bg-slate-900 text-white flex items-center justify-center">
+                  <Radio className="w-3.5 h-3.5" />
+                </span>
+              )}
+            </button>
+            <div className="hidden sm:block h-5 w-px bg-slate-200/70" />
+            <span className="hidden sm:block font-display font-semibold text-slate-900 text-[15px] whitespace-nowrap">
+              {brandName}
+            </span>
+          </div>
 
           {/* Status Icons */}
           <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -1245,19 +1253,19 @@ const MainSiteDashboardContent = () => {
           {myMainSites.length >= 1 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="h-9 flex items-center gap-2 px-3 rounded-full border border-white/40 bg-white/20 backdrop-blur-xl hover:bg-white/35 text-sm font-medium text-zinc-700 transition-all duration-200 flex-shrink-0 shadow-[0_2px_8px_rgba(0,0,0,0.04)]" data-testid="main-site-switcher">
+                <button className="h-9 flex items-center gap-2 px-2.5 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-sm font-medium text-slate-800 transition-colors flex-shrink-0 max-w-[220px]" data-testid="main-site-switcher">
                   {mainSite?.logo_url ? (
                     <img
                       src={resolveLogoUrl(mainSite.logo_url)}
                       alt=""
-                      className="w-5 h-5 rounded object-contain"
+                      className="w-4 h-4 rounded object-contain shrink-0"
                       onError={(e) => { e.currentTarget.style.display = 'none'; }}
                     />
                   ) : (
-                    <Globe className="w-3.5 h-3.5 text-zinc-400" />
+                    <Globe className="w-4 h-4 text-slate-400 shrink-0" />
                   )}
-                  <span className="max-w-[200px] truncate hidden sm:inline">{displayName || mainSite?.name}</span>
-                  <ChevronDown className="w-3 h-3 text-zinc-400" />
+                  <span className="truncate hidden sm:inline">{displayName || mainSite?.name}</span>
+                  <ChevronDown className="w-4 h-4 text-slate-400" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-64 bg-white/30 backdrop-blur-2xl border-white/40 shadow-[0_8px_40px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.6)] rounded-2xl">
@@ -1307,7 +1315,7 @@ const MainSiteDashboardContent = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-          <div ref={pillNavRef} className="hidden lg:flex items-center gap-1 mx-auto rounded-[28px] p-1.5 bg-transparent flex-1 min-w-0 justify-center" data-testid="pill-nav">
+          <div ref={pillNavRef} className="hidden lg:flex items-center gap-0.5 ml-3 flex-1 min-w-0" data-testid="pill-nav">
             <LayoutGroup>
             {[{ label: 'Dashboard', to: `/${mainSiteSlug}` }, ...flatNavItems.slice(0, visibleNavCount).map(i => ({ label: i.label, to: i.to }))].map(tab => {
               const isTabActive = !isLicenseBlocked && (tab.to === `/${mainSiteSlug}` ? isDashboardHome : (location.pathname === tab.to || location.pathname.startsWith(tab.to + '/')));
@@ -1322,15 +1330,15 @@ const MainSiteDashboardContent = () => {
                 </span>
               ) : (
                 <NavLink key={tab.to} to={tab.to} end={tab.to === `/${mainSiteSlug}`}
-                  className={`relative px-5 py-2.5 rounded-[20px] text-sm font-medium transition-colors duration-200 flex items-center gap-1.5 z-[1] whitespace-nowrap flex-shrink-0 ${isTabActive ? 'text-white' : 'text-zinc-500 hover:text-zinc-700'}`}
+                  className={`relative px-3.5 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-1.5 z-[1] whitespace-nowrap flex-shrink-0 hover:text-slate-900 ${isTabActive ? 'text-white' : 'text-slate-500'}`}
                   data-testid={`pill-${tab.label.toLowerCase().replace(/\s+/g, '-')}`}
                 >
                   {isTabActive && (
                     <motion.div
                       layoutId="pill-active"
-                      className="absolute inset-0 bg-zinc-900 rounded-full shadow-sm"
+                      className="absolute inset-0 bg-slate-900 rounded-full shadow-lg shadow-slate-900/25"
                       style={{ zIndex: -1 }}
-                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                      transition={{ type: 'spring', stiffness: 400, damping: 34 }}
                     />
                   )}
                   {tab.label}
@@ -1501,6 +1509,7 @@ const MainSiteDashboardContent = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
+         </div>
         </nav>
 
         {/* Mobile Sidebar Overlay */}

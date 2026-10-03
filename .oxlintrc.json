@@ -1,0 +1,16 @@
+{
+  "ignorePatterns": [
+    "frontend/public/tinymce/**",
+    "**/tinymce/**"
+  ],
+  "globals": {
+    "tinymce": "readonly",
+    "WorkerGlobalScope": "readonly"
+  },
+  "rules": {
+    "react-hooks/set-state-in-effect": "off",
+    "react-hooks/preserve-manual-memoization": "off",
+    "react-hooks/refs": "off",
+    "react-hooks/immutability": "off"
+  }
+}
