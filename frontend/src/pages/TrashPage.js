@@ -142,7 +142,7 @@ const TrashPage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 mb-1 sm:mb-2 flex items-center gap-3">
-            <Trash2 className="w-8 h-8 text-orange-400" />
+            <Trash2 className="w-8 h-8 text-rose-500" />
             Trash
           </h1>
           <p className="text-sm sm:text-base text-zinc-400">
@@ -254,7 +254,7 @@ const TrashPage = () => {
 
                       <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-500">
                         {item.category && (
-                          <span className="flex items-center gap-1 text-orange-400/70">
+                          <span className="flex items-center gap-1 text-rose-500/70">
                             <Folder className="w-3 h-3" />
                             {item.category.name}
                           </span>

@@ -113,7 +113,7 @@ export default function ClaraRackScan() {
           {/* Header */}
           <div className="px-6 py-4 border-b border-zinc-100 flex items-center justify-between flex-shrink-0">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-lg shadow-orange-500/20">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-600 to-amber-500 flex items-center justify-center shadow-lg shadow-[#7380b6]/20">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -134,7 +134,7 @@ export default function ClaraRackScan() {
           <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0">
             {scanning ? (
               <div className="flex flex-col items-center py-12 gap-4">
-                <Loader2 className="w-8 h-8 text-orange-400 animate-spin" />
+                <Loader2 className="w-8 h-8 text-rose-500 animate-spin" />
                 <div className="text-center">
                   <p className="text-sm text-zinc-600 font-medium">Scanning racks and sites...</p>
                   <p className="text-xs text-zinc-400 mt-1">Checking firewalls, configurations, and security</p>

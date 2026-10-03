@@ -432,7 +432,7 @@ const ContentLibraryPage = () => {
             <Button
               data-testid="create-content-btn"
               onClick={() => setIsCreateOpen(true)}
-              className="ml-1 bg-orange-500 hover:bg-orange-600 text-white rounded-full px-4 gap-1.5 text-sm shadow-lg shadow-orange-500/20"
+              className="ml-1 bg-[#7380b6] hover:bg-[#5f6ca3] text-white rounded-full px-4 gap-1.5 text-sm shadow-lg shadow-[#7380b6]/20"
             >
               <Plus className="w-3.5 h-3.5" /> New Article
             </Button>
@@ -623,7 +623,7 @@ const ContentLibraryPage = () => {
                 <DropdownMenuItem
                   data-testid="create-category-btn"
                   onSelect={(e) => { e.preventDefault(); createCategoryInline(); }}
-                  className="text-orange-600 focus:text-orange-700 focus:bg-orange-50 border-t border-zinc-100 mt-1 pt-2"
+                  className="text-rose-700 focus:text-rose-800 focus:bg-rose-50 border-t border-zinc-100 mt-1 pt-2"
                 >
                   <Plus className="w-3.5 h-3.5 mr-1.5" />
                   New category
@@ -761,7 +761,7 @@ const ContentLibraryPage = () => {
           {allContent.length === 0 && isEditor && (
             <Button
               onClick={() => setIsCreateOpen(true)}
-              className="bg-orange-500 hover:bg-orange-600 text-white"
+              className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
             >
               <Plus className="w-4 h-4 mr-2" />
               Create Content
@@ -781,7 +781,7 @@ const ContentLibraryPage = () => {
                 data-testid={`content-item-${index}`}
                 onClick={() => navigate(buildPath(`/content/${item.id}`))}
                 className={`bg-white border rounded-xl p-5 cursor-pointer hover:bg-white/70 hover:border-white/80 transition-all duration-200 group ${
-                  selectedIds.has(item.id) ? 'border-orange-300 ring-2 ring-orange-200/60' : 'border-zinc-200'
+                  selectedIds.has(item.id) ? 'border-rose-300 ring-2 ring-rose-200/60' : 'border-zinc-200'
                 }`}
               >
                 <div className="flex items-start justify-between">
@@ -796,7 +796,7 @@ const ContentLibraryPage = () => {
                         aria-label="Select for bulk publish"
                       >
                         {selectedIds.has(item.id) ? (
-                          <CheckSquare className="w-4 h-4 text-orange-500" />
+                          <CheckSquare className="w-4 h-4 text-rose-600" />
                         ) : (
                           <Square className="w-4 h-4" />
                         )}
@@ -881,7 +881,7 @@ const ContentLibraryPage = () => {
                         </span>
                         
                         {item.category && (
-                          <span className="flex items-center gap-1 text-orange-400">
+                          <span className="flex items-center gap-1 text-rose-500">
                             <Folder className="w-3 h-3" />
                             {item.category.name}
                           </span>

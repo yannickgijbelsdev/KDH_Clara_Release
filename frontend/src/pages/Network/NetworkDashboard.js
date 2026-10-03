@@ -138,7 +138,7 @@ function DebugContent({ data }) {
       </div>
 
       {/* Today's Shows */}
-      <Section id="shows" title="Shows Today" icon={Tv} color="text-orange-400" count={data.todays_shows?.length || 0}>
+      <Section id="shows" title="Shows Today" icon={Tv} color="text-rose-500" count={data.todays_shows?.length || 0}>
         {data.todays_shows?.length > 0 ? (
           <div className="space-y-1">
             {data.todays_shows.map((show, i) => (
@@ -218,7 +218,7 @@ function DebugContent({ data }) {
             {data.shoutcast_logs.map((log, i) => (
               <div key={i} className="text-xs p-1.5 flex items-center gap-2">
                 <span className="text-zinc-500">{log.timestamp?.slice(11, 19)}</span>
-                <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${log.station === 'grk' ? 'bg-violet-500/20 text-violet-300' : 'bg-orange-500/20 text-orange-300'}`}>
+                <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${log.station === 'grk' ? 'bg-violet-500/20 text-violet-300' : 'bg-rose-600/20 text-rose-300'}`}>
                   {log.station?.toUpperCase()}
                 </span>
                 <span className="text-zinc-600 truncate">{log.title || log.current_song}</span>
@@ -337,7 +337,7 @@ function UserAccessSection({ token, API }) {
                           <span className="text-zinc-700 font-medium min-w-[150px]">{access.user_name}</span>
                           <span className="text-zinc-500 min-w-[200px]">{access.user_email}</span>
                           <span className={`text-xs px-2 py-0.5 rounded ${
-                            access.site_role === 'admin' ? 'bg-orange-500/20 text-orange-400' :
+                            access.site_role === 'admin' ? 'bg-rose-600/20 text-rose-500' :
                             access.site_role === 'news_admin' ? 'bg-emerald-500/20 text-emerald-400' :
                             access.site_role === 'editor' ? 'bg-violet-500/20 text-violet-400' :
                             'bg-zinc-200 text-zinc-400'
@@ -482,10 +482,10 @@ export default function NetworkDashboard() {
     { type: 'wp_security', name: 'WP Security', icon: Shield, color: 'red', desc: 'WordPress firewall, WAF & brute force protection',
       features: ['wp_security_dashboard', 'wp_waf_rules', 'wp_ip_blocklist', 'wp_login_protection', 'team_settings', 'firewall', 'activity_logs'] },
   ];
-  const PACKAGE_COLORS = { orange: 'bg-orange-500/20 border-orange-500/50 text-orange-400', violet: 'bg-violet-500/20 border-violet-500/50 text-violet-400', blue: 'bg-blue-500/20 border-blue-500/50 text-blue-400', emerald: 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400', cyan: 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400', red: 'bg-red-500/20 border-red-500/50 text-red-400' };
-  const PACKAGE_ICON_COLORS = { orange: 'text-orange-400', violet: 'text-violet-400', blue: 'text-blue-400', emerald: 'text-emerald-400', cyan: 'text-cyan-400', red: 'text-red-400' };
+  const PACKAGE_COLORS = { orange: 'bg-rose-600/20 border-rose-600/50 text-rose-500', violet: 'bg-violet-500/20 border-violet-500/50 text-violet-400', blue: 'bg-blue-500/20 border-blue-500/50 text-blue-400', emerald: 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400', cyan: 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400', red: 'bg-red-500/20 border-red-500/50 text-red-400' };
+  const PACKAGE_ICON_COLORS = { orange: 'text-rose-500', violet: 'text-violet-400', blue: 'text-blue-400', emerald: 'text-emerald-400', cyan: 'text-cyan-400', red: 'text-red-400' };
   const SITE_TYPE_LABELS = { radio: 'Radio', task_scheduler: 'Tasks', server: 'Virtual Datacenter', technical: 'Data Connection', external_host: 'External Host', wp_security: 'WP Security' };
-  const SITE_TYPE_BADGE = { radio: 'bg-orange-500/10 text-orange-400 border-orange-500/20', task_scheduler: 'bg-violet-500/10 text-violet-400 border-violet-500/20', server: 'bg-blue-500/10 text-blue-400 border-blue-500/20', technical: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', external_host: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20', wp_security: 'bg-red-500/10 text-red-400 border-red-500/20' };
+  const SITE_TYPE_BADGE = { radio: 'bg-rose-600/10 text-rose-500 border-rose-600/20', task_scheduler: 'bg-violet-500/10 text-violet-400 border-violet-500/20', server: 'bg-blue-500/10 text-blue-400 border-blue-500/20', technical: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', external_host: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20', wp_security: 'bg-red-500/10 text-red-400 border-red-500/20' };
 
   const autoSlug = (name) => name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').slice(0, 50);
   const slugExists = (slug) => mainSites.some(s => s.slug === slug);
@@ -846,8 +846,8 @@ export default function NetworkDashboard() {
           {activeSection === 'admins' && (
             <div className="flex flex-col h-full gap-4">
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-                className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
-                <Crown className="w-5 h-5 text-orange-500" />
+                className="bg-white rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
+                <Crown className="w-5 h-5 text-rose-600" />
                 <div>
                   <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">Network Admins</div>
                   <div className="text-sm font-semibold text-zinc-700">Manage network administrator access and permissions</div>
@@ -863,8 +863,8 @@ export default function NetworkDashboard() {
           {activeSection === 'notifications' && (
             <div className="flex flex-col h-full gap-4">
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-                className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
-                <Bell className="w-5 h-5 text-orange-500" />
+                className="bg-white rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
+                <Bell className="w-5 h-5 text-rose-600" />
                 <div>
                   <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">Notifications</div>
                   <div className="text-sm font-semibold text-zinc-700">Configure email notifications per site and role</div>
@@ -880,8 +880,8 @@ export default function NetworkDashboard() {
           {activeSection === 'branding' && (
             <div className="flex flex-col h-full gap-4">
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-                className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
-                <Paintbrush className="w-5 h-5 text-orange-500" />
+                className="bg-white rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
+                <Paintbrush className="w-5 h-5 text-rose-600" />
                 <div>
                   <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">Branding</div>
                   <div className="text-sm font-semibold text-zinc-700">Customize platform name, logo, favicon, and login page</div>
@@ -897,7 +897,7 @@ export default function NetworkDashboard() {
           {activeSection === 'vdc-deploy' && (
             <div className="flex flex-col h-full gap-4">
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-                className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
+                className="bg-white rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
                 <Upload className="w-5 h-5 text-zinc-700" />
                 <div>
                   <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">Deploy to VDC</div>
@@ -914,8 +914,8 @@ export default function NetworkDashboard() {
           {activeSection === 'licenses' && (
             <div className="flex flex-col h-full gap-4">
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-                className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
-                <Shield className="w-5 h-5 text-orange-500" />
+                className="bg-white rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
+                <Shield className="w-5 h-5 text-rose-600" />
                 <div>
                   <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">License Manager</div>
                   <div className="text-sm font-semibold text-zinc-700">Manage license packages and site assignments</div>
@@ -931,8 +931,8 @@ export default function NetworkDashboard() {
           {activeSection === 'domains' && (
             <div className="flex flex-col h-full gap-4">
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-                className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
-                <Globe className="w-5 h-5 text-orange-500" />
+                className="bg-white rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
+                <Globe className="w-5 h-5 text-rose-600" />
                 <div>
                   <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">Domain Manager</div>
                   <div className="text-sm font-semibold text-zinc-700">Manage domains, subdomain routing, and Cloudflare integration</div>
@@ -948,8 +948,8 @@ export default function NetworkDashboard() {
           {activeSection === 'environments' && (
             <div className="flex flex-col h-full gap-4">
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-                className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
-                <Server className="w-5 h-5 text-orange-500" />
+                className="bg-white rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
+                <Server className="w-5 h-5 text-rose-600" />
                 <div>
                   <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">Environments</div>
                   <div className="text-sm font-semibold text-zinc-700">Manage Clara environments, admins, and site assignments</div>
@@ -969,8 +969,8 @@ export default function NetworkDashboard() {
           {activeSection === 'audit' && (
             <div className="flex flex-col h-full gap-4">
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-                className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
-                <ShieldAlert className="w-5 h-5 text-orange-500" />
+                className="bg-white rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
+                <ShieldAlert className="w-5 h-5 text-rose-600" />
                 <div>
                   <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">Permission Audit</div>
                   <div className="text-sm font-semibold text-zinc-700">Audit and verify role permissions across all sites</div>
@@ -986,8 +986,8 @@ export default function NetworkDashboard() {
           {activeSection === 'user-access' && (
             <div className="flex flex-col h-full gap-4">
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-                className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
-                <UserCog className="w-5 h-5 text-orange-500" />
+                className="bg-white rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
+                <UserCog className="w-5 h-5 text-rose-600" />
                 <div>
                   <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">User Access</div>
                   <div className="text-sm font-semibold text-zinc-700">Debug and manage user access across all sites</div>
@@ -1009,8 +1009,8 @@ export default function NetworkDashboard() {
             <div className="flex flex-col h-full gap-4">
               <div className="flex items-start justify-between flex-shrink-0">
                 <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-                  className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4">
-                  <Shield className="w-5 h-5 text-orange-500" />
+                  className="bg-white rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4">
+                  <Shield className="w-5 h-5 text-rose-600" />
                   <div>
                     <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">Account Security</div>
                     <div className="text-sm font-semibold text-zinc-700">Manage your two-factor authentication settings</div>
@@ -1159,7 +1159,7 @@ export default function NetworkDashboard() {
                   <div key={i} className="flex items-center gap-1">
                     <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
                       i < createStep ? 'bg-emerald-500/20 text-emerald-400' :
-                      i === createStep ? 'bg-orange-500/20 text-orange-400 ring-1 ring-orange-500/40' :
+                      i === createStep ? 'bg-rose-600/20 text-rose-500 ring-1 ring-rose-600/40' :
                       'bg-zinc-100 text-zinc-500'
                     }`}>
                       {i < createStep ? <Check className="w-3 h-3" /> : <span className="w-3 text-center">{i + 1}</span>}
@@ -1308,14 +1308,14 @@ export default function NetworkDashboard() {
         <DialogContent className="bg-white border-zinc-200 max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Activity className="w-5 h-5 text-orange-500" />
+              <Activity className="w-5 h-5 text-rose-600" />
               Health Check — {healthCheck.siteName}
             </DialogTitle>
           </DialogHeader>
           
           {healthCheck.loading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
+              <Loader2 className="w-8 h-8 animate-spin text-rose-600" />
               <span className="ml-3 text-zinc-400">Running tests...</span>
             </div>
           ) : healthCheck.result ? (

@@ -253,7 +253,7 @@ export default function WpSecurityPage() {
 
   const severityColors = {
     critical: 'bg-red-500/10 text-red-400 border-red-500/20',
-    high: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
+    high: 'bg-rose-600/10 text-rose-500 border-rose-600/20',
     medium: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
     low: 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20',
   };
@@ -305,7 +305,7 @@ export default function WpSecurityPage() {
         <div className="rounded-md bg-zinc-100/60 border border-zinc-200 p-3 space-y-2">
           <p className="text-[10px] uppercase tracking-wider text-zinc-400 font-semibold">How to get your API Token:</p>
           <ol className="space-y-1 text-xs text-zinc-400 list-decimal list-inside">
-            <li>Go to <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:text-orange-300">dash.cloudflare.com/profile/api-tokens</a></li>
+            <li>Go to <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" rel="noopener noreferrer" className="text-rose-500 hover:text-rose-300">dash.cloudflare.com/profile/api-tokens</a></li>
             <li>Click <strong className="text-zinc-200">Create Token</strong></li>
             <li>Use the <strong className="text-zinc-200">Edit zone DNS</strong> template (or custom)</li>
             <li>Add permissions: <code className="bg-zinc-900 px-1 rounded text-[10px]">Zone - Firewall Services - Edit</code> and <code className="bg-zinc-900 px-1 rounded text-[10px]">Zone - Zone - Read</code></li>
@@ -567,7 +567,7 @@ function WizardStep({ stepNum, title, icon, completed, summary, active, editStep
 }
 
 function TipBox({ color = 'red', title, children }) {
-  const colors = { red: 'text-red-400', orange: 'text-orange-400', emerald: 'text-emerald-400' };
+  const colors = { red: 'text-red-400', orange: 'text-rose-500', emerald: 'text-emerald-400' };
   return (
     <div className="rounded-md bg-zinc-100/60 border border-zinc-200 p-3">
       <p className={`text-[10px] uppercase tracking-wider ${colors[color]} font-semibold mb-1`}>{title}</p>

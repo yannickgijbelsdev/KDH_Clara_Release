@@ -156,11 +156,11 @@ export default function UserTicketsPanel({ open, onClose }) {
               {!selectedId && (
                 <button
                   onClick={() => { onClose(); openClara('support-help'); }}
-                  className="p-1.5 rounded-lg hover:bg-orange-50 transition-colors"
+                  className="p-1.5 rounded-lg hover:bg-rose-50 transition-colors"
                   data-testid="header-how-to-clara-btn"
                   title="How to find the Clara Assistant?"
                 >
-                  <HelpCircle className="w-4 h-4 text-orange-500" />
+                  <HelpCircle className="w-4 h-4 text-rose-600" />
                 </button>
               )}
               <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-zinc-100" data-testid="close-tickets-panel">
@@ -202,7 +202,7 @@ export default function UserTicketsPanel({ open, onClose }) {
                                 <span className="text-[10px] text-zinc-300">{new Date(t.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                               </div>
                             </div>
-                            {!isClosed && t.has_unread_user && <div className="w-2 h-2 rounded-full bg-orange-500 flex-shrink-0" />}
+                            {!isClosed && t.has_unread_user && <div className="w-2 h-2 rounded-full bg-rose-600 flex-shrink-0" />}
                           </div>
                         </button>
                         {isClosed && (
@@ -239,7 +239,7 @@ export default function UserTicketsPanel({ open, onClose }) {
                         <div className="max-w-[80%]">
                           {!isOwn && (
                             <p className="text-[10px] text-zinc-400 mb-0.5 ml-1">
-                              Clara Support <Shield className="w-2.5 h-2.5 inline text-orange-400" />
+                              Clara Support <Shield className="w-2.5 h-2.5 inline text-rose-500" />
                             </p>
                           )}
                           <div className={`px-3 py-2 rounded-2xl text-[13px] leading-relaxed ${isOwn ? 'bg-zinc-900 text-white rounded-br-md' : 'bg-zinc-100 text-zinc-800 rounded-bl-md'}`}>
@@ -272,7 +272,7 @@ export default function UserTicketsPanel({ open, onClose }) {
                     <p className="text-xs text-zinc-400 leading-relaxed">This ticket is no longer available. If you have the same problem, please make a new ticket via the Clara Assistant.</p>
                     <button
                       onClick={() => { onClose(); openClara('support-help'); }}
-                      className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-orange-600 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors"
+                      className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors"
                       data-testid="how-to-find-clara-btn"
                     >
                       <HelpCircle className="w-3.5 h-3.5" />

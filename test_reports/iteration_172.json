@@ -1,0 +1,30 @@
+{
+  "summary": "Verified Clara Campaigns periwinkle rollout on login + /network. All class-name criteria pass: login hero img src=/clara-login-bg.webp; horizontal logo lockup (chevron h-9 w-9 → h-7 w-px bg-slate-200 divider → wordmark img) confirmed via wrapper children inspection; Sign in / Send temporary password / Verify buttons all carry bg-[#7380b6] hover:bg-[#5f6ca3]; Forgot-password Mail chip = p-2 bg-[#7380b6]/10 rounded-xl; email input class contains focus:ring-[#7380b6]/25 focus:border-[#7380b6]/40; /network 'New Server' button + data-testid=create-site-btn both have bg-[#7380b6] hover:bg-[#5f6ca3]. Admin login with provided creds succeeded. BUT: the actual bitmap at /app/frontend/public/clara-login-bg.webp is a Clara dashboard/rack screenshot — NOT the periwinkle 'bear' illustration the user said they supplied. The hero still looks like a product screenshot rather than the branded Clara bear artwork.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "LoginPage hero image asset", "issue": "clara-login-bg.webp bundled in /app/frontend/public is a screenshot of the Clara racks dashboard, not the Clara Campaigns bear illustration the user supplied. All class/src wiring is correct; only the image file content is wrong.", "selector": "[data-testid='login-hero-rooms'] img", "priority": "HIGH"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "LoginPage", "issues": ["Background shows a product UI screenshot behind the login panel, which reads as unfinished vs. a branded illustration. Likely the main agent saved the wrong file as clara-login-bg.webp."]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Replace /app/frontend/public/clara-login-bg.webp with the Clara Campaigns bear illustration the user actually supplied (current file is a dashboard screenshot).",
+    "No code changes needed — class/selector/src wiring is already correct for periwinkle + horizontal lockup + bg route."
+  ],
+  "critical_code_review_comments": [
+    "ServerRackView.js still has multiple orange-500 accents (lines 158, 364, 418, 499, 527) alongside the periwinkle button — if the design intent is a unified periwinkle primary, these legacy orange accents may be inconsistent (not a blocker, flag only).",
+    "LoginPage.js lines 175-211 render a `hidden` FEATURE_BUBBLES block that is kept as dead render; consider removing to reduce DOM/JS cost."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a", "frontend": "95%"},
+  "test_credentials": "admin: admkoodh@koodh.com / KYLovie13monx (verified working)",
+  "seed_data_creation": "none",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "All class/selector acceptance checks for the periwinkle rollout PASS on preview. Only remaining issue is the clara-login-bg.webp asset itself is the wrong image (dashboard screenshot instead of bear). Verify by viewing the file: should be the Clara bear illustration, currently it's the racks UI.",
+  "rca of the issue": "Main agent correctly wired class names and <img src> paths, but the webp file actually written to public/clara-login-bg.webp appears to be an export of the dashboard rather than the bear artwork the user attached. Replace the binary file; no further code changes required."
+}

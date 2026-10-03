@@ -276,14 +276,14 @@ export default function LicenseManager() {
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
               activeTab === tab.id
-                ? 'bg-white text-white border-b-2 border-orange-500'
+                ? 'bg-white text-white border-b-2 border-rose-600'
                 : 'text-zinc-400 hover:text-zinc-700'
             }`}
           >
             <tab.icon className="w-4 h-4" />
             {tab.label}
             {tab.badge > 0 && (
-              <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-orange-500 text-white">{tab.badge}</span>
+              <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-[#7380b6] text-white">{tab.badge}</span>
             )}
           </button>
         ))}
@@ -582,8 +582,8 @@ export default function LicenseManager() {
                     <img src={CYCLING_IMAGES[i % CYCLING_IMAGES.length]} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" style={{ WebkitMaskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)', maskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)' }} />
                     <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06] shadow-sm">
                       <div className="flex items-center gap-1.5">
-                        <Package className="w-3 h-3 text-orange-500" />
-                        <span className="text-[10px] font-bold tracking-wider text-orange-600">PACKAGE</span>
+                        <Package className="w-3 h-3 text-rose-600" />
+                        <span className="text-[10px] font-bold tracking-wider text-rose-700">PACKAGE</span>
                       </div>
                     </div>
                     {pkg.is_default && (
@@ -613,7 +613,7 @@ export default function LicenseManager() {
                     <div className="flex flex-wrap gap-1 mt-2">
                       {(pkg.features || []).slice(0, 4).map(fId => {
                         const feat = availableFeatures.find(f => f.id === fId);
-                        return <span key={fId} className="px-1.5 py-0.5 rounded text-[9px] bg-orange-50 text-orange-600 border border-orange-100">{feat?.name || fId}</span>;
+                        return <span key={fId} className="px-1.5 py-0.5 rounded text-[9px] bg-rose-50 text-rose-700 border border-rose-100">{feat?.name || fId}</span>;
                       })}
                       {(pkg.features || []).length > 4 && <span className="px-1.5 py-0.5 rounded text-[9px] bg-zinc-100 text-zinc-500">+{pkg.features.length - 4}</span>}
                     </div>
@@ -629,7 +629,7 @@ export default function LicenseManager() {
                       )}
                     </div>
                   </div>
-                  <div className="h-1" style={{ background: 'linear-gradient(90deg, #dd0c51, #dd0c5160)' }} />
+                  <div className="h-1" style={{ background: 'linear-gradient(90deg, #7380b6, #7380b660)' }} />
                 </div>
               </motion.div>
             ))}
@@ -640,11 +640,11 @@ export default function LicenseManager() {
               transition={{ delay: packages.length * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
               className="w-[260px] flex-shrink-0"
             >
-              <button onClick={openCreatePkg} className="w-full rounded-2xl overflow-hidden border-2 border-dashed border-zinc-200 hover:border-orange-300 transition-colors h-full min-h-[260px] flex flex-col items-center justify-center gap-3 group" data-testid="create-package-card">
-                <div className="w-12 h-12 rounded-full bg-zinc-100 group-hover:bg-orange-100 flex items-center justify-center transition-colors">
-                  <Plus className="w-6 h-6 text-zinc-400 group-hover:text-orange-500 transition-colors" />
+              <button onClick={openCreatePkg} className="w-full rounded-2xl overflow-hidden border-2 border-dashed border-zinc-200 hover:border-rose-300 transition-colors h-full min-h-[260px] flex flex-col items-center justify-center gap-3 group" data-testid="create-package-card">
+                <div className="w-12 h-12 rounded-full bg-zinc-100 group-hover:bg-rose-100 flex items-center justify-center transition-colors">
+                  <Plus className="w-6 h-6 text-zinc-400 group-hover:text-rose-600 transition-colors" />
                 </div>
-                <span className="text-sm text-zinc-400 group-hover:text-orange-500 font-medium transition-colors">New Package</span>
+                <span className="text-sm text-zinc-400 group-hover:text-rose-600 font-medium transition-colors">New Package</span>
               </button>
             </motion.div>
           </div>
@@ -763,7 +763,7 @@ export default function LicenseManager() {
                     onClick={() => setAssignForm(p => ({ ...p, billing_cycle: c.value }))}
                     className={`flex-1 px-3 py-1.5 rounded text-sm transition-colors ${
                       assignForm.billing_cycle === c.value
-                        ? 'bg-orange-600 text-white'
+                        ? 'bg-[#7380b6] text-white'
                         : 'bg-zinc-100 text-zinc-400 hover:bg-zinc-200'
                     }`}
                     data-testid={`billing-cycle-${c.value}`}

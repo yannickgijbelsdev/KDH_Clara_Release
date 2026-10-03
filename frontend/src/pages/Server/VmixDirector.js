@@ -33,7 +33,7 @@ function StepIndicator({ steps, current }) {
         <div key={i} className="flex items-center gap-1">
           <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
             i < current ? 'bg-emerald-500/20 text-emerald-400' :
-            i === current ? 'bg-orange-500/20 text-orange-400 ring-1 ring-orange-500/40' :
+            i === current ? 'bg-[#7380b6]/20 text-rose-500 ring-1 ring-rose-600/40' :
             'bg-zinc-100 text-zinc-500'
           }`}>
             {i < current ? <Check className="w-3 h-3" /> : <span className="w-3 text-center">{i + 1}</span>}
@@ -93,7 +93,7 @@ function BgEditor({ config, setConfig, prefix, uploadBgImage }) {
       <div className="flex gap-1">
         {BG_TYPES.map(t => (
           <button key={t.id} onClick={() => setConfig(p => ({ ...p, [`${prefix}_bg_type`]: t.id }))}
-            className={`px-2 py-1 rounded text-[10px] transition-colors ${bgType === t.id ? 'bg-orange-500 text-white' : 'bg-zinc-100 text-zinc-400 hover:bg-zinc-200'}`}>
+            className={`px-2 py-1 rounded text-[10px] transition-colors ${bgType === t.id ? 'bg-[#7380b6] text-white' : 'bg-zinc-100 text-zinc-400 hover:bg-zinc-200'}`}>
             {t.label}
           </button>
         ))}
@@ -128,7 +128,7 @@ function BgEditor({ config, setConfig, prefix, uploadBgImage }) {
             <label className="text-[10px] text-zinc-500 uppercase">Angle ({config[`${prefix}_bg_gradient_angle`] || 90}°)</label>
             <input type="range" min={0} max={360} value={config[`${prefix}_bg_gradient_angle`] || 90}
               onChange={e => setConfig(p => ({ ...p, [`${prefix}_bg_gradient_angle`]: parseInt(e.target.value) }))}
-              className="w-full accent-orange-500" />
+              className="w-full accent-rose-600" />
           </div>
           <div className="h-6 rounded" style={{ background: `linear-gradient(${config[`${prefix}_bg_gradient_angle`] || 90}deg, ${config[`${prefix}_bg_gradient_start`] || '#000'}, ${config[`${prefix}_bg_gradient_end`] || '#333'})` }} />
         </div>
@@ -361,7 +361,7 @@ export default function VmixDirector() {
           <h1 className="text-2xl font-bold text-zinc-900">vMix Director</h1>
           <p className="text-sm text-zinc-400 mt-1">Design and configure your vMix overlay elements</p>
         </div>
-        <Button data-testid="vmix-save-btn" onClick={saveConfig} disabled={saving} className="bg-orange-500 hover:bg-orange-600">
+        <Button data-testid="vmix-save-btn" onClick={saveConfig} disabled={saving} className="bg-[#7380b6] hover:bg-[#5f6ca3]">
           {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
           Save Configuration
         </Button>
@@ -379,11 +379,11 @@ export default function VmixDirector() {
       />
 
       {/* Step 1: XML Servers Status */}
-      <div className={`bg-white/60 border rounded-xl transition-all ${setupStep === 0 ? 'border-orange-500/30 ring-1 ring-orange-500/20' : xmlServers.length > 0 ? 'border-emerald-500/20' : 'border-zinc-200'}`}>
+      <div className={`bg-white/60 border rounded-xl transition-all ${setupStep === 0 ? 'border-rose-600/30 ring-1 ring-rose-600/20' : xmlServers.length > 0 ? 'border-emerald-500/20' : 'border-zinc-200'}`}>
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${xmlServers.length > 0 ? 'bg-emerald-500/20' : setupStep === 0 ? 'bg-orange-500/20' : 'bg-zinc-100'}`}>
-              {xmlServers.length > 0 ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Monitor className="w-4 h-4 text-orange-400" />}
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${xmlServers.length > 0 ? 'bg-emerald-500/20' : setupStep === 0 ? 'bg-[#7380b6]/20' : 'bg-zinc-100'}`}>
+              {xmlServers.length > 0 ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Monitor className="w-4 h-4 text-rose-500" />}
             </div>
             <div>
               <h3 className="text-white font-medium text-sm">XML Server Connection</h3>
@@ -400,10 +400,10 @@ export default function VmixDirector() {
         </div>
         {setupStep === 0 && xmlServers.length === 0 && (
           <div className="px-4 pb-4 border-t border-zinc-200 pt-3">
-            <div className="flex items-start gap-2 p-3 bg-orange-500/5 rounded-lg border border-orange-500/10">
-              <Settings className="w-4 h-4 text-orange-400 mt-0.5 flex-shrink-0" />
+            <div className="flex items-start gap-2 p-3 bg-[#7380b6]/5 rounded-lg border border-rose-600/10">
+              <Settings className="w-4 h-4 text-rose-500 mt-0.5 flex-shrink-0" />
               <div className="text-xs text-zinc-400">
-                <p className="text-orange-300 font-medium mb-1">How to connect XML servers</p>
+                <p className="text-rose-300 font-medium mb-1">How to connect XML servers</p>
                 <p>XML servers provide now-playing metadata for your overlay elements. Go to the <strong>Network Management</strong> dashboard and create a <strong>Virtual Datacenter</strong> (server) site. Once created, the XML server will appear here automatically and feed data to your vMix overlays.</p>
               </div>
             </div>
@@ -421,7 +421,7 @@ export default function VmixDirector() {
               </h2>
               <div className="flex items-center gap-2">
                 <button onClick={() => setShowGrid(g => !g)}
-                  className={`flex items-center gap-1 px-2 py-1 rounded text-[10px] transition-colors ${showGrid ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-zinc-100 text-zinc-500 border border-zinc-300'}`}
+                  className={`flex items-center gap-1 px-2 py-1 rounded text-[10px] transition-colors ${showGrid ? 'bg-[#7380b6]/20 text-rose-500 border border-rose-600/30' : 'bg-zinc-100 text-zinc-500 border border-zinc-300'}`}
                   data-testid="vmix-grid-toggle">
                   <Grid className="w-3 h-3" /> Grid
                 </button>
@@ -470,7 +470,7 @@ export default function VmixDirector() {
                     data-testid={`vmix-element-${el.id}`}
                     onMouseDown={(e) => handleCanvasMouseDown(e, el.id)}
                     onClick={(e) => { e.stopPropagation(); setActiveElement(el.id); }}
-                    className={`absolute cursor-move select-none transition-shadow ${isActive ? 'ring-2 ring-orange-500 z-20' : 'z-10 hover:ring-1 hover:ring-white/30'}`}
+                    className={`absolute cursor-move select-none transition-shadow ${isActive ? 'ring-2 ring-rose-600 z-20' : 'z-10 hover:ring-1 hover:ring-white/30'}`}
                     style={{
                       left: `${el.x}%`, top: `${el.y}%`,
                       width: `${el.width}%`, height: `${el.height}%`,
@@ -507,7 +507,7 @@ export default function VmixDirector() {
           </div>
 
           {/* Overlay URLs for vMix */}
-          <div className={`bg-white/60 border rounded-xl p-4 transition-all ${setupStep === 3 ? 'border-orange-500/30 ring-1 ring-orange-500/20' : 'border-white/5'}`}>
+          <div className={`bg-white/60 border rounded-xl p-4 transition-all ${setupStep === 3 ? 'border-rose-600/30 ring-1 ring-rose-600/20' : 'border-white/5'}`}>
             <h2 className="text-sm font-semibold text-zinc-600 mb-3 flex items-center gap-2">
               <Link2 className="w-4 h-4" /> vMix Overlay URLs
             </h2>
@@ -546,13 +546,13 @@ export default function VmixDirector() {
                     key={el.id}
                     data-testid={`vmix-el-toggle-${el.id}`}
                     onClick={() => setActiveElement(el.id)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${activeElement === el.id ? 'bg-orange-500/15 border border-orange-500/25' : 'bg-zinc-100/30 border border-transparent hover:bg-zinc-100/60'}`}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${activeElement === el.id ? 'bg-[#7380b6]/15 border border-rose-600/25' : 'bg-zinc-100/30 border border-transparent hover:bg-zinc-100/60'}`}
                   >
                     <Icon className="w-4 h-4 flex-shrink-0" style={{ color: meta?.color }} />
                     <span className="text-sm text-zinc-200 flex-1">{meta?.label}</span>
                     <button
                       onClick={(e) => { e.stopPropagation(); toggleElement(el.id); }}
-                      className={`w-8 h-5 rounded-full transition-colors flex items-center ${el.enabled ? 'bg-orange-500 justify-end' : 'bg-zinc-200 justify-start'}`}
+                      className={`w-8 h-5 rounded-full transition-colors flex items-center ${el.enabled ? 'bg-[#7380b6] justify-end' : 'bg-zinc-200 justify-start'}`}
                     >
                       <div className="w-3.5 h-3.5 rounded-full bg-white mx-0.5" />
                     </button>
@@ -644,7 +644,7 @@ export default function VmixDirector() {
                       <label className="text-[10px] text-zinc-500 uppercase">Scrolling</label>
                       <button
                         onClick={() => setConfig(p => ({ ...p, ticker_scroll: !p.ticker_scroll }))}
-                        className={`w-8 h-5 rounded-full transition-colors flex items-center ${config.ticker_scroll ? 'bg-orange-500 justify-end' : 'bg-zinc-200 justify-start'}`}
+                        className={`w-8 h-5 rounded-full transition-colors flex items-center ${config.ticker_scroll ? 'bg-[#7380b6] justify-end' : 'bg-zinc-200 justify-start'}`}
                       >
                         <div className="w-3.5 h-3.5 rounded-full bg-white mx-0.5" />
                       </button>
@@ -654,7 +654,7 @@ export default function VmixDirector() {
                       <div className="flex gap-1 mt-1">
                         {SEPARATORS.map(s => (
                           <button key={s.id} onClick={() => setConfig(p => ({ ...p, ticker_separator: s.id }))}
-                            className={`px-2 py-1 rounded text-xs ${config.ticker_separator === s.id ? 'bg-orange-500 text-white' : 'bg-zinc-100 text-zinc-400 hover:bg-zinc-200'}`}>
+                            className={`px-2 py-1 rounded text-xs ${config.ticker_separator === s.id ? 'bg-[#7380b6] text-white' : 'bg-zinc-100 text-zinc-400 hover:bg-zinc-200'}`}>
                             {s.preview}
                           </button>
                         ))}
@@ -698,7 +698,7 @@ export default function VmixDirector() {
                         <label className="text-[10px] text-zinc-500 uppercase">Show Presenter Photo</label>
                         <button
                           onClick={() => setConfig(p => ({ ...p, now_playing_show_photo: !p.now_playing_show_photo }))}
-                          className={`w-8 h-5 rounded-full transition-colors flex items-center ${config.now_playing_show_photo ? 'bg-orange-500 justify-end' : 'bg-zinc-200 justify-start'}`}
+                          className={`w-8 h-5 rounded-full transition-colors flex items-center ${config.now_playing_show_photo ? 'bg-[#7380b6] justify-end' : 'bg-zinc-200 justify-start'}`}
                         >
                           <div className="w-3.5 h-3.5 rounded-full bg-white mx-0.5" />
                         </button>
@@ -744,7 +744,7 @@ export default function VmixDirector() {
               <Input data-testid="vmix-new-message" value={newMessage} onChange={e => setNewMessage(e.target.value)}
                 placeholder="New ticker message..." className="h-8 text-xs bg-zinc-50 border-zinc-200 flex-1"
                 onKeyDown={e => { if (e.key === 'Enter') addMessage(); }} />
-              <Button data-testid="vmix-add-message" size="sm" onClick={addMessage} className="h-8 bg-orange-500 hover:bg-orange-600">
+              <Button data-testid="vmix-add-message" size="sm" onClick={addMessage} className="h-8 bg-[#7380b6] hover:bg-[#5f6ca3]">
                 <Plus className="w-4 h-4" />
               </Button>
             </div>

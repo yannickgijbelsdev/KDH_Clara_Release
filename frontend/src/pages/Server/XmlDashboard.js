@@ -81,7 +81,7 @@ export default function XmlDashboard() {
         </div>
         <Button
           onClick={() => navigate('xml-upload')}
-          className="bg-orange-500 hover:bg-orange-600 text-white"
+          className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
           data-testid="upload-xml-btn"
         >
           <Upload className="w-4 h-4 mr-2" />
@@ -107,7 +107,7 @@ export default function XmlDashboard() {
               key={s}
               onClick={() => { setStatusFilter(s); setPage(1); }}
               className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-                statusFilter === s ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200 border border-zinc-200'
+                statusFilter === s ? 'bg-[#7380b6]/20 text-rose-500 border border-rose-600/30' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200 border border-zinc-200'
               }`}
               data-testid={`filter-${s || 'all'}`}
             >

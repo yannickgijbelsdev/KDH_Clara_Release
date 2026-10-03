@@ -96,7 +96,7 @@ function OverviewTab({ token, mainSiteId }) {
     { label: 'Active Blocks', value: stats?.active_blocks || 0, icon: Ban, color: 'text-red-400', bg: 'bg-red-500/10' },
     { label: 'Events (24h)', value: stats?.recent_events_24h || 0, icon: Activity, color: 'text-blue-400', bg: 'bg-blue-500/10' },
     { label: 'Failed Logins', value: stats?.event_counts?.failed_login || 0, icon: ShieldAlert, color: 'text-amber-400', bg: 'bg-amber-500/10' },
-    { label: 'Rate Limited', value: stats?.event_counts?.rate_limit_exceeded || 0, icon: AlertTriangle, color: 'text-orange-400', bg: 'bg-orange-500/10' },
+    { label: 'Rate Limited', value: stats?.event_counts?.rate_limit_exceeded || 0, icon: AlertTriangle, color: 'text-rose-500', bg: 'bg-rose-600/10' },
     { label: 'Geo Blocked', value: stats?.event_counts?.geo_blocked || 0, icon: Globe, color: 'text-purple-400', bg: 'bg-purple-500/10' },
     { label: 'Successful Logins', value: stats?.event_counts?.successful_login || 0, icon: CheckCircle, color: 'text-green-400', bg: 'bg-green-500/10' },
   ];
@@ -839,7 +839,7 @@ function LogsTab({ token, mainSiteId }) {
     successful_login: 'text-green-400 bg-green-500/10', failed_login: 'text-red-400 bg-red-500/10',
     ip_blocked: 'text-red-400 bg-red-500/10', ip_unblocked: 'text-green-400 bg-green-500/10',
     rate_limit_exceeded: 'text-amber-400 bg-amber-500/10', geo_blocked: 'text-purple-400 bg-purple-500/10',
-    ip_blacklisted: 'text-red-400 bg-red-500/10', ip_not_whitelisted: 'text-orange-400 bg-orange-500/10',
+    ip_blacklisted: 'text-red-400 bg-red-500/10', ip_not_whitelisted: 'text-rose-500 bg-rose-600/10',
     session_terminated: 'text-red-400 bg-red-500/10', user_blocked: 'text-red-400 bg-red-500/10',
     user_unblocked: 'text-green-400 bg-green-500/10', api_access: 'text-blue-400 bg-blue-500/10',
   };

@@ -68,11 +68,11 @@ const actionIcons = {
 const categoryColors = {
   auth: 'bg-blue-500/20 text-blue-400',
   user: 'bg-violet-500/20 text-violet-400',
-  show: 'bg-orange-500/20 text-orange-400',
+  show: 'bg-[#7380b6]/20 text-rose-500',
   rundown: 'bg-amber-500/20 text-amber-400',
   content: 'bg-green-500/20 text-green-400',
   media: 'bg-cyan-500/20 text-cyan-400',
-  team: 'bg-pink-500/20 text-pink-400',
+  team: 'bg-[#7380b6]/20 text-pink-400',
   settings: 'bg-indigo-500/20 text-indigo-400',
   chat: 'bg-emerald-500/20 text-emerald-400',
   wordpress: 'bg-sky-500/20 text-sky-400'
@@ -273,7 +273,7 @@ const LogsPage = () => {
         <td className="px-4 py-3">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-zinc-50 rounded-lg">
-              <ActionIcon className="w-4 h-4 text-orange-400" />
+              <ActionIcon className="w-4 h-4 text-rose-500" />
             </div>
             <div>
               <p className="text-zinc-700 font-medium">{log.action}</p>
@@ -333,7 +333,7 @@ const LogsPage = () => {
               }}
               variant={showArchive ? "default" : "outline"}
               className={showArchive 
-                ? "gap-2 bg-orange-500 hover:bg-orange-600 text-white" 
+                ? "gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white" 
                 : "gap-2 border-zinc-300 text-zinc-600 hover:bg-zinc-100"
               }
             >
@@ -361,7 +361,7 @@ const LogsPage = () => {
           </div>
           <div className="bg-white border border-zinc-200 rounded-xl p-4">
             <p className="text-zinc-500 text-sm">Last 24 Hours</p>
-            <p className="text-2xl font-bold text-orange-500">{stats.recent_24h.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-rose-600">{stats.recent_24h.toLocaleString()}</p>
           </div>
           <div className="bg-white border border-zinc-200 rounded-xl p-4">
             <p className="text-zinc-500 text-sm">Chat Events</p>
@@ -421,17 +421,17 @@ const LogsPage = () => {
                     className={`
                       aspect-square rounded-lg text-sm relative transition-colors
                       ${isSelected 
-                        ? 'bg-orange-500 text-white' 
+                        ? 'bg-[#7380b6] text-white' 
                         : hasLogs 
                           ? 'bg-zinc-200 text-zinc-900 hover:bg-zinc-300' 
                           : 'text-zinc-600 cursor-not-allowed'
                       }
-                      ${isToday(day) && !isSelected ? 'ring-2 ring-orange-500/50' : ''}
+                      ${isToday(day) && !isSelected ? 'ring-2 ring-rose-600/50' : ''}
                     `}
                   >
                     {format(day, 'd')}
                     {hasLogs && (
-                      <span className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] text-[10px] font-bold rounded-full flex items-center justify-center ${isSelected ? 'bg-white text-orange-500' : 'bg-orange-500 text-white'}`}>
+                      <span className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] text-[10px] font-bold rounded-full flex items-center justify-center ${isSelected ? 'bg-white text-rose-600' : 'bg-[#7380b6] text-white'}`}>
                         {count > 99 ? '99+' : count}
                       </span>
                     )}

@@ -26,18 +26,18 @@ const SessionWarningModal = () => {
       <DialogContent className="bg-zinc-100 border-zinc-200 sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-zinc-900 flex items-center gap-2">
-            <Clock className="w-5 h-5 text-orange-500" />
+            <Clock className="w-5 h-5 text-rose-600" />
             Session Expiring Soon
           </DialogTitle>
           <DialogDescription className="text-zinc-400">
-            Your session will expire in <span className="text-orange-500 font-bold">{formatTime(sessionTimeLeft)}</span>.
+            Your session will expire in <span className="text-rose-600 font-bold">{formatTime(sessionTimeLeft)}</span>.
             You will be logged out automatically when the session expires.
           </DialogDescription>
         </DialogHeader>
         
         <div className="py-4 text-center">
-          <div className="w-24 h-24 rounded-full bg-orange-500/10 flex items-center justify-center mx-auto mb-4">
-            <span className="text-3xl font-bold text-orange-500">{formatTime(sessionTimeLeft)}</span>
+          <div className="w-24 h-24 rounded-full bg-[#7380b6]/10 flex items-center justify-center mx-auto mb-4">
+            <span className="text-3xl font-bold text-rose-600">{formatTime(sessionTimeLeft)}</span>
           </div>
           <p className="text-sm text-zinc-400">
             To continue working, please save your work and log in again.
@@ -54,7 +54,7 @@ const SessionWarningModal = () => {
           </Button>
           <Button
             onClick={logout}
-            className="bg-orange-500 hover:bg-orange-600"
+            className="bg-[#7380b6] hover:bg-[#5f6ca3]"
           >
             <LogOut className="w-4 h-4 mr-2" />
             Log Out Now

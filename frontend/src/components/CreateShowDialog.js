@@ -342,7 +342,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                             {isAdmin && (
                               <>
                                 <div className="border-t border-zinc-200 my-1" />
-                                <SelectItem value="add-new" className="text-orange-500 focus:text-orange-600 focus:bg-orange-50">
+                                <SelectItem value="add-new" className="text-rose-600 focus:text-rose-700 focus:bg-rose-50">
                                   <span className="flex items-center gap-2"><Plus className="w-4 h-4" /> Add new show title...</span>
                                 </SelectItem>
                               </>
@@ -387,7 +387,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                               type="checkbox"
                               checked={formData.blocks_room !== false}
                               onChange={(e) => setFormData({ ...formData, blocks_room: e.target.checked })}
-                              className="mt-1 accent-orange-500"
+                              className="mt-1 accent-rose-600"
                               data-testid="show-blocks-room-checkbox"
                             />
                             <div className="text-xs">

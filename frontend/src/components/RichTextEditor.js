@@ -159,7 +159,7 @@ const RichTextEditor = ({
               {uploadSuccess ? (
                 <CheckCircle className="w-6 h-6 text-green-500" />
               ) : (
-                <Loader2 className="w-6 h-6 text-orange-500 animate-spin" />
+                <Loader2 className="w-6 h-6 text-rose-600 animate-spin" />
               )}
               <div>
                 <p className="text-zinc-900 font-medium">
@@ -171,12 +171,12 @@ const RichTextEditor = ({
             <div className="w-full bg-zinc-100 rounded-full h-3 overflow-hidden">
               <div 
                 className={`h-full rounded-full transition-all duration-300 ease-out ${
-                  uploadSuccess ? 'bg-gradient-to-r from-green-500 to-green-400' : 'bg-gradient-to-r from-orange-500 to-orange-400'
+                  uploadSuccess ? 'bg-gradient-to-r from-green-500 to-green-400' : 'bg-gradient-to-r from-rose-600 to-rose-500'
                 }`}
                 style={{ width: `${uploadProgress}%` }}
               />
             </div>
-            <p className={`text-center text-sm font-medium mt-2 ${uploadSuccess ? 'text-green-400' : 'text-orange-400'}`}>
+            <p className={`text-center text-sm font-medium mt-2 ${uploadSuccess ? 'text-green-400' : 'text-rose-500'}`}>
               {uploadSuccess ? 'Inserting...' : `${uploadProgress}%`}
             </p>
           </div>
@@ -373,13 +373,13 @@ const RichTextEditor = ({
           color: #3f3f46 !important;
         }
         .tox .tox-button {
-          background-color: #dd0c51 !important;
-          border-color: #dd0c51 !important;
+          background-color: #7380b6 !important;
+          border-color: #7380b6 !important;
           color: white !important;
         }
         .tox .tox-button:hover {
-          background-color: #c40a47 !important;
-          border-color: #c40a47 !important;
+          background-color: #5f6ca3 !important;
+          border-color: #5f6ca3 !important;
         }
       `}</style>
       {/* Global TinyMCE z-index fix for dialogs/dropdowns */}

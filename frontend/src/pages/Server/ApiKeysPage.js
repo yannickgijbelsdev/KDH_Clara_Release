@@ -70,18 +70,18 @@ export default function ApiKeysPage() {
           <h1 className="text-2xl font-bold text-zinc-900">API Keys</h1>
           <p className="text-sm text-zinc-400 mt-1">Manage API keys for external sync agents</p>
         </div>
-        <Button onClick={() => { setShowCreate(true); setNewKey(null); }} className="bg-orange-500 hover:bg-orange-600 text-white" data-testid="create-key-btn">
+        <Button onClick={() => { setShowCreate(true); setNewKey(null); }} className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white" data-testid="create-key-btn">
           <Plus className="w-4 h-4 mr-2" />New API Key
         </Button>
       </div>
 
       {/* New key reveal */}
       {newKey && (
-        <div className="bg-orange-500/5 border border-orange-500/20 rounded-xl p-5" data-testid="new-key-reveal">
+        <div className="bg-[#7380b6]/5 border border-rose-600/20 rounded-xl p-5" data-testid="new-key-reveal">
           <div className="flex items-start gap-3">
-            <Shield className="w-5 h-5 text-orange-400 flex-shrink-0 mt-0.5" />
+            <Shield className="w-5 h-5 text-rose-500 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-orange-300">New API Key Created</p>
+              <p className="text-sm font-medium text-rose-300">New API Key Created</p>
               <p className="text-xs text-zinc-400 mt-1">Copy this key now. It will not be shown again.</p>
               <div className="mt-3 flex items-center gap-2">
                 <div className="flex-1 bg-zinc-900 border border-zinc-300 rounded-lg px-3 py-2 font-mono text-sm text-white flex items-center gap-2">
@@ -121,7 +121,7 @@ export default function ApiKeysPage() {
               data-testid="key-name-input"
             />
           </div>
-          <Button type="submit" disabled={creating} className="bg-orange-500 hover:bg-orange-600 text-white" data-testid="save-key-btn">
+          <Button type="submit" disabled={creating} className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white" data-testid="save-key-btn">
             {creating ? 'Creating...' : 'Create Key'}
           </Button>
           <Button type="button" variant="ghost" onClick={() => setShowCreate(false)} className="text-zinc-400">Cancel</Button>
@@ -140,7 +140,7 @@ export default function ApiKeysPage() {
           <div className="divide-y divide-zinc-800">
             {keys.map(k => (
               <div key={k.id} className={`flex items-center px-4 py-3 gap-3 ${!k.active ? 'opacity-40' : ''}`} data-testid={`key-${k.id}`}>
-                <Key className={`w-4 h-4 flex-shrink-0 ${k.active ? 'text-orange-400' : 'text-zinc-600'}`} />
+                <Key className={`w-4 h-4 flex-shrink-0 ${k.active ? 'text-rose-500' : 'text-zinc-600'}`} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-zinc-700 font-medium">{k.name}</span>

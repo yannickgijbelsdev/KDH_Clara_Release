@@ -103,7 +103,7 @@ const statusLabels = {
 const syncStatusConfig = {
   not_synced: { icon: Clock, color: 'text-zinc-500', bgColor: 'bg-zinc-200', label: 'Not synced' },
   synced: { icon: CheckCircle, color: 'text-green-500', bgColor: 'bg-green-500/10', label: 'Synced' },
-  scheduled: { icon: Calendar, color: 'text-orange-500', bgColor: 'bg-orange-500/10', label: 'Scheduled' },
+  scheduled: { icon: Calendar, color: 'text-rose-600', bgColor: 'bg-[#7380b6]/10', label: 'Scheduled' },
   failed: { icon: AlertCircle, color: 'text-red-500', bgColor: 'bg-red-500/10', label: 'Failed' },
 };
 
@@ -867,7 +867,7 @@ const ContentDetailPage = () => {
             </span>
             {content.category?.name && (
               <span className="inline-flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: content.category.color || '#dd0c51' }} />
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: content.category.color || '#7380b6' }} />
                 <span className="text-zinc-700 font-medium">{content.category.name}</span>
               </span>
             )}
@@ -1034,7 +1034,7 @@ const ContentDetailPage = () => {
                   ps.sync_status === 'synced' 
                     ? 'bg-green-500/10 border-green-500/30' 
                     : ps.sync_status === 'scheduled'
-                    ? 'bg-orange-500/10 border-orange-500/30'
+                    ? 'bg-[#7380b6]/10 border-rose-600/30'
                     : ps.sync_status === 'failed'
                     ? 'bg-red-500/10 border-red-500/30'
                     : 'bg-zinc-100/70 border-zinc-300'
@@ -1060,7 +1060,7 @@ const ContentDetailPage = () => {
                       <p className="text-sm text-zinc-400">
                         {ps.wp_post_type} / {ps.wp_status}
                         {ps.wp_scheduled_date && (
-                          <span className="ml-2 text-orange-400">
+                          <span className="ml-2 text-rose-500">
                             • Scheduled: {format(parseISO(ps.wp_scheduled_date), 'MMM d, yyyy HH:mm')}
                           </span>
                         )}
@@ -1097,7 +1097,7 @@ const ContentDetailPage = () => {
                     <Button
                       size="sm"
                       onClick={openPublishDialog}
-                      className="gap-2 bg-orange-500 hover:bg-orange-600 text-white"
+                      className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
                     >
                       <RefreshCw className="w-4 h-4" />
                       Retry
@@ -1133,7 +1133,7 @@ const ContentDetailPage = () => {
                   size="sm"
                   data-testid="delete-content-btn"
                   onClick={() => setDeleteDialogOpen(true)}
-                  className="gap-2 bg-transparent border-zinc-300 text-orange-500 hover:bg-orange-500/10 hover:text-rose-400"
+                  className="gap-2 bg-transparent border-zinc-300 text-rose-600 hover:bg-[#7380b6]/10 hover:text-rose-400"
                 >
                   <Trash2 className="w-4 h-4" />
                   Delete
@@ -1146,7 +1146,7 @@ const ContentDetailPage = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => openClara('seo')}
-                className="gap-2 bg-transparent border-orange-200 text-orange-600 hover:bg-orange-50"
+                className="gap-2 bg-transparent border-rose-200 text-rose-700 hover:bg-rose-50"
                 data-testid="clara-seo-btn"
               >
                 <Sparkles className="w-4 h-4" />
@@ -1169,7 +1169,7 @@ const ContentDetailPage = () => {
                 data-testid="save-content-btn"
                 onClick={handleSave}
                 disabled={saving}
-                className="gap-2 bg-orange-500 hover:bg-orange-600 text-white"
+                className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
               >
                 <Save className="w-4 h-4" />
                 {saving ? 'Saving...' : 'Save'}
@@ -1268,7 +1268,7 @@ const ContentDetailPage = () => {
                       className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
                     >
                       <div className="flex items-center gap-2">
-                        <Folder className="w-4 h-4 text-orange-400" />
+                        <Folder className="w-4 h-4 text-rose-500" />
                         <span>{cat.name}</span>
                       </div>
                     </SelectItem>
@@ -1473,7 +1473,7 @@ const ContentDetailPage = () => {
             <DialogHeader className="p-5 border-b border-zinc-200">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <History className="w-5 h-5 text-orange-500" />
+                  <History className="w-5 h-5 text-rose-600" />
                   <DialogTitle>Edit History</DialogTitle>
                   {auditLogs.length > 0 && (
                     <span className="px-2 py-0.5 bg-zinc-100 rounded-full text-xs text-zinc-600">{auditLogs.length} {auditLogs.length === 1 ? 'entry' : 'entries'}</span>
@@ -1498,7 +1498,7 @@ const ContentDetailPage = () => {
             <div className="flex-1 overflow-y-auto min-h-0">
               {loadingAuditLogs ? (
                 <div className="p-10 text-center">
-                  <Loader2 className="w-6 h-6 animate-spin text-orange-400 mx-auto" />
+                  <Loader2 className="w-6 h-6 animate-spin text-rose-500 mx-auto" />
                   <p className="text-zinc-500 mt-3 text-sm">Loading history...</p>
                 </div>
               ) : auditLogs.length === 0 ? (
@@ -1555,7 +1555,7 @@ const ContentDetailPage = () => {
                         <div className="mt-3 space-y-2">
                           {log.changes.map((change, changeIdx) => (
                             <div key={changeIdx} className="bg-zinc-50 border border-zinc-100 rounded-lg p-3">
-                              <p className="text-[10px] font-bold uppercase tracking-wider text-[#dd0c51] mb-2">{change.field}</p>
+                              <p className="text-[10px] font-bold uppercase tracking-wider text-[#7380b6] mb-2">{change.field}</p>
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                                 <div>
                                   <p className="text-[10px] text-zinc-400 uppercase mb-1">Before</p>
@@ -1918,7 +1918,7 @@ const ContentDetailPage = () => {
                 <ul className="list-disc list-inside space-y-1 text-zinc-400">
                   <li>Move the content to Trash</li>
                   {hasPublishedSites && (
-                    <li className="text-orange-400">Delete the post from all linked WordPress sites</li>
+                    <li className="text-rose-500">Delete the post from all linked WordPress sites</li>
                   )}
                 </ul>
                 <p className="text-zinc-500 text-xs mt-2 pt-2 border-t border-zinc-300">
@@ -1933,7 +1933,7 @@ const ContentDetailPage = () => {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-orange-500 hover:bg-orange-600 text-white"
+              className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
             >
               Delete
             </AlertDialogAction>

@@ -36,7 +36,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const stationBadge = (station) => {
   if (!station || station === 'none') return null;
   const cfg = {
-    mfy: { label: 'MFY', cls: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
+    mfy: { label: 'MFY', cls: 'bg-[#7380b6]/20 text-rose-500 border-rose-600/30' },
     grk: { label: 'GRK', cls: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' },
     both: { label: 'BOTH', cls: 'bg-violet-500/20 text-violet-400 border-violet-500/30' },
   };
@@ -167,7 +167,7 @@ const CalendarPage = () => {
           <Button
             data-testid="create-show-calendar-btn"
             onClick={() => setIsCreateOpen(true)}
-            className="bg-orange-500 hover:bg-orange-600 text-white gap-2 h-10 sm:h-11 px-4 sm:px-5 btn-primary w-full sm:w-auto"
+            className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white gap-2 h-10 sm:h-11 px-4 sm:px-5 btn-primary w-full sm:w-auto"
           >
             <Plus className="w-5 h-5" />
             New Show
@@ -250,7 +250,7 @@ const CalendarPage = () => {
                     className={`
                       aspect-square p-1 rounded-lg transition-all duration-200 relative
                       ${isCurrentMonth ? 'bg-zinc-100' : 'bg-zinc-50'}
-                      ${isSelected ? 'ring-2 ring-orange-500 bg-orange-500/10' : ''}
+                      ${isSelected ? 'ring-2 ring-rose-600 bg-[#7380b6]/10' : ''}
                       ${dayIsToday && !isSelected ? 'ring-2 ring-violet-500' : ''}
                       hover:bg-zinc-200
                     `}
@@ -270,7 +270,7 @@ const CalendarPage = () => {
                     {dayShows.length > 0 && (
                       <div className="flex flex-wrap gap-0.5 justify-center">
                         {dayShows.slice(0, 3).map((show) => {
-                          const stColor = show.rds_station === 'mfy' ? 'bg-orange-400' 
+                          const stColor = show.rds_station === 'mfy' ? 'bg-rose-500' 
                             : show.rds_station === 'grk' ? 'bg-cyan-400'
                             : show.rds_station === 'both' ? 'bg-violet-400'
                             : statusColors[show.status];
@@ -307,7 +307,7 @@ const CalendarPage = () => {
             <span className="text-xs text-zinc-600 mx-1">|</span>
             <span className="text-xs text-zinc-500">Station:</span>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-orange-400" />
+              <div className="w-2 h-2 rounded-full bg-rose-500" />
               <span className="text-xs text-zinc-400">MFY</span>
             </div>
             <div className="flex items-center gap-2">
@@ -326,8 +326,8 @@ const CalendarPage = () => {
       <div className="w-full lg:w-80 lg:shrink-0">
         <div className="bg-white border border-zinc-200 rounded-xl p-4 sm:p-6 lg:sticky lg:top-8">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-orange-500/20 rounded-lg">
-              <CalendarIcon className="w-5 h-5 text-orange-500" />
+            <div className="p-2 bg-[#7380b6]/20 rounded-lg">
+              <CalendarIcon className="w-5 h-5 text-rose-600" />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-zinc-900">
@@ -348,7 +348,7 @@ const CalendarPage = () => {
                     <Button
                       size="sm"
                       onClick={() => setIsCreateOpen(true)}
-                      className="bg-orange-500 hover:bg-orange-600 text-white"
+                      className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
                     >
                       <Plus className="w-4 h-4 mr-1" />
                       Add Show
@@ -380,7 +380,7 @@ const CalendarPage = () => {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between mb-1">
                               <div className="flex items-center gap-2 min-w-0">
-                                <h4 className="text-zinc-900 font-medium group-hover:text-orange-600 transition-colors line-clamp-1">
+                                <h4 className="text-zinc-900 font-medium group-hover:text-rose-700 transition-colors line-clamp-1">
                                   {show.title}
                                 </h4>
                                 {stationBadge(show.rds_station)}

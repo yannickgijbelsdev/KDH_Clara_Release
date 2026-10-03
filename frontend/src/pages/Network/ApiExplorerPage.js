@@ -29,13 +29,13 @@ const methodColors = {
   'GET': 'bg-emerald-50 text-emerald-600 border-emerald-200',
   'POST': 'bg-blue-50 text-blue-600 border-blue-200',
   'PUT': 'bg-amber-50 text-amber-600 border-amber-200',
-  'PATCH': 'bg-orange-50 text-orange-600 border-orange-200',
+  'PATCH': 'bg-rose-50 text-rose-700 border-rose-200',
   'DELETE': 'bg-red-50 text-red-600 border-red-200',
   'WEBSOCKET': 'bg-violet-50 text-violet-600 border-violet-200',
 };
 
 const CATEGORY_COLORS = [
-  '#dd0c51', '#3b82f6', '#10b981', '#8b5cf6', '#06b6d4', '#ef4444',
+  '#7380b6', '#3b82f6', '#10b981', '#8b5cf6', '#06b6d4', '#ef4444',
   '#d946ef', '#7c1ac8', '#14b8a6', '#6366f1', '#ec4899', '#84cc16',
 ];
 
@@ -79,7 +79,7 @@ const CategoryCard = ({ category, data, index, isSelected, onClick, color }) => 
       <div
         className={`relative rounded-2xl overflow-hidden transition-all duration-300 border ${
           isSelected
-            ? 'border-orange-300 shadow-[0_8px_40px_rgba(221,12,81,0.15)] scale-[1.03]'
+            ? 'border-rose-300 shadow-[0_8px_40px_rgba(221,12,81,0.15)] scale-[1.03]'
             : 'border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)] group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] group-hover:scale-[1.02]'
         }`}
         style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}
@@ -129,7 +129,7 @@ const CategoryCard = ({ category, data, index, isSelected, onClick, color }) => 
       {isSelected && (
         <motion.div
           layoutId="endpoint-select-bar"
-          className="absolute -bottom-2 left-1/2 -translate-x-1/2 h-1 w-12 rounded-full bg-orange-500"
+          className="absolute -bottom-2 left-1/2 -translate-x-1/2 h-1 w-12 rounded-full bg-rose-600"
           style={{ boxShadow: '0 0 12px rgba(221,12,81,0.5)' }}
         />
       )}
@@ -326,7 +326,7 @@ const ApiExplorerPage = () => {
         <div className="flex items-start justify-between flex-shrink-0 mb-4">
           <motion.div
             initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-            className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4"
+            className="bg-white rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4"
             data-testid="panel-endpoint-header"
           >
             <button onClick={() => navigate('/network')} className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-black/[0.05] transition-colors" data-testid="endpoint-back-btn">
@@ -343,11 +343,11 @@ const ApiExplorerPage = () => {
 
           <motion.div
             initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.05 }}
-            className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-3"
+            className="bg-white rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-3"
             data-testid="panel-endpoint-stats"
           >
             <div className="flex items-center gap-2">
-              <Code className="w-4 h-4 text-orange-500" />
+              <Code className="w-4 h-4 text-rose-600" />
               <span className="text-sm text-zinc-600">Endpoints</span>
               <span className="text-lg font-bold text-zinc-900">{totalEndpoints}</span>
             </div>
@@ -401,13 +401,13 @@ const ApiExplorerPage = () => {
           <div className="flex-1" />
           <motion.div
             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.4 }}
-            className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-3.5 flex items-center gap-3"
+            className="bg-white rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-3.5 flex items-center gap-3"
             data-testid="panel-endpoint-status"
           >
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" style={{ boxShadow: '0 0 8px rgba(34,197,94,0.5)' }} />
             <span className="text-sm font-medium text-zinc-700">API Explorer active</span>
             <div className="w-px h-5 bg-black/[0.06]" />
-            <Code className="w-4 h-4 text-orange-500" />
+            <Code className="w-4 h-4 text-rose-600" />
             <span className="text-sm font-bold text-zinc-900">{totalEndpoints} endpoints</span>
           </motion.div>
         </div>

@@ -78,7 +78,7 @@ export default function CallWidget() {
                 step="0.05"
                 value={callerVolume}
                 onChange={(e) => setVolume(parseFloat(e.target.value))}
-                className="w-full h-2 bg-zinc-700 rounded-full appearance-none cursor-pointer accent-orange-500"
+                className="w-full h-2 bg-zinc-700 rounded-full appearance-none cursor-pointer accent-rose-600"
                 data-testid="call-volume-slider"
               />
               <span className="text-xs text-zinc-500 w-8 text-right">{Math.round(callerVolume * 100)}%</span>

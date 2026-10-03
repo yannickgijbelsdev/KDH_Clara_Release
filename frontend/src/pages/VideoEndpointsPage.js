@@ -44,7 +44,7 @@ const PLATFORM_BADGES = {
   youtube: { label: 'YouTube', class: 'bg-red-100 text-red-700 border-red-200' },
   vimeo: { label: 'Vimeo', class: 'bg-sky-100 text-sky-700 border-sky-200' },
   twitch: { label: 'Twitch', class: 'bg-violet-100 text-violet-700 border-violet-200' },
-  dailymotion: { label: 'Dailymotion', class: 'bg-orange-100 text-orange-700 border-orange-200' },
+  dailymotion: { label: 'Dailymotion', class: 'bg-rose-100 text-rose-800 border-rose-200' },
   iframe: { label: 'Custom iframe', class: 'bg-zinc-100 text-zinc-700 border-zinc-200' },
   upload: { label: 'Uploaded', class: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
 };

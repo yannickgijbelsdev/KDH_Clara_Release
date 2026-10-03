@@ -196,7 +196,7 @@ export default function ClaraCustomPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7c1ac8] to-[#dd0c51] flex items-center justify-center text-white shadow-sm">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7c1ac8] to-[#7380b6] flex items-center justify-center text-white shadow-sm">
               <Plug className="w-5 h-5" />
             </div>
             <div>
@@ -291,7 +291,7 @@ export default function ClaraCustomPage() {
         )}
         {!loading && apis.length === 0 && (
           <div className="bg-white rounded-2xl border border-zinc-200 p-10 text-center" data-testid="empty-state">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#7c1ac8]/15 to-[#dd0c51]/15 mx-auto mb-3 flex items-center justify-center">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#7c1ac8]/15 to-[#7380b6]/15 mx-auto mb-3 flex items-center justify-center">
               <Plug className="w-7 h-7 text-[#7c1ac8]" />
             </div>
             <h3 className="text-base font-semibold text-zinc-900 mb-1">No APIs registered yet</h3>

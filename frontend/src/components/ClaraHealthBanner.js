@@ -127,7 +127,7 @@ const ClaraHealthBanner = ({ token, isAdmin }) => {
               {/* Header */}
               <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100 rounded-t-3xl flex-shrink-0">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/20">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-rose-600 flex items-center justify-center shadow-lg shadow-[#7380b6]/20">
                     <span className="text-white font-black text-lg leading-none">&lt;</span>
                   </div>
                   <div>
@@ -226,11 +226,11 @@ function ScanningState() {
   return (
     <div className="flex flex-col items-center justify-center py-12 gap-4">
       <div className="relative">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/20">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-rose-600 flex items-center justify-center shadow-lg shadow-[#7380b6]/20">
           <Activity className="w-7 h-7 text-white animate-pulse" />
         </div>
         <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-white flex items-center justify-center shadow">
-          <Loader2 className="w-3 h-3 animate-spin text-orange-500" />
+          <Loader2 className="w-3 h-3 animate-spin text-rose-600" />
         </div>
       </div>
       <div className="text-center">
@@ -244,7 +244,7 @@ function ScanningState() {
 function IssueCard({ check, idx, retesting, retestResult, onRetest, onReconfigure }) {
   const isWp = check.type === 'wordpress';
   const Icon = isWp ? ExternalLink : Radio;
-  const color = isWp ? '#3b82f6' : '#dd0c51';
+  const color = isWp ? '#3b82f6' : '#7380b6';
   const label = isWp ? 'WordPress' : 'RDS Stream';
   const isFixed = retestResult?.success === true;
   const retestDiagnosis = retestResult?.diagnosis;

@@ -285,7 +285,7 @@ export default function SetupStepsCard({ integrationId, token, onActionDone }) {
         className="w-full px-4 py-3 flex items-center gap-3 hover:bg-white/40 transition-colors text-left"
         data-testid={`setup-toggle-${integrationId}`}
       >
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#7c1ac8] to-[#dd0c51] flex items-center justify-center flex-shrink-0">
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#7c1ac8] to-[#7380b6] flex items-center justify-center flex-shrink-0">
           <Sparkles className="w-4 h-4 text-white" />
         </div>
         <div className="flex-1 min-w-0">
@@ -305,7 +305,7 @@ export default function SetupStepsCard({ integrationId, token, onActionDone }) {
               <motion.div
                 animate={{ width: `${progressPct}%` }}
                 transition={{ duration: 0.5, ease: 'easeOut' }}
-                className="h-full bg-gradient-to-r from-[#7c1ac8] to-[#dd0c51]"
+                className="h-full bg-gradient-to-r from-[#7c1ac8] to-[#7380b6]"
               />
             </div>
             <p className="text-[11px] text-zinc-500 font-medium whitespace-nowrap">{done} / {total}</p>

@@ -69,7 +69,7 @@ const OutputItemRow = ({ item, index, onUpdate }) => {
       <Switch
         checked={item.enabled}
         onCheckedChange={(checked) => onUpdate({ ...item, enabled: checked })}
-        className="data-[state=checked]:bg-orange-500"
+        className="data-[state=checked]:bg-[#7380b6]"
       />
 
       {/* Type icon */}
@@ -90,7 +90,7 @@ const OutputItemRow = ({ item, index, onUpdate }) => {
           onKeyDown={(e) => e.key === 'Enter' && handleContentBlur()}
           placeholder="Enter text..."
           disabled={!item.enabled}
-          className="bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-1.5 text-zinc-900 text-sm flex-1 focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50"
+          className="bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-1.5 text-zinc-900 text-sm flex-1 focus:outline-none focus:ring-2 focus:ring-rose-600 disabled:opacity-50"
         />
       ) : (
         <span className="text-zinc-500 text-sm flex-1">{typeConfig.description}</span>
@@ -242,7 +242,7 @@ const OutputDialog = ({ isOpen, onClose, onSave, output, station }) => {
           {/* Preview URL */}
           <div className="bg-white/80 backdrop-blur rounded-lg p-3">
             <Label className="text-zinc-500 text-xs">API URL for MagicRDS:</Label>
-            <code className="text-orange-400 text-sm block mt-1">
+            <code className="text-rose-500 text-sm block mt-1">
               https://clara.koodh.com/api/rds-builder/output/{station}/{slug || 'slug'}.txt
             </code>
           </div>
@@ -288,7 +288,7 @@ const OutputDialog = ({ isOpen, onClose, onSave, output, station }) => {
           <Button variant="outline" onClick={onClose} className="border-zinc-300 text-zinc-600">
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={saving} className="bg-orange-500 hover:bg-orange-600 text-white">
+          <Button onClick={handleSave} disabled={saving} className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white">
             {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
             Save
           </Button>
@@ -349,7 +349,7 @@ const OutputCard = ({ output, station, onEdit, onDelete, onRefresh }) => {
       {/* Current output preview */}
       <div className="bg-white/80 backdrop-blur rounded-lg p-3 mb-3">
         <span className="text-zinc-500 text-xs block mb-1">Current output:</span>
-        <span className="text-orange-400 font-medium">
+        <span className="text-rose-500 font-medium">
           {output.current_text || <span className="text-zinc-600 italic">No output</span>}
         </span>
       </div>
@@ -410,10 +410,10 @@ const RDSOutputManager = ({ station, stationName, color }) => {
 
   const colorClasses = {
     orange: {
-      border: 'border-orange-500/30',
-      bg: 'bg-orange-500/10',
-      text: 'text-orange-400',
-      button: 'bg-orange-500 hover:bg-orange-600'
+      border: 'border-rose-600/30',
+      bg: 'bg-[#7380b6]/10',
+      text: 'text-rose-500',
+      button: 'bg-[#7380b6] hover:bg-[#5f6ca3]'
     },
     violet: {
       border: 'border-violet-500/30',

@@ -8,7 +8,7 @@ import usePageTitle from '../hooks/usePageTitle';
 import {
   Globe, Crown, Network, Shield, Bell, Paintbrush,
   Server, ChevronDown, LogOut, ShieldAlert, UserCog,
-  HardDrive, Code, Menu, X, LifeBuoy, Upload, Key,
+  HardDrive, Code, Menu, X, LifeBuoy, Upload, Key, HelpCircle, ChevronLeft,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -150,7 +150,7 @@ export default function NetworkHeader({
     <TooltipProvider delayDuration={0}>
       {/* ─── Top Navigation Bar (Clara Campaigns layout) ─── */}
       <nav
-        className="h-16 flex-shrink-0 sticky top-0 z-50 bg-[#F5F6F8]/90 backdrop-blur-xl"
+        className="h-16 flex-shrink-0 sticky top-0 z-50 bg-[#F5F6F8]"
         data-testid="workspace-topbar"
       >
        <div className="max-w-[1400px] mx-auto px-6 h-full flex items-center gap-3">
@@ -165,18 +165,12 @@ export default function NetworkHeader({
 
         {/* Logo lockup — mark + divider + Outfit wordmark */}
         <div className="flex items-center gap-2.5 shrink-0">
-          <Link to="/network" className="hover:opacity-80 transition-opacity" data-testid="logo-pill">
-            {brandLogoUrl ? (
-              <img src={brandLogoUrl} alt={brandName} className="h-6 w-6 object-contain" />
-            ) : (
-              <span className="h-6 w-6 rounded-md bg-slate-900 text-white flex items-center justify-center">
-                <Network className="w-3.5 h-3.5" />
-              </span>
-            )}
+          <Link to="/network" className="hover:opacity-80 transition-opacity flex items-center justify-center" data-testid="logo-pill">
+            <img src="/clara-chevron.png" alt="Clara" className="h-8 w-auto object-contain" />
           </Link>
-          <div className="hidden sm:block h-5 w-px bg-slate-200/70" />
-          <span className="hidden sm:block font-display font-semibold text-slate-900 text-[15px] whitespace-nowrap" data-testid="enterprise-global-label">
-            {brandName || 'Enterprise Global'}
+          <div className="h-6 w-px bg-slate-300" />
+          <span className="font-display font-semibold text-slate-900 text-[17px] whitespace-nowrap" data-testid="enterprise-global-label">
+            Clara
           </span>
         </div>
 
@@ -254,7 +248,7 @@ export default function NetworkHeader({
           {/* More dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="relative px-4 py-2 rounded-full text-sm font-medium text-zinc-400 hover:text-zinc-700 hover:bg-white/60 transition-colors">
+              <button className="relative px-4 py-2 rounded-full text-sm font-medium text-zinc-500 hover:text-zinc-900 hover:bg-slate-100 transition-colors">
                 More<ChevronDown className="w-3.5 h-3.5 ml-1 inline" />
                 {supportCount > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] flex items-center justify-center text-[9px] font-bold bg-red-500 text-white rounded-full px-0.5">{supportCount}</span>
@@ -263,7 +257,7 @@ export default function NetworkHeader({
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="center"
-              className="bg-white/30 backdrop-blur-2xl border-white/40 shadow-[0_8px_40px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.6)] rounded-2xl"
+              className="bg-white border border-slate-200 shadow-lg rounded-2xl"
             >
               {/* Overflow nav items */}
               {OVERFLOW_ITEMS.map(item => {
@@ -273,7 +267,7 @@ export default function NetworkHeader({
                   <DropdownMenuItem
                     key={item.id}
                     onClick={() => handleNavClick(item)}
-                    className={`cursor-pointer ${active ? 'bg-orange-50 text-orange-600' : 'text-zinc-600 focus:text-zinc-900 focus:bg-black/5'}`}
+                    className={`cursor-pointer ${active ? 'bg-rose-50 text-rose-700' : 'text-zinc-600 focus:text-zinc-900 focus:bg-black/5'}`}
                   >
                     <Icon className="w-4 h-4 mr-2" />{item.label}
                     {item.badge > 0 && (
@@ -291,7 +285,7 @@ export default function NetworkHeader({
                   <DropdownMenuItem
                     key={item.id}
                     onClick={() => navigate(item.path)}
-                    className={`cursor-pointer ${active ? 'bg-orange-50 text-orange-600' : 'text-zinc-600 focus:text-zinc-900 focus:bg-black/5'}`}
+                    className={`cursor-pointer ${active ? 'bg-rose-50 text-rose-700' : 'text-zinc-600 focus:text-zinc-900 focus:bg-black/5'}`}
                   >
                     <Icon className="w-4 h-4 mr-2" />{item.label}
                   </DropdownMenuItem>
@@ -302,34 +296,38 @@ export default function NetworkHeader({
         </div>
 
         {/* User menu */}
-        <div className="flex items-center gap-3 flex-shrink-0 ml-auto lg:ml-0">
+        <div className="flex items-center gap-2 flex-shrink-0 ml-auto lg:ml-0">
+          <button
+            onClick={() => window.open('https://docs.clara.koodh.com', '_blank')}
+            className="w-9 h-9 flex items-center justify-center rounded-full border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
+            data-testid="help-icon-btn"
+            title="Help"
+          >
+            <HelpCircle className="w-4 h-4 text-zinc-500" />
+          </button>
+          <div className="h-6 w-px bg-slate-200 mx-1" />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
-                className="flex items-center gap-2.5 hover:bg-black/[0.03] rounded-xl px-2 py-1.5 transition-colors"
+                className="flex items-center gap-1.5 hover:bg-slate-50 rounded-full pl-0.5 pr-2 py-0.5 transition-colors"
                 data-testid="user-menu-trigger"
               >
                 {getAvatarUrl(user) ? (
                   <img src={getAvatarUrl(user)} alt={user?.name} className="w-9 h-9 rounded-full object-cover" />
                 ) : (
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold text-sm">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-rose-500 to-rose-700 flex items-center justify-center text-white font-semibold text-sm">
                     {user?.name?.charAt(0).toUpperCase()}
                   </div>
                 )}
-                <div className="hidden md:block text-left">
-                  <p className="text-sm font-medium text-zinc-800 leading-tight">{user?.name}</p>
-                  <p className="text-[11px] text-zinc-400">
-                    {user?.is_network_admin ? 'Network Admin' : roleLabels[user?.role]}
-                  </p>
-                </div>
+                <ChevronDown className="w-4 h-4 text-zinc-400" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-white/90 backdrop-blur-2xl border-black/10 shadow-xl">
+            <DropdownMenuContent align="end" className="w-56 bg-white border border-slate-200 shadow-lg rounded-2xl">
               <div className="px-3 py-2 flex items-center gap-3">
                 {getAvatarUrl(user) ? (
                   <img src={getAvatarUrl(user)} alt={user?.name} className="w-10 h-10 rounded-xl object-cover" />
                 ) : (
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-rose-700 flex items-center justify-center text-white font-semibold">
                     {user?.name?.charAt(0).toUpperCase()}
                   </div>
                 )}
@@ -338,10 +336,10 @@ export default function NetworkHeader({
                   <p className="text-xs text-zinc-400">{user?.email}</p>
                 </div>
               </div>
-              <DropdownMenuSeparator className="bg-black/[0.06]" />
+              <DropdownMenuSeparator className="bg-slate-100" />
               <DropdownMenuItem
                 onClick={handleLogout}
-                className="text-orange-500 focus:text-orange-500 focus:bg-orange-50"
+                className="text-rose-600 focus:text-rose-700 focus:bg-rose-50"
               >
                 <LogOut className="w-4 h-4 mr-2" />
                 Sign out
@@ -359,7 +357,7 @@ export default function NetworkHeader({
 
       {/* Mobile Sidebar */}
       <aside
-        className={`lg:hidden fixed top-0 left-0 h-full z-50 w-72 bg-white/95 backdrop-blur-2xl border-r border-black/[0.06] transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+        className={`lg:hidden fixed top-0 left-0 h-full z-50 w-72 bg-white border-r border-slate-200 transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
         <div className="p-5 h-full flex flex-col">
           <div className="flex justify-between items-center mb-6">
@@ -383,7 +381,7 @@ export default function NetworkHeader({
                   <button
                     key={item.id}
                     onClick={() => { handleNavClick(item); setSidebarOpen(false); }}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${active ? 'bg-orange-50 text-orange-600' : 'text-zinc-500 hover:text-zinc-800 hover:bg-black/5'}`}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${active ? 'bg-rose-50 text-rose-700' : 'text-zinc-500 hover:text-zinc-800 hover:bg-black/5'}`}
                   >
                     <Icon className="w-5 h-5" /><span className="font-medium">{item.label}</span>
                   </button>
@@ -396,7 +394,7 @@ export default function NetworkHeader({
                   <button
                     key={item.id}
                     onClick={() => { handleNavClick(item); setSidebarOpen(false); }}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${active ? 'bg-orange-50 text-orange-600' : 'text-zinc-500 hover:text-zinc-800 hover:bg-black/5'}`}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${active ? 'bg-rose-50 text-rose-700' : 'text-zinc-500 hover:text-zinc-800 hover:bg-black/5'}`}
                   >
                     <Icon className="w-5 h-5" /><span className="font-medium">{item.label}</span>
                   </button>
@@ -410,7 +408,7 @@ export default function NetworkHeader({
                     key={item.id}
                     to={item.path}
                     onClick={() => setSidebarOpen(false)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl ${active ? 'bg-orange-50 text-orange-600' : 'text-zinc-500 hover:text-zinc-800 hover:bg-black/5'}`}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl ${active ? 'bg-rose-50 text-rose-700' : 'text-zinc-500 hover:text-zinc-800 hover:bg-black/5'}`}
                   >
                     <Icon className="w-5 h-5" /><span className="font-medium">{item.label}</span>
                   </Link>
@@ -419,7 +417,7 @@ export default function NetworkHeader({
             </nav>
           </div>
           <div className="pt-4 border-t border-black/[0.06] mt-4">
-            <Button variant="ghost" onClick={handleLogout} className="w-full justify-start gap-2 text-orange-500 hover:text-orange-600 hover:bg-orange-50">
+            <Button variant="ghost" onClick={handleLogout} className="w-full justify-start gap-2 text-rose-600 hover:text-rose-700 hover:bg-rose-50">
               <LogOut className="w-4 h-4" />Sign out
             </Button>
           </div>

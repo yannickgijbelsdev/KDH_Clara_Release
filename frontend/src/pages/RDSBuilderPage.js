@@ -48,9 +48,9 @@ const ScheduledTextsManager = ({ station, stationName, color, navTo }) => {
 
   const colorClasses = {
     orange: {
-      border: 'border-orange-500/30',
-      bg: 'bg-orange-500/10',
-      text: 'text-orange-400',
+      border: 'border-rose-600/30',
+      bg: 'bg-[#7380b6]/10',
+      text: 'text-rose-500',
     },
     violet: {
       border: 'border-violet-500/30',
@@ -330,7 +330,7 @@ const SequenceItem = ({ item, index, onUpdate, onDelete, onMoveUp, onMoveDown, i
               }
             }}
             placeholder="Enter text..."
-            className="bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-zinc-900 flex-1 focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-zinc-900 flex-1 focus:outline-none focus:ring-2 focus:ring-rose-600"
             data-testid={`custom-text-input-${index}`}
           />
         )}
@@ -378,10 +378,10 @@ const StationBuilder = ({ station, stationName, color }) => {
 
   const colorClasses = {
     orange: {
-      border: 'border-orange-500/30',
-      bg: 'bg-orange-500/10',
-      text: 'text-orange-400',
-      button: 'bg-orange-500 hover:bg-orange-600'
+      border: 'border-rose-600/30',
+      bg: 'bg-[#7380b6]/10',
+      text: 'text-rose-500',
+      button: 'bg-[#7380b6] hover:bg-[#5f6ca3]'
     },
     violet: {
       border: 'border-violet-500/30',
@@ -655,7 +655,7 @@ const RDSBuilderPage = () => {
   // Map station color hex to tailwind color name for components
   const getColorName = (hexColor) => {
     const map = {
-      '#dd0c51': 'orange', '#8b5cf6': 'violet', '#3b82f6': 'blue',
+      '#7380b6': 'orange', '#8b5cf6': 'violet', '#3b82f6': 'blue',
       '#10b981': 'emerald', '#ef4444': 'red', '#ec4899': 'pink',
       '#06b6d4': 'cyan', '#eab308': 'yellow',
     };
@@ -688,7 +688,7 @@ const RDSBuilderPage = () => {
               onClick={() => setActiveTab('outputs')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === 'outputs'
-                  ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
+                  ? 'bg-[#7380b6]/20 text-rose-500 border border-rose-600/30'
                   : 'bg-zinc-100 text-zinc-500 border border-zinc-200 hover:text-zinc-900'
               }`}
             >
@@ -698,7 +698,7 @@ const RDSBuilderPage = () => {
               onClick={() => setActiveTab('legacy')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === 'legacy'
-                  ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
+                  ? 'bg-[#7380b6]/20 text-rose-500 border border-rose-600/30'
                   : 'bg-zinc-100 text-zinc-500 border border-zinc-200 hover:text-zinc-900'
               }`}
             >

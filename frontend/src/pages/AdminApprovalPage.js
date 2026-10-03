@@ -395,7 +395,7 @@ const AdminApprovalPage = () => {
 
                       <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-500">
                         {item.category && (
-                          <span className="flex items-center gap-1 text-orange-400">
+                          <span className="flex items-center gap-1 text-rose-500">
                             <Folder className="w-3 h-3" />
                             {item.category.name}
                           </span>

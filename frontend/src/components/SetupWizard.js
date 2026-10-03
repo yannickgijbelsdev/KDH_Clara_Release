@@ -55,7 +55,7 @@ export default function SetupWizard({ open, onClose, siteType = 'radio', siteNam
         {/* Progress bar */}
         <div className="h-1.5 bg-zinc-100">
           <div
-            className="h-full bg-gradient-to-r from-orange-500 to-amber-400 transition-all duration-700 ease-out rounded-full"
+            className="h-full bg-gradient-to-r from-rose-600 to-amber-400 transition-all duration-700 ease-out rounded-full"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -65,10 +65,10 @@ export default function SetupWizard({ open, onClose, siteType = 'radio', siteNam
           <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 transition-all duration-500 ${
             completed
               ? 'bg-emerald-50 border border-emerald-200'
-              : 'bg-orange-50 border border-orange-200'
+              : 'bg-rose-50 border border-rose-200'
           }`}>
             <Icon className={`w-8 h-8 transition-all duration-500 ${
-              completed ? 'text-emerald-600' : 'text-orange-500'
+              completed ? 'text-emerald-600' : 'text-rose-600'
             } ${!completed ? 'animate-pulse' : ''}`} />
           </div>
 
@@ -89,7 +89,7 @@ export default function SetupWizard({ open, onClose, siteType = 'radio', siteNam
                 key={i}
                 className={`h-1 rounded-full transition-all duration-300 ${
                   i <= currentStep
-                    ? completed ? 'w-4 bg-emerald-500' : 'w-4 bg-orange-500'
+                    ? completed ? 'w-4 bg-emerald-500' : 'w-4 bg-rose-600'
                     : 'w-2 bg-zinc-200'
                 }`}
               />

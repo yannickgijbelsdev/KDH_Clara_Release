@@ -252,7 +252,7 @@ export default function IntegrationsTab({ mainSite, token }) {
       {/* Empty state */}
       {integrations.length === 0 && (
         <div className="bg-white rounded-2xl border border-zinc-200 p-10 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#7c1ac8]/15 to-[#dd0c51]/15 mx-auto mb-3 flex items-center justify-center">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#7c1ac8]/15 to-[#7380b6]/15 mx-auto mb-3 flex items-center justify-center">
             <Plug className="w-7 h-7 text-[#7c1ac8]" />
           </div>
           <h3 className="text-base font-semibold text-zinc-900 mb-1">No integrations yet</h3>
@@ -432,7 +432,7 @@ export default function IntegrationsTab({ mainSite, token }) {
                     >🧪 Preview</button>
                     <button
                       onClick={() => showPrompt(promptDialog._integ, 'production')}
-                      className={`px-3 py-1.5 border-l border-zinc-300 ${promptDialog.target === 'production' ? 'bg-[#dd0c51] text-white' : 'bg-white text-zinc-700 hover:bg-zinc-100'}`}
+                      className={`px-3 py-1.5 border-l border-zinc-300 ${promptDialog.target === 'production' ? 'bg-[#7380b6] text-white' : 'bg-white text-zinc-700 hover:bg-zinc-100'}`}
                       data-testid="target-production-btn"
                     >🚀 Production</button>
                   </div>

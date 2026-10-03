@@ -119,8 +119,8 @@ export default function RackFirewallPanel({ rackId, rackName, onClose }) {
         {/* Header */}
         <div className="px-6 py-4 border-b border-zinc-100 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center">
-              <ShieldCheck className="w-5 h-5 text-orange-500" />
+            <div className="w-10 h-10 rounded-xl bg-rose-600/10 flex items-center justify-center">
+              <ShieldCheck className="w-5 h-5 text-rose-600" />
             </div>
             <div>
               <h2 className="text-base font-bold text-zinc-900">Clara Global Protect</h2>
@@ -147,7 +147,7 @@ export default function RackFirewallPanel({ rackId, rackName, onClose }) {
               {t.label}
               {t.count > 0 && (
                 <span className={`min-w-[18px] h-[18px] flex items-center justify-center rounded-full text-[10px] font-bold ${
-                  tab === t.id ? 'bg-orange-500 text-white' : 'bg-zinc-100 text-zinc-500'
+                  tab === t.id ? 'bg-rose-600 text-white' : 'bg-zinc-100 text-zinc-500'
                 }`}>{t.count}</span>
               )}
             </button>

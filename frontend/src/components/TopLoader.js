@@ -32,7 +32,7 @@ export function TopLoaderProvider({ children }) {
       {isLoading && (
         <div className="fixed top-0 left-0 right-0 z-[9999] h-[3px]" data-testid="top-loader">
           <div
-            className="h-full bg-orange-500 transition-all duration-500 ease-out"
+            className="h-full bg-blue-500 transition-all duration-500 ease-out"
             style={{ width: `${progress}%` }}
           />
         </div>

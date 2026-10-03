@@ -43,7 +43,7 @@ export default function LicenseBlockedOverlay({ siteName }) {
         {/* Card */}
         <div className="bg-white rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.08)] border border-zinc-200/60 overflow-hidden">
           {/* Header accent */}
-          <div className="h-1.5 bg-gradient-to-r from-amber-400 via-orange-500 to-red-400" />
+          <div className="h-1.5 bg-gradient-to-r from-amber-400 via-rose-600 to-red-400" />
 
           <div className="p-6 sm:p-8 space-y-6">
             {/* Icon + Title */}

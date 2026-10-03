@@ -33,12 +33,12 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const PRIORITY_CONFIG = {
   low: { label: 'Low', color: 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30' },
   medium: { label: 'Medium', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
-  high: { label: 'High', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
+  high: { label: 'High', color: 'bg-[#7380b6]/20 text-rose-500 border-rose-600/30' },
   urgent: { label: 'Urgent', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
 };
 
 const LABEL_COLORS = [
-  '#ef4444', '#dd0c51', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899',
+  '#ef4444', '#7380b6', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899',
 ];
 
 // ─── Board List View ───
@@ -63,7 +63,7 @@ function BoardListView({ boards, onSelect, onCreate, onDelete, mainSiteSlug }) {
           <h1 className="text-2xl font-bold text-zinc-900">Task Boards</h1>
           <p className="text-sm text-zinc-400 mt-1">Manage your projects with Kanban boards</p>
         </div>
-        <Button onClick={() => setShowCreate(true)} className="bg-orange-500 hover:bg-orange-600 text-white" data-testid="create-board-btn">
+        <Button onClick={() => setShowCreate(true)} className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white" data-testid="create-board-btn">
           <Plus className="w-4 h-4 mr-2" /> New Board
         </Button>
       </div>
@@ -126,7 +126,7 @@ function BoardListView({ boards, onSelect, onCreate, onDelete, mainSiteSlug }) {
                 ))}
               </div>
             </div>
-            <Button onClick={handleCreate} className="w-full bg-orange-500 hover:bg-orange-600 text-white" data-testid="confirm-create-board">Create Board</Button>
+            <Button onClick={handleCreate} className="w-full bg-[#7380b6] hover:bg-[#5f6ca3] text-white" data-testid="confirm-create-board">Create Board</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -215,7 +215,7 @@ function DroppableColumn({ column, tasks, onAddTask, onTaskClick, onEditColumn, 
   };
 
   return (
-    <div className={`flex flex-col w-72 min-w-[288px] bg-zinc-50 rounded-xl border transition-colors ${isOver ? 'border-orange-500/50' : 'border-zinc-200'}`}
+    <div className={`flex flex-col w-72 min-w-[288px] bg-zinc-50 rounded-xl border transition-colors ${isOver ? 'border-rose-600/50' : 'border-zinc-200'}`}
       data-testid={`column-${column.id}`}
     >
       <div className="flex items-center justify-between px-3 py-2.5 border-b border-zinc-200">
@@ -256,7 +256,7 @@ function DroppableColumn({ column, tasks, onAddTask, onTaskClick, onEditColumn, 
               data-testid={`add-task-input-${column.id}`}
             />
             <div className="flex gap-1">
-              <Button size="sm" onClick={handleAddTask} className="bg-orange-500 hover:bg-orange-600 text-white text-xs h-7 px-2" data-testid={`confirm-add-task-${column.id}`}>Add</Button>
+              <Button size="sm" onClick={handleAddTask} className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white text-xs h-7 px-2" data-testid={`confirm-add-task-${column.id}`}>Add</Button>
               <Button size="sm" variant="ghost" onClick={() => setAddingTask(false)} className="text-xs h-7 px-2">Cancel</Button>
             </div>
           </div>
@@ -483,7 +483,7 @@ function TaskDetailModal({ task, open, onClose, onUpdate, onDelete, onAddComment
             <Button variant="ghost" size="sm" className="text-red-400 hover:text-red-300 text-xs" onClick={() => onDelete(task.id)} data-testid="delete-task-btn">
               <Trash2 className="w-3.5 h-3.5 mr-1" /> Delete Task
             </Button>
-            <Button size="sm" onClick={handleSave} className="bg-orange-500 hover:bg-orange-600 text-white text-xs" data-testid="save-task-btn">
+            <Button size="sm" onClick={handleSave} className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white text-xs" data-testid="save-task-btn">
               Save Changes
             </Button>
           </div>
@@ -758,7 +758,7 @@ function KanbanBoardView({ boardId, onBack, mainSiteId, headers }) {
                   const isMember = (board.members || []).includes(u.id);
                   return (
                     <div key={u.id} onClick={() => toggleBoardMember(u.id)}
-                      className={`flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors ${isMember ? 'bg-orange-500/10' : 'hover:bg-zinc-100'}`}>
+                      className={`flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors ${isMember ? 'bg-[#7380b6]/10' : 'hover:bg-zinc-100'}`}>
                       <div className="w-6 h-6 rounded-full bg-zinc-200 flex items-center justify-center text-[10px] font-bold text-zinc-900">
                         {u.name?.charAt(0).toUpperCase() || '?'}
                       </div>
@@ -766,7 +766,7 @@ function KanbanBoardView({ boardId, onBack, mainSiteId, headers }) {
                         <p className="text-xs text-white truncate">{u.name}</p>
                         <p className="text-[10px] text-zinc-500 truncate">{u.email}</p>
                       </div>
-                      {isMember && <div className="w-2 h-2 rounded-full bg-orange-500" />}
+                      {isMember && <div className="w-2 h-2 rounded-full bg-[#7380b6]" />}
                     </div>
                   );
                 })}
@@ -810,7 +810,7 @@ function KanbanBoardView({ boardId, onBack, mainSiteId, headers }) {
           </div>
           <DragOverlay>
             {activeTask ? (
-              <div className="bg-zinc-50 rounded-lg border border-orange-500/50 p-3 shadow-xl w-72 opacity-90">
+              <div className="bg-zinc-50 rounded-lg border border-rose-600/50 p-3 shadow-xl w-72 opacity-90">
                 <p className="text-sm text-zinc-700 font-medium">{activeTask.title}</p>
               </div>
             ) : null}
@@ -842,7 +842,7 @@ function KanbanBoardView({ boardId, onBack, mainSiteId, headers }) {
           </DialogHeader>
           <div className="space-y-3 mt-2">
             <Input value={newColName} onChange={e => setNewColName(e.target.value)} placeholder="Column name" className="bg-zinc-50 border-zinc-200 text-zinc-900" autoFocus onKeyDown={e => e.key === 'Enter' && handleAddColumn()} data-testid="new-column-name-input" />
-            <Button onClick={handleAddColumn} className="w-full bg-orange-500 hover:bg-orange-600 text-white" data-testid="confirm-add-column">Add Column</Button>
+            <Button onClick={handleAddColumn} className="w-full bg-[#7380b6] hover:bg-[#5f6ca3] text-white" data-testid="confirm-add-column">Add Column</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -856,7 +856,7 @@ function KanbanBoardView({ boardId, onBack, mainSiteId, headers }) {
           </DialogHeader>
           <div className="space-y-3 mt-2">
             <Input value={editColName} onChange={e => setEditColName(e.target.value)} className="bg-zinc-50 border-zinc-200 text-zinc-900" autoFocus onKeyDown={e => e.key === 'Enter' && handleEditColumn()} />
-            <Button onClick={handleEditColumn} className="w-full bg-orange-500 hover:bg-orange-600 text-white">Save</Button>
+            <Button onClick={handleEditColumn} className="w-full bg-[#7380b6] hover:bg-[#5f6ca3] text-white">Save</Button>
           </div>
         </DialogContent>
       </Dialog>

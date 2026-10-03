@@ -420,7 +420,7 @@ const RDSSettingsPage = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-rose-600" />
       </div>
     );
   }
@@ -432,7 +432,7 @@ const RDSSettingsPage = () => {
         <Button
           onClick={handleRefreshCache}
           disabled={refreshing}
-          className="gap-2 bg-orange-500 hover:bg-orange-600 text-white"
+          className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
           data-testid="refresh-cache-btn"
         >
           <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
@@ -444,7 +444,7 @@ const RDSSettingsPage = () => {
       <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Settings className="w-5 h-5 text-orange-400" />
+            <Settings className="w-5 h-5 text-rose-500" />
             <h2 className="text-lg font-semibold text-zinc-900">Configuration</h2>
           </div>
           {!editMode ? (
@@ -477,7 +477,7 @@ const RDSSettingsPage = () => {
                 size="sm"
                 onClick={handleSaveSettings}
                 disabled={saving}
-                className="gap-2 bg-orange-500 hover:bg-orange-600 text-white"
+                className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
               >
                 <Save className="w-4 h-4" />
                 {saving ? 'Saving...' : 'Save'}
@@ -1137,7 +1137,7 @@ const RDSSettingsPage = () => {
       {/* Shoutcast Filters Section */}
       <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-6">
         <div className="flex items-center gap-2 mb-4">
-          <Filter className="w-5 h-5 text-orange-400" />
+          <Filter className="w-5 h-5 text-rose-500" />
           <h2 className="text-lg font-semibold text-zinc-900">Now Playing Filters</h2>
         </div>
         <p className="text-zinc-500 text-sm mb-4">

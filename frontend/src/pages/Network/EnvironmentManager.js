@@ -291,9 +291,9 @@ export default function EnvironmentManager() {
             className="cursor-pointer group w-[260px] flex-shrink-0"
             data-testid="create-env-btn"
           >
-            <div className="rounded-2xl border-2 border-dashed border-zinc-200 hover:border-orange-300 h-full min-h-[220px] flex flex-col items-center justify-center gap-3 transition-all duration-300 group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.06)]">
-              <div className="w-12 h-12 rounded-xl bg-zinc-100 group-hover:bg-orange-50 flex items-center justify-center transition-colors">
-                <Plus className="w-6 h-6 text-zinc-400 group-hover:text-orange-500 transition-colors" />
+            <div className="rounded-2xl border-2 border-dashed border-zinc-200 hover:border-rose-300 h-full min-h-[220px] flex flex-col items-center justify-center gap-3 transition-all duration-300 group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.06)]">
+              <div className="w-12 h-12 rounded-xl bg-zinc-100 group-hover:bg-rose-50 flex items-center justify-center transition-colors">
+                <Plus className="w-6 h-6 text-zinc-400 group-hover:text-rose-600 transition-colors" />
               </div>
               <span className="text-sm font-medium text-zinc-400 group-hover:text-zinc-600">New Environment</span>
             </div>

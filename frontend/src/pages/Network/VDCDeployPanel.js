@@ -304,7 +304,7 @@ export default function VDCDeployPanel() {
         <Button
           onClick={startDeploy}
           disabled={deploying || !hasKey}
-          className="bg-[#dd0c51] hover:bg-[#c40a47] !text-white rounded-full px-5 h-10 gap-2 font-semibold text-sm shadow-lg shadow-[#dd0c51]/20 [&>svg]:text-white"
+          className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white rounded-full px-5 h-10 gap-2 font-semibold text-sm shadow-lg shadow-[#7380b6]/20 [&>svg]:text-white"
           data-testid="vdc-deploy-btn"
         >
           {deploying ? (

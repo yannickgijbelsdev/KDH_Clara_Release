@@ -153,7 +153,7 @@ function ProgressRing({ progress, size = 36, stroke = 3, className = '' }) {
       <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#e4e4e7" strokeWidth={stroke} />
       <circle
         cx={size / 2} cy={size / 2} r={r} fill="none"
-        stroke="#dd0c51" strokeWidth={stroke}
+        stroke="#7380b6" strokeWidth={stroke}
         strokeDasharray={c} strokeDashoffset={offset}
         strokeLinecap="round" className="transition-all duration-700 ease-out"
       />
@@ -162,7 +162,7 @@ function ProgressRing({ progress, size = 36, stroke = 3, className = '' }) {
 }
 
 function SIcon({ status, size = 15 }) {
-  if (status === 'scanning') return <Loader2 size={size} className="animate-spin text-orange-500" />;
+  if (status === 'scanning') return <Loader2 size={size} className="animate-spin text-rose-600" />;
   if (status === 'success') return <CheckCircle2 size={size} className="text-emerald-500" />;
   if (status === 'error') return <XCircle size={size} className="text-red-500" />;
   if (status === 'warning') return <AlertTriangle size={size} className="text-amber-500" />;
@@ -569,7 +569,7 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
             <div className="px-5 py-4 border-b border-zinc-100 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="relative">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-lg shadow-orange-500/25">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-600 to-amber-500 flex items-center justify-center shadow-lg shadow-rose-600/25">
                     <Sparkles className="w-5 h-5 text-white" />
                   </div>
                   {!allDone && (
@@ -606,7 +606,7 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
               />
             </div>
             <div className="h-1 bg-zinc-100 rounded-b-2xl overflow-hidden">
-              <motion.div className="h-full bg-gradient-to-r from-orange-400 to-amber-400"
+              <motion.div className="h-full bg-gradient-to-r from-rose-500 to-amber-400"
                 initial={{ width: '0%' }} animate={{ width: allDone ? '100%' : `${progress}%` }}
                 transition={{ duration: 0.8, ease: 'easeOut' }}
               />
@@ -630,17 +630,17 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
         onClick={() => setView('expanded')}
         data-testid="clara-scan-minimized"
       >
-        <div className="bg-white rounded-2xl shadow-xl border border-zinc-200/70 pl-3 pr-4 py-2.5 flex items-center gap-3 group-hover:shadow-2xl transition-all group-hover:border-orange-200">
+        <div className="bg-white rounded-2xl shadow-xl border border-zinc-200/70 pl-3 pr-4 py-2.5 flex items-center gap-3 group-hover:shadow-2xl transition-all group-hover:border-rose-200">
           <div className="relative flex-shrink-0">
             {!allDone ? (
               <div className="relative">
                 <ProgressRing progress={progress} size={36} stroke={3} />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <Sparkles size={14} className="text-orange-500" />
+                  <Sparkles size={14} className="text-rose-600" />
                 </div>
               </div>
             ) : (
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-rose-600 to-amber-500 flex items-center justify-center">
                 <Sparkles className="w-4 h-4 text-white" />
               </div>
             )}
@@ -657,7 +657,7 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
             <SIcon status={healthStatus} size={13} />
             <SIcon status={rackStatus} size={13} />
           </div>
-          <ChevronRight size={14} className="text-zinc-300 group-hover:text-orange-400 transition-colors ml-0.5" />
+          <ChevronRight size={14} className="text-zinc-300 group-hover:text-rose-500 transition-colors ml-0.5" />
         </div>
       </motion.div>
     );
@@ -681,7 +681,7 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
       >
         {/* Progress bar */}
         <div className="h-1 bg-zinc-100">
-          <motion.div className="h-full bg-gradient-to-r from-orange-400 to-amber-400"
+          <motion.div className="h-full bg-gradient-to-r from-rose-500 to-amber-400"
             animate={{ width: `${guideProgress}%` }}
             transition={{ duration: 0.5, ease: 'easeOut' }}
           />
@@ -690,7 +690,7 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
         {/* Header */}
         <div className="px-4 py-3 border-b border-zinc-100 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow shadow-orange-500/20">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-rose-600 to-amber-500 flex items-center justify-center shadow shadow-[#7380b6]/20">
               <Wrench className="w-4 h-4 text-white" />
             </div>
             <div>
@@ -718,7 +718,7 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
                     guideStepStatus[i] === 'done'
                       ? 'bg-emerald-100 text-emerald-600'
                       : guideStepStatus[i] === 'active'
-                        ? 'bg-orange-500 text-white shadow-md shadow-orange-500/30'
+                        ? 'bg-[#7380b6] text-white shadow-md shadow-[#7380b6]/30'
                         : 'bg-zinc-100 text-zinc-400'
                   }`}
                 >
@@ -747,8 +747,8 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
               className="bg-zinc-50 rounded-xl p-4 border border-zinc-100"
             >
               <div className="flex items-start gap-2.5">
-                <div className="w-6 h-6 rounded-lg bg-orange-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <Sparkles size={12} className="text-orange-500" />
+                <div className="w-6 h-6 rounded-lg bg-rose-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Sparkles size={12} className="text-rose-600" />
                 </div>
                 <div>
                   <p className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wide mb-1">
@@ -775,7 +775,7 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
           </button>
           <button
             onClick={advanceGuideStep}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-orange-500 text-white text-xs font-semibold hover:bg-orange-600 transition-colors shadow-md shadow-orange-500/20"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#7380b6] text-white text-xs font-semibold hover:bg-[#7380b6] transition-colors shadow-md shadow-[#7380b6]/20"
             data-testid="clara-guide-next"
           >
             {isLastStep ? (
@@ -815,7 +815,7 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
       >
         {/* Progress bar */}
         <div className="h-1.5 bg-zinc-100 rounded-t-2xl overflow-hidden">
-          <motion.div className="h-full bg-gradient-to-r from-orange-400 to-amber-400"
+          <motion.div className="h-full bg-gradient-to-r from-rose-500 to-amber-400"
             animate={{ width: `${autoFixQueue.length > 0 ? ((autoFixIdx) / autoFixQueue.length) * 100 : 0}%` }}
             transition={{ duration: 0.5 }}
           />
@@ -824,7 +824,7 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
         {/* Header */}
         <div className="px-5 py-3 border-b border-zinc-100 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-lg shadow-orange-500/20">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-rose-600 to-amber-500 flex items-center justify-center shadow-lg shadow-[#7380b6]/20">
               <Sparkles className="w-4.5 h-4.5 text-white" />
             </div>
             <div>
@@ -871,13 +871,13 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
                 key={i}
                 ref={el => { if (el && i === autoFixIdx && !autoFixDone) { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } }}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
-                  i === autoFixIdx && !autoFixDone ? 'bg-orange-50 border border-orange-300 ring-2 ring-orange-200 shadow-sm' : 'bg-zinc-50 border border-transparent'
+                  i === autoFixIdx && !autoFixDone ? 'bg-rose-50 border border-rose-300 ring-2 ring-rose-200 shadow-sm' : 'bg-zinc-50 border border-transparent'
               }`}>
                 {status === 'done' && <CheckCircle2 size={16} className="text-emerald-500 flex-shrink-0" />}
-                {status === 'fixing' && <Loader2 size={16} className="animate-spin text-orange-500 flex-shrink-0" />}
+                {status === 'fixing' && <Loader2 size={16} className="animate-spin text-rose-600 flex-shrink-0" />}
                 {status === 'error' && <XCircle size={16} className="text-red-500 flex-shrink-0" />}
-                {status === 'input' && <Sparkles size={16} className="text-orange-500 flex-shrink-0" />}
-                {status === 'confirm' && <Shield size={16} className="text-orange-500 flex-shrink-0" />}
+                {status === 'input' && <Sparkles size={16} className="text-rose-600 flex-shrink-0" />}
+                {status === 'confirm' && <Shield size={16} className="text-rose-600 flex-shrink-0" />}
                 {status === 'skipped' && <ArrowRight size={16} className="text-zinc-300 flex-shrink-0" />}
                 {!status && <div className="w-4 h-4 rounded-full bg-zinc-200 flex-shrink-0" />}
                 <div className="flex-1 min-w-0">
@@ -891,9 +891,9 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
 
         {/* Input form when Clara needs credentials */}
         {autoFixNeedsInput && currentIssue && fields && (
-          <div id="clara-autofix-action-panel" className="px-5 py-4 border-t border-orange-100 bg-orange-50/50">
+          <div id="clara-autofix-action-panel" className="px-5 py-4 border-t border-rose-100 bg-rose-50/50">
             <div className="flex items-center gap-2 mb-3">
-              <Sparkles size={14} className="text-orange-500" />
+              <Sparkles size={14} className="text-rose-600" />
               <p className="text-xs font-semibold text-zinc-700">
                 Clara needs your input for {currentIssue.site_name}
               </p>
@@ -906,7 +906,7 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
                   placeholder={f.placeholder}
                   value={autoFixInput[f.key] || ''}
                   onChange={e => setAutoFixInput(prev => ({ ...prev, [f.key]: e.target.value }))}
-                  className="w-full text-xs px-3 py-2 rounded-lg border border-zinc-200 bg-white focus:border-orange-400 focus:ring-1 focus:ring-orange-400 outline-none"
+                  className="w-full text-xs px-3 py-2 rounded-lg border border-zinc-200 bg-white focus:border-rose-500 focus:ring-1 focus:ring-rose-500 outline-none"
                   data-testid={`autofix-input-${f.key}`}
                 />
               ))}
@@ -918,7 +918,7 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
                 Skip
               </button>
               <button onClick={submitAutoFixInput}
-                className="flex-1 text-xs py-2 rounded-lg bg-orange-500 text-white font-semibold hover:bg-orange-600 transition-colors shadow-sm"
+                className="flex-1 text-xs py-2 rounded-lg bg-[#7380b6] text-white font-semibold hover:bg-[#7380b6] transition-colors shadow-sm"
               >
                 Save & Continue
               </button>
@@ -928,9 +928,9 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
 
         {/* Confirmation prompt (e.g. 2FA) */}
         {autoFixNeedsConfirm && currentIssue && (
-          <div id="clara-autofix-action-panel" className="px-5 py-4 border-t border-orange-100 bg-orange-50/50">
+          <div id="clara-autofix-action-panel" className="px-5 py-4 border-t border-rose-100 bg-rose-50/50">
             <div className="flex items-center gap-2 mb-2">
-              <Shield size={14} className="text-orange-500" />
+              <Shield size={14} className="text-rose-600" />
               <p className="text-xs font-semibold text-zinc-700">
                 {currentIssue.title}
               </p>
@@ -946,7 +946,7 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
                 Skip
               </button>
               <button onClick={confirmAutoFix}
-                className="flex-1 text-xs py-2 rounded-lg bg-orange-500 text-white font-semibold hover:bg-orange-600 transition-colors shadow-sm"
+                className="flex-1 text-xs py-2 rounded-lg bg-[#7380b6] text-white font-semibold hover:bg-[#7380b6] transition-colors shadow-sm"
                 data-testid="autofix-confirm-2fa"
               >
                 Enable 2FA
@@ -961,7 +961,7 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
             <p className="text-xs text-zinc-500">{autoFixCount} issues resolved</p>
             <button
               onClick={() => { setAutoFixMode(false); setView('minimized'); }}
-              className="text-xs font-semibold text-orange-500 hover:text-orange-600 transition-colors"
+              className="text-xs font-semibold text-rose-600 hover:text-rose-700 transition-colors"
             >
               Done
             </button>
@@ -988,11 +988,11 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
               <div className="relative">
                 <ProgressRing progress={progress} size={32} stroke={2.5} />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <Sparkles size={12} className="text-orange-500" />
+                  <Sparkles size={12} className="text-rose-600" />
                 </div>
               </div>
             ) : (
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow shadow-orange-500/20">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-rose-600 to-amber-500 flex items-center justify-center shadow shadow-[#7380b6]/20">
                 <Sparkles className="w-4 h-4 text-white" />
               </div>
             )}
@@ -1045,7 +1045,7 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
 
           {healthScan.status === 'scanning' && (
             <div className="pl-7 flex items-center gap-2 text-xs text-zinc-400 py-1">
-              <Loader2 size={13} className="animate-spin text-orange-400" />
+              <Loader2 size={13} className="animate-spin text-rose-500" />
               Testing connections...
             </div>
           )}
@@ -1063,14 +1063,14 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
                 }
                 <span className="text-xs text-zinc-700 truncate flex-1">{check.site}</span>
                 <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium flex-shrink-0 ${
-                  check.type === 'wordpress' ? 'bg-blue-50 text-blue-600' : 'bg-orange-50 text-orange-600'
+                  check.type === 'wordpress' ? 'bg-blue-50 text-blue-600' : 'bg-rose-50 text-rose-700'
                 }`}>
                   {check.type === 'wordpress' ? 'WP' : 'RDS'}
                 </span>
                 {!check.success && check.site_slug && (
                   <button
                     onClick={() => startFixGuide({ ...check, action: check.type === 'wordpress' ? 'fix_wordpress' : 'fix_rds_stream' })}
-                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-50 text-orange-600 text-[10px] font-semibold hover:bg-orange-100 transition-all flex-shrink-0 border border-orange-200/50"
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 text-[10px] font-semibold hover:bg-rose-100 transition-all flex-shrink-0 border border-rose-200/50"
                     data-testid={`fix-health-${i}`}
                   >
                     <Wrench size={10} />
@@ -1096,7 +1096,7 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
 
           {rackScan.status === 'scanning' && (
             <div className="pl-7 flex items-center gap-2 text-xs text-zinc-400 py-1">
-              <Loader2 size={13} className="animate-spin text-orange-400" />
+              <Loader2 size={13} className="animate-spin text-rose-500" />
               Auditing configurations...
             </div>
           )}
@@ -1138,7 +1138,7 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
                   {issue.action && FIX_GUIDES[issue.action] && (
                     <button
                       onClick={() => startFixGuide(issue)}
-                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-50 text-orange-600 text-[10px] font-semibold hover:bg-orange-100 transition-all flex-shrink-0 border border-orange-200/50"
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 text-[10px] font-semibold hover:bg-rose-100 transition-all flex-shrink-0 border border-rose-200/50"
                       data-testid={`fix-issue-${i}`}
                     >
                       <Wrench size={10} />
@@ -1177,7 +1177,7 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
         {rDone && rackIssueCount > 0 && (
           <button
             onClick={startAutoFix}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-bold hover:from-orange-600 hover:to-amber-600 transition-all shadow-lg shadow-orange-500/20"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-amber-500 text-white text-xs font-bold hover:from-rose-700 hover:to-amber-600 transition-all shadow-lg shadow-[#7380b6]/20"
             data-testid="clara-fix-all"
           >
             <Sparkles size={14} />

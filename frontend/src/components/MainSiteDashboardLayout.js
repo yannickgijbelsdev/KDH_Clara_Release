@@ -21,10 +21,10 @@ import { useClaraAssistant } from '../context/ClaraAssistantContext';
 import { 
   LayoutList, LogOut, User, Calendar, Settings, Crown, Pencil, Eye, 
   FileText, Globe, MessageSquare, File, Mic, Menu, X, Sliders, Home, 
-  ScrollText, ClipboardCheck, Trash2, Users, ChevronDown, ChevronRight,
+  ScrollText, ClipboardCheck, Trash2, Users, ChevronDown, ChevronRight, ChevronLeft,
   UserCog, ArrowLeftRight, FileCheck, Radio, Headphones, Wand2, Play,
   ArrowLeft, Send, Palette, Network, Activity, Shield, Phone, Monitor,
-  KeyRound, FileCode, Video, Ban, Lock, Check, Search, Image, Loader2, Sparkles, Terminal, Plug, Zap, DoorOpen
+  KeyRound, FileCode, Video, Ban, Lock, Check, Search, Image, Loader2, Sparkles, Terminal, Plug, Zap, DoorOpen, HelpCircle
 } from 'lucide-react';
 import { Button } from './ui/button';
 import RadioplayerIcon from './icons/RadioplayerIcon';
@@ -609,7 +609,7 @@ const MainSiteDashboardContent = () => {
     custom: 'Custom',
   };
   const SITE_TYPE_COLOR_MAP = {
-    radio: 'bg-orange-500/15 text-orange-500 border-orange-500/25',
+    radio: 'bg-[#7380b6]/15 text-rose-600 border-rose-600/25',
     server: 'bg-red-500/15 text-red-400 border-red-500/25',
     technical: 'bg-emerald-500/15 text-emerald-500 border-emerald-500/25',
     task_scheduler: 'bg-violet-500/15 text-violet-500 border-violet-500/25',
@@ -827,14 +827,14 @@ const MainSiteDashboardContent = () => {
           data-testid={`site-nav-${item.tab}`}
           className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors w-full text-left ${
             isActive
-              ? 'bg-orange-500/10 text-orange-500'
+              ? 'bg-[#7380b6]/10 text-rose-600'
               : 'text-zinc-400 hover:bg-zinc-50 hover:text-zinc-700'
           }`}
         >
           <Icon className="h-4 w-4" />
           <span className="flex-1">{item.label}</span>
           {item.tab === 'submissions' && submissionCounts[currentSiteId] > 0 && (
-            <span className="bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full">
+            <span className="bg-[#7380b6] text-white text-xs px-2 py-0.5 rounded-full">
               {submissionCounts[currentSiteId]}
             </span>
           )}
@@ -850,7 +850,7 @@ const MainSiteDashboardContent = () => {
         className={({ isActive }) =>
           `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
             isActive
-              ? 'bg-orange-500/10 text-orange-500'
+              ? 'bg-[#7380b6]/10 text-rose-600'
               : 'text-zinc-400 hover:bg-zinc-50 hover:text-zinc-700'
           }`
         }
@@ -858,7 +858,7 @@ const MainSiteDashboardContent = () => {
         <Icon className="h-4 w-4" />
         <span className="flex-1">{item.label}</span>
         {badgeCount > 0 && (
-          <span className="bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full">
+          <span className="bg-[#7380b6] text-white text-xs px-2 py-0.5 rounded-full">
             {badgeCount}
           </span>
         )}
@@ -908,7 +908,7 @@ const MainSiteDashboardContent = () => {
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
                     isActive
-                      ? 'bg-orange-500/10 text-orange-500'
+                      ? 'bg-[#7380b6]/10 text-rose-600'
                       : 'text-zinc-400 hover:bg-zinc-50 hover:text-zinc-700'
                   }`
                 }
@@ -972,7 +972,7 @@ const MainSiteDashboardContent = () => {
                       className={({ isActive }) =>
                         `flex items-center gap-2 px-2 py-2 rounded text-xs transition-colors ${
                           isActive
-                            ? 'bg-orange-500/10 text-orange-500'
+                            ? 'bg-[#7380b6]/10 text-rose-600'
                             : 'text-zinc-500 hover:bg-zinc-50 hover:text-zinc-600'
                         }`
                       }
@@ -1036,15 +1036,15 @@ const MainSiteDashboardContent = () => {
                   className={`
                     w-11 h-11 flex items-center justify-center rounded-2xl transition-all duration-200 relative
                     ${isActive 
-                      ? 'bg-orange-500/15 text-orange-500 shadow-[0_2px_12px_rgba(221,12,81,0.15)]' 
+                      ? 'bg-[#7380b6]/15 text-rose-600 shadow-[0_2px_12px_rgba(221,12,81,0.15)]' 
                       : 'text-zinc-400 hover:text-zinc-700 hover:bg-black/[0.06]'
                     }
                   `}
                 >
                   <Icon className="w-5 h-5" />
-                  {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[3px] w-[3px] h-5 rounded-r-full bg-orange-500" />}
+                  {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[3px] w-[3px] h-5 rounded-r-full bg-[#7380b6]" />}
                   {badgeCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded-full bg-orange-500 text-white ring-2 ring-white">
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded-full bg-[#7380b6] text-white ring-2 ring-white">
                       {badgeCount > 99 ? '99+' : badgeCount}
                     </span>
                   )}
@@ -1081,15 +1081,15 @@ const MainSiteDashboardContent = () => {
                   className={`
                     w-11 h-11 flex items-center justify-center rounded-2xl transition-all duration-200 relative
                     ${isActive 
-                      ? 'bg-orange-500/15 text-orange-500 shadow-[0_2px_12px_rgba(221,12,81,0.15)]' 
+                      ? 'bg-[#7380b6]/15 text-rose-600 shadow-[0_2px_12px_rgba(221,12,81,0.15)]' 
                       : 'text-zinc-400 hover:text-zinc-700 hover:bg-black/[0.06]'
                     }
                   `}
                 >
                   <Icon className="w-5 h-5" />
-                  {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[3px] w-[3px] h-5 rounded-r-full bg-orange-500" />}
+                  {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[3px] w-[3px] h-5 rounded-r-full bg-[#7380b6]" />}
                   {badgeCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded-full bg-orange-500 text-white ring-2 ring-white">
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded-full bg-[#7380b6] text-white ring-2 ring-white">
                       {badgeCount > 99 ? '99+' : badgeCount}
                     </span>
                   )}
@@ -1148,7 +1148,7 @@ const MainSiteDashboardContent = () => {
     return (
       <div className="h-screen flex items-center justify-center bg-[#F0F0F2]" style={{ height: '100dvh' }}>
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-rose-600 border-t-transparent rounded-full animate-spin" />
           <p className="text-sm text-zinc-400">Loading...</p>
         </div>
       </div>
@@ -1175,13 +1175,13 @@ const MainSiteDashboardContent = () => {
           </div>
         )}
         {impersonating && (
-          <div className="flex-shrink-0 bg-orange-500 text-white px-4 py-2 z-[60]">
+          <div className="flex-shrink-0 bg-[#7380b6] text-white px-4 py-2 z-[60]">
             <div className="flex items-center justify-between max-w-screen-xl mx-auto">
               <div className="flex items-center gap-2 text-sm">
                 <ArrowLeftRight className="w-4 h-4" />
                 <span>Viewing as <strong>{user?.name}</strong> ({user?.email})</span>
               </div>
-              <Button size="sm" variant="ghost" onClick={handleExitImpersonation} className="text-white hover:bg-orange-600 gap-2">
+              <Button size="sm" variant="ghost" onClick={handleExitImpersonation} className="text-white hover:bg-[#7380b6] gap-2">
                 <LogOut className="w-4 h-4" />
                 Return to {impersonating.name}
               </Button>
@@ -1190,23 +1190,19 @@ const MainSiteDashboardContent = () => {
         )}
 
         {/* ─── Horizontal Top Navigation (Clara Campaigns layout) ─── */}
-        <nav className="h-16 flex-shrink-0 sticky top-0 z-50 bg-[#F5F6F8]/90 backdrop-blur-xl" data-testid="workspace-topbar">
+        <nav className="h-16 flex-shrink-0 sticky top-0 z-50 bg-[#F5F6F8]" data-testid="workspace-topbar">
          <div className="max-w-[1400px] mx-auto px-6 h-full flex items-center gap-3">
           <button onClick={() => setSidebarOpen(!sidebarOpen)} data-testid="mobile-menu-btn" className="lg:hidden w-9 h-9 flex items-center justify-center rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors">
             <Menu className="w-5 h-5" />
           </button>
           {/* Logo lockup — mark + divider + wordmark */}
           <div className="flex items-center gap-2.5 shrink-0">
-            <button onClick={() => navigate(`/${mainSiteSlug}`)} className="hover:opacity-80 transition-opacity" data-testid="logo-pill">
-              {brandingData.logo_type === 'image' && brandingData.logo_url ? (
-                <img src={brandingData.logo_url.startsWith('/') ? `${process.env.REACT_APP_BACKEND_URL}${brandingData.logo_url}` : brandingData.logo_url} alt={brandName} className="h-6 w-6 object-contain" />
-              ) : (
-                <img src="/clara-chevron.png" alt={brandName} className="h-6 w-6 object-contain" />
-              )}
+            <button onClick={() => navigate(`/${mainSiteSlug}`)} className="hover:opacity-80 transition-opacity flex items-center justify-center" data-testid="logo-pill">
+              <img src="/clara-chevron.png" alt="Clara" className="h-8 w-auto object-contain" />
             </button>
-            <div className="hidden sm:block h-5 w-px bg-slate-200/70" />
-            <span className="hidden sm:block font-display font-semibold text-slate-900 text-[15px] whitespace-nowrap">
-              {brandName}
+            <div className="h-6 w-px bg-slate-300" />
+            <span className="font-display font-semibold text-slate-900 text-[17px] whitespace-nowrap">
+              Clara
             </span>
           </div>
 
@@ -1266,7 +1262,7 @@ const MainSiteDashboardContent = () => {
                   <ChevronDown className="w-4 h-4 text-slate-400" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-64 bg-white/30 backdrop-blur-2xl border-white/40 shadow-[0_8px_40px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.6)] rounded-2xl">
+              <DropdownMenuContent align="start" className="w-64 bg-white border border-slate-200 shadow-lg rounded-2xl">
                 {(() => {
                   const envGroups = {};
                   myMainSites.forEach(site => {
@@ -1283,14 +1279,14 @@ const MainSiteDashboardContent = () => {
                   return sortedEnvIds.map(envId => (
                     <div key={envId}>
                       <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1.5" style={{ color: envGroups[envId].color || '#71717a' }}>
-                        <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: envGroups[envId].color || '#dd0c51' }} />
+                        <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: envGroups[envId].color || '#7380b6' }} />
                         {envGroups[envId].name}
                       </div>
                       {envGroups[envId].sites.map(site => (
                         <DropdownMenuItem
                           key={site.id}
                           onClick={() => navigate(`/${site.slug}`)}
-                          className={`cursor-pointer ${site.slug === mainSiteSlug ? 'bg-orange-50 text-orange-600 font-medium' : 'text-zinc-600 focus:text-zinc-900 focus:bg-black/5'}`}
+                          className={`cursor-pointer ${site.slug === mainSiteSlug ? 'bg-rose-50 text-rose-700 font-medium' : 'text-zinc-600 focus:text-zinc-900 focus:bg-black/5'}`}
                           data-testid={`switch-site-${site.slug}`}
                         >
                           {site.logo_url ? (
@@ -1304,7 +1300,7 @@ const MainSiteDashboardContent = () => {
                             <Globe className="w-4 h-4 mr-2 flex-shrink-0" />
                           )}
                           <span className="truncate">{site.name}</span>
-                          {site.slug === mainSiteSlug && <Check className="w-3.5 h-3.5 ml-auto text-orange-500 flex-shrink-0" />}
+                          {site.slug === mainSiteSlug && <Check className="w-3.5 h-3.5 ml-auto text-rose-600 flex-shrink-0" />}
                         </DropdownMenuItem>
                       ))}
                     </div>
@@ -1353,9 +1349,9 @@ const MainSiteDashboardContent = () => {
             {!isLicenseBlocked && flatNavItems.length > visibleNavCount && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="px-4 py-2 rounded-full text-sm font-medium text-zinc-400 hover:text-zinc-700 hover:bg-white/60 transition-colors flex items-center whitespace-nowrap flex-shrink-0">More<ChevronDown className="w-3.5 h-3.5 ml-1 inline" /></button>
+                  <button className="px-4 py-2 rounded-full text-sm font-medium text-zinc-500 hover:text-zinc-900 hover:bg-slate-100 transition-colors flex items-center whitespace-nowrap flex-shrink-0">More<ChevronDown className="w-3.5 h-3.5 ml-1 inline" /></button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="center" className="bg-white/30 backdrop-blur-2xl border-white/40 shadow-[0_8px_40px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.6)] rounded-2xl">
+                <DropdownMenuContent align="center" className="bg-white border border-slate-200 shadow-lg rounded-2xl">
                   {flatNavItems.slice(visibleNavCount).map(item => {
                     const Icon = item.icon;
                     const dropBadge = getBadgeCount(item.to.split('/').pop());
@@ -1380,10 +1376,10 @@ const MainSiteDashboardContent = () => {
           <div className="flex-shrink-0 ml-auto lg:ml-0">
             <button
               onClick={() => { if (!isLicenseBlocked) setSearchExpanded(true); }}
-              className={`w-9 h-9 flex items-center justify-center rounded-full border border-white/40 bg-white/20 backdrop-blur-xl hover:bg-white/40 transition-all ${isLicenseBlocked ? 'opacity-30 cursor-not-allowed' : ''}`}
+              className={`w-9 h-9 flex items-center justify-center rounded-full border border-slate-200 bg-white hover:bg-slate-50 transition-all ${isLicenseBlocked ? 'opacity-30 cursor-not-allowed' : ''}`}
               data-testid="search-icon-btn"
             >
-              <Search className="w-4 h-4 text-zinc-400" />
+              <Search className="w-4 h-4 text-zinc-500" />
             </button>
           </div>
 
@@ -1454,29 +1450,37 @@ const MainSiteDashboardContent = () => {
               </div>
             </>
           )}
-          <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Help icon */}
+            <button
+              onClick={() => window.open('https://docs.clara.koodh.com', '_blank')}
+              className="w-9 h-9 flex items-center justify-center rounded-full border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
+              data-testid="help-icon-btn"
+              title="Help"
+            >
+              <HelpCircle className="w-4 h-4 text-zinc-500" />
+            </button>
+            {/* Divider */}
+            <div className="h-6 w-px bg-slate-200 mx-1" />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2.5 hover:bg-black/[0.03] rounded-xl px-2 py-1.5 transition-colors" data-testid="user-menu-trigger">
+                <button className="flex items-center gap-1.5 hover:bg-slate-50 rounded-full pl-0.5 pr-2 py-0.5 transition-colors" data-testid="user-menu-trigger">
                   {getAvatarUrl(user) ? (
                     <img src={getAvatarUrl(user)} alt={user?.name} className="w-9 h-9 rounded-full object-cover" />
                   ) : (
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold text-sm">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-rose-500 to-rose-700 flex items-center justify-center text-white font-semibold text-sm">
                       {user?.name?.charAt(0).toUpperCase()}
                     </div>
                   )}
-                  <div className="hidden md:block text-left">
-                    <p className="text-sm font-medium text-zinc-800 leading-tight">{user?.name}</p>
-                    <p className="text-[11px] text-zinc-400">{displayRoleName}</p>
-                  </div>
+                  <ChevronDown className="w-4 h-4 text-zinc-400" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-white/30 backdrop-blur-2xl border-white/40 shadow-[0_8px_40px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.6)] rounded-2xl">
+              <DropdownMenuContent align="end" className="w-56 bg-white border border-slate-200 shadow-lg rounded-2xl">
                 <div className="px-3 py-2 flex items-center gap-3">
                   {getAvatarUrl(user) ? (
                     <img src={getAvatarUrl(user)} alt={user?.name} className="w-10 h-10 rounded-xl object-cover" />
                   ) : (
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-rose-700 flex items-center justify-center text-white font-semibold">
                       {user?.name?.charAt(0).toUpperCase()}
                     </div>
                   )}
@@ -1500,7 +1504,7 @@ const MainSiteDashboardContent = () => {
                   Personal Settings
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-black/[0.06]" />
-                <DropdownMenuItem onClick={handleLogout} className="text-orange-500 focus:text-orange-500 focus:bg-orange-50">
+                <DropdownMenuItem onClick={handleLogout} className="text-rose-600 focus:text-rose-700 focus:bg-rose-50">
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign out
                 </DropdownMenuItem>
@@ -1516,7 +1520,7 @@ const MainSiteDashboardContent = () => {
         )}
 
         {/* Mobile Sidebar */}
-        <aside className={`lg:hidden fixed top-0 left-0 h-full z-50 w-72 bg-white/95 backdrop-blur-2xl border-r border-black/[0.06] transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <aside className={`lg:hidden fixed top-0 left-0 h-full z-50 w-72 bg-white border-r border-slate-200 transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
           <div className="p-5 h-full flex flex-col">
             <div className="flex justify-between items-center mb-6">
               <div className={brandingData.logo_type === 'image' && brandingData.logo_url
@@ -1532,7 +1536,7 @@ const MainSiteDashboardContent = () => {
             </div>
             <div className="flex-1 overflow-y-auto">
               <nav className="space-y-1">
-                <NavLink to={`/${mainSiteSlug}`} end onClick={closeSidebar} className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-orange-50 text-orange-600' : 'text-zinc-500 hover:text-zinc-800 hover:bg-black/5'}`}>
+                <NavLink to={`/${mainSiteSlug}`} end onClick={closeSidebar} className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-rose-50 text-rose-700' : 'text-zinc-500 hover:text-zinc-800 hover:bg-slate-50'}`}>
                   <LayoutDashboard className="w-5 h-5" /><span className="font-medium">Dashboard</span>
                 </NavLink>
                 {flatNavItems.map((item) => { const Icon = item.icon; return isLicenseBlocked ? (
@@ -1540,14 +1544,14 @@ const MainSiteDashboardContent = () => {
                     <Icon className="w-5 h-5" /><span className="font-medium">{item.label}</span>
                   </span>
                 ) : (
-                  <NavLink key={item.to} to={item.to} onClick={closeSidebar} className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-orange-50 text-orange-600' : 'text-zinc-500 hover:text-zinc-800 hover:bg-black/5'}`}>
+                  <NavLink key={item.to} to={item.to} onClick={closeSidebar} className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-rose-50 text-rose-700' : 'text-zinc-500 hover:text-zinc-800 hover:bg-black/5'}`}>
                     <Icon className="w-5 h-5" /><span className="font-medium">{item.label}</span>
                   </NavLink>
                 ); })}
               </nav>
             </div>
             <div className="pt-4 border-t border-black/[0.06] mt-4">
-              <Button variant="ghost" onClick={handleLogout} className="w-full justify-start gap-2 text-orange-500 hover:text-orange-600 hover:bg-orange-50">
+              <Button variant="ghost" onClick={handleLogout} className="w-full justify-start gap-2 text-rose-600 hover:text-rose-700 hover:bg-rose-50">
                 <LogOut className="w-4 h-4" />Sign out
               </Button>
             </div>

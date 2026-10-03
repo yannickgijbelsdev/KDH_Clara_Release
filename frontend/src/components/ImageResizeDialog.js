@@ -91,7 +91,7 @@ const ImageResizeDialog = ({ file, open, onClose, onResized }) => {
                   {result ? (
                     <CheckCircle className="w-4 h-4 text-emerald-400" />
                   ) : (
-                    <Loader2 className="w-4 h-4 animate-spin text-orange-400" />
+                    <Loader2 className="w-4 h-4 animate-spin text-rose-500" />
                   )}
                   {result ? 'Done!' : 'Resizing...'}
                 </span>
@@ -100,7 +100,7 @@ const ImageResizeDialog = ({ file, open, onClose, onResized }) => {
               <div className="h-2 bg-zinc-100 rounded-full overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-300 ${
-                    result ? 'bg-emerald-500' : 'bg-orange-500'
+                    result ? 'bg-emerald-500' : 'bg-[#7380b6]'
                   }`}
                   style={{ width: `${progress}%` }}
                 />
@@ -130,7 +130,7 @@ const ImageResizeDialog = ({ file, open, onClose, onResized }) => {
               </Button>
               <Button
                 onClick={handleResize}
-                className="bg-orange-500 hover:bg-orange-600 text-white gap-2"
+                className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white gap-2"
                 data-testid="resize-confirm-btn"
               >
                 <ImageDown className="w-4 h-4" />

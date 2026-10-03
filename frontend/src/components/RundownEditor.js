@@ -366,7 +366,7 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
                 <Button
                   data-testid="add-rundown-item-btn"
                   onClick={handleAddItem}
-                  className="ml-1 bg-orange-500 hover:bg-orange-600 text-white rounded-full px-4 gap-1.5 text-sm shadow-lg shadow-orange-500/20"
+                  className="ml-1 bg-[#7380b6] hover:bg-[#5f6ca3] text-white rounded-full px-4 gap-1.5 text-sm shadow-lg shadow-[#7380b6]/20"
                 >
                   <Plus className="w-3.5 h-3.5" /> Add Item
                 </Button>
@@ -557,7 +557,7 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
                     <p className="text-sm text-zinc-700 truncate">{u.name}</p>
                     <p className="text-[10px] text-zinc-500 truncate">{u.email}</p>
                   </div>
-                  {isPresenter && <span className="text-[10px] px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-400">Presenter</span>}
+                  {isPresenter && <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#7380b6]/20 text-rose-500">Presenter</span>}
                   {isMember && <div className="w-2 h-2 rounded-full bg-violet-500" />}
                 </div>
               );

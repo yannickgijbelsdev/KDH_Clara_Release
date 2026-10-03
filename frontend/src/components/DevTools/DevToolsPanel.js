@@ -48,7 +48,7 @@ export default function DevToolsPanel() {
       {!panelOpen && (
         <button
           onClick={() => setPanelOpen(true)}
-          className="fixed bottom-4 right-4 z-[9999] w-10 h-10 rounded-full bg-orange-600 text-white flex items-center justify-center shadow-2xl hover:bg-orange-500 transition-all"
+          className="fixed bottom-4 right-4 z-[9999] w-10 h-10 rounded-full bg-[#7380b6] text-white flex items-center justify-center shadow-2xl hover:bg-[#7380b6] transition-all"
           data-testid="devtools-toggle"
         >
           <Activity className="w-5 h-5" />
@@ -69,9 +69,9 @@ export default function DevToolsPanel() {
           {/* Header */}
           <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-200 bg-white/60 rounded-t-2xl">
             <div className="flex items-center gap-2">
-              <Activity className="w-3.5 h-3.5 text-orange-500" />
-              <span className="text-xs font-bold text-orange-400">DevTools</span>
-              <span className="text-[10px] bg-orange-500/20 text-orange-400 px-1.5 py-0.5 rounded-full">CLONE</span>
+              <Activity className="w-3.5 h-3.5 text-rose-600" />
+              <span className="text-xs font-bold text-rose-500">DevTools</span>
+              <span className="text-[10px] bg-[#7380b6]/20 text-rose-500 px-1.5 py-0.5 rounded-full">CLONE</span>
             </div>
             <div className="flex items-center gap-1">
               <button
@@ -116,7 +116,7 @@ export default function DevToolsPanel() {
                 onClick={() => setPanelTab(tab.id)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all border-b-2 ${
                   panelTab === tab.id
-                    ? 'border-orange-500 text-orange-400'
+                    ? 'border-rose-600 text-rose-500'
                     : 'border-transparent text-zinc-500 hover:text-zinc-600'
                 }`}
                 data-testid={`devtools-tab-${tab.id}`}
@@ -341,7 +341,7 @@ function SnapshotsTabContent() {
       <button
         onClick={createSnapshot}
         disabled={creating}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium bg-orange-600 hover:bg-orange-700 text-white mb-3 disabled:opacity-50"
+        className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium bg-[#7380b6] hover:bg-[#5f6ca3] text-white mb-3 disabled:opacity-50"
         data-testid="devtools-create-snapshot"
       >
         <Camera className="w-3.5 h-3.5" />

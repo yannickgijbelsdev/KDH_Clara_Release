@@ -102,7 +102,7 @@ export default function HelpButton() {
           data-testid="help-button"
         >
           <div className="flex items-center gap-2 bg-white hover:bg-zinc-50 border border-zinc-200 hover:border-zinc-300 rounded-full pl-3 pr-4 py-2 shadow-xl transition-all">
-            <HelpCircle className="w-4 h-4 text-orange-400" />
+            <HelpCircle className="w-4 h-4 text-rose-500" />
             <span className="text-xs text-zinc-600 font-medium">Help</span>
           </div>
         </button>
@@ -119,7 +119,7 @@ export default function HelpButton() {
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-200">
               <div className="flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-orange-400" />
+                <AlertCircle className="w-4 h-4 text-rose-500" />
                 <span className="text-sm font-semibold">Report an Issue</span>
               </div>
               <button onClick={() => setOpen(false)} className="text-zinc-500 hover:text-zinc-900">
@@ -144,7 +144,7 @@ export default function HelpButton() {
                   value={title}
                   onChange={e => setTitle(e.target.value)}
                   placeholder="e.g. Can't save content item"
-                  className="w-full bg-white border border-zinc-300 rounded-lg px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-orange-500"
+                  className="w-full bg-white border border-zinc-300 rounded-lg px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-rose-600"
                   data-testid="ticket-title-input"
                   autoFocus
                 />
@@ -158,7 +158,7 @@ export default function HelpButton() {
                   onChange={e => setDescription(e.target.value)}
                   placeholder="What happened? What did you expect?"
                   rows={3}
-                  className="w-full bg-white border border-zinc-300 rounded-lg px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-orange-500 resize-none"
+                  className="w-full bg-white border border-zinc-300 rounded-lg px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-rose-600 resize-none"
                   data-testid="ticket-description-input"
                 />
               </div>
@@ -191,7 +191,7 @@ export default function HelpButton() {
                   {(getJourney() || []).slice(-6).map((step, i, arr) => (
                     <div key={i} className="flex items-center gap-1 flex-shrink-0">
                       <span className={`text-[10px] px-1.5 py-0.5 rounded ${
-                        i === arr.length - 1 ? 'bg-orange-500/20 text-orange-400' : 'bg-zinc-100 text-zinc-500'
+                        i === arr.length - 1 ? 'bg-[#7380b6]/20 text-rose-500' : 'bg-zinc-100 text-zinc-500'
                       }`}>
                         {step.name}
                       </span>
@@ -207,7 +207,7 @@ export default function HelpButton() {
               <Button
                 onClick={submit}
                 disabled={submitting || !title.trim() || !description.trim()}
-                className="gap-2 bg-orange-600 hover:bg-orange-700"
+                className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3]"
                 data-testid="ticket-submit-btn"
               >
                 {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}

@@ -84,7 +84,7 @@ export function ConnectionStatus({ testUrl, headers, autoCheck = true, label, cl
                 </ol>
                 {status.link && (
                   <a href={status.link} target="_blank" rel="noopener noreferrer"
-                    className="mt-2 inline-flex items-center gap-1 text-xs text-orange-400 hover:text-orange-300 transition-colors">
+                    className="mt-2 inline-flex items-center gap-1 text-xs text-rose-500 hover:text-rose-300 transition-colors">
                     <ExternalLink className="w-3 h-3" />
                     {status.link_label || 'Open link'}
                   </a>

@@ -27,11 +27,11 @@ const MODE_CONFIG = {
     label: 'Enterprise Support',
     description: 'Advanced technical troubleshooting, security settings, and site analytics.',
     icon: Sparkles,
-    color: 'from-orange-500 to-amber-600',
-    bgLight: 'bg-orange-50',
-    borderLight: 'border-orange-200',
-    textAccent: 'text-orange-600',
-    btnBg: 'bg-orange-600 hover:bg-orange-500',
+    color: 'from-rose-600 to-amber-600',
+    bgLight: 'bg-rose-50',
+    borderLight: 'border-rose-200',
+    textAccent: 'text-rose-700',
+    btnBg: 'bg-[#7380b6] hover:bg-[#7380b6]',
     heroImage: 'https://static.prod-images.emergentagent.com/jobs/701f0662-a1b9-4b1a-b3cd-31d39c15bdb0/images/7730c25377f309a5e6dec1f0b79bac42bd0469f1f04fe0e6cdde623dc5aa754e.png',
   },
 };
@@ -155,7 +155,7 @@ export default function EnterpriseAssistantPage() {
                     data-testid={`mode-select-${key}`}>
                     <div className="h-32 w-full overflow-hidden">
                       <img src={cfg.heroImage} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                      <div className={`absolute inset-0 h-32 bg-gradient-to-t ${key === 'code' ? 'from-violet-900/60' : 'from-orange-900/60'} to-transparent`} />
+                      <div className={`absolute inset-0 h-32 bg-gradient-to-t ${key === 'code' ? 'from-violet-900/60' : 'from-rose-900/60'} to-transparent`} />
                     </div>
                     <div className="p-5">
                       <div className="flex items-center gap-2.5 mb-2">
@@ -177,7 +177,7 @@ export default function EnterpriseAssistantPage() {
                   {sessions.slice(0, 5).map(s => (
                     <button key={s.session_id} onClick={() => loadSession(s.session_id)}
                       className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-zinc-50 transition-colors text-left">
-                      <div className={`w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 ${s.mode === 'code' ? 'bg-violet-100 text-violet-500' : 'bg-orange-100 text-orange-500'}`}>
+                      <div className={`w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 ${s.mode === 'code' ? 'bg-violet-100 text-violet-500' : 'bg-rose-100 text-rose-600'}`}>
                         {s.mode === 'code' ? <Code2 className="w-3 h-3" /> : <Sparkles className="w-3 h-3" />}
                       </div>
                       <span className="text-sm text-zinc-600 truncate flex-1">{s.title}</span>

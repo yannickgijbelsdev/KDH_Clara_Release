@@ -123,7 +123,7 @@ const TimeWindowEditor = ({ windows, onChange }) => {
                 onClick={() => toggleDay(index, dayIndex)}
                 className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
                   (window.days || []).includes(dayIndex)
-                    ? 'bg-orange-500 text-white'
+                    ? 'bg-[#7380b6] text-white'
                     : 'bg-zinc-200 text-zinc-400 hover:bg-zinc-200'
                 }`}
               >
@@ -335,7 +335,7 @@ const TriggerDialog = ({ isOpen, onClose, trigger, onSave, stations = [] }) => {
       <DialogContent className="bg-white border-zinc-200 max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-zinc-900 flex items-center gap-2">
-            <Volume2 className="w-5 h-5 text-orange-400" />
+            <Volume2 className="w-5 h-5 text-rose-500" />
             {trigger ? 'Edit Audio Trigger' : 'Create Audio Trigger'}
           </DialogTitle>
         </DialogHeader>
@@ -527,7 +527,7 @@ const TriggerDialog = ({ isOpen, onClose, trigger, onSave, stations = [] }) => {
             <Button
               onClick={handleSave}
               disabled={saving}
-              className="bg-orange-500 hover:bg-orange-600 text-white"
+              className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               {trigger ? 'Save Changes' : 'Create Trigger'}
@@ -684,7 +684,7 @@ const AudioTriggersPage = () => {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-zinc-900 flex items-center gap-3">
-            <Volume2 className="w-7 h-7 text-orange-400" />
+            <Volume2 className="w-7 h-7 text-rose-500" />
             Audio Triggers
           </h1>
           <p className="text-zinc-400 mt-1">
@@ -705,7 +705,7 @@ const AudioTriggersPage = () => {
               setEditingTrigger(null);
               setDialogOpen(true);
             }}
-            className="bg-orange-500 hover:bg-orange-600 text-white"
+            className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
           >
             <Plus className="w-4 h-4 mr-2" />
             New Audio Trigger

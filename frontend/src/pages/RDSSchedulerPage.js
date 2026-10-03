@@ -288,7 +288,7 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation, st
           <Button variant="outline" onClick={onClose} className="border-zinc-300 text-zinc-600">
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={saving} className="bg-orange-500 hover:bg-orange-600 text-white">
+          <Button onClick={handleSave} disabled={saving} className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white">
             {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
             Save
           </Button>
@@ -335,7 +335,7 @@ const CalendarDay = ({ date, items, isCurrentMonth, onItemClick, onAddClick }) =
             if (item.station === 'both') {
               colorClass = 'bg-green-500/20 text-green-300';
             } else if (item.station === 'mfy') {
-              colorClass = 'bg-orange-500/20 text-orange-300';
+              colorClass = 'bg-[#7380b6]/20 text-rose-300';
             } else {
               colorClass = 'bg-violet-500/20 text-violet-300';
             }
@@ -495,7 +495,7 @@ const RDSSchedulerPage = () => {
     <div data-testid="rds-scheduler-page">
       {/* Toolbar */}
       <div className="flex items-center justify-end mb-6">
-        <Button onClick={() => handleAddClick(new Date())} className="bg-orange-500 hover:bg-orange-600 text-white gap-2 h-10 sm:h-11 px-4 sm:px-5 btn-primary">
+        <Button onClick={() => handleAddClick(new Date())} className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white gap-2 h-10 sm:h-11 px-4 sm:px-5 btn-primary">
           <Plus className="w-5 h-5" />
           New Text
         </Button>
@@ -548,7 +548,7 @@ const RDSSchedulerPage = () => {
               className={station === st.code
                 ? 'text-white'
                 : 'border-zinc-300 text-zinc-400 hover:text-zinc-700'}
-              style={station === st.code ? { backgroundColor: st.color || '#dd0c51' } : {}}
+              style={station === st.code ? { backgroundColor: st.color || '#7380b6' } : {}}
             >
               <Radio className="w-4 h-4 mr-2" />
               {st.name}
@@ -591,7 +591,7 @@ const RDSSchedulerPage = () => {
         <div className="flex flex-wrap items-center gap-3 sm:gap-6 mt-4 sm:mt-6 pt-4 border-t border-zinc-200">
           <span className="text-xs text-zinc-500">Status:</span>
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-orange-500" />
+            <div className="w-2 h-2 rounded-full bg-[#7380b6]" />
             <span className="text-xs text-zinc-400">Radio MFY</span>
           </div>
           <div className="flex items-center gap-2">

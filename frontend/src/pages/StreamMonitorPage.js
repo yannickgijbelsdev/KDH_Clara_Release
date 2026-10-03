@@ -46,7 +46,7 @@ const VUMeter = ({ isPlaying, color }) => {
   const peakDecayRef = useRef(0);
 
   const colorMap = {
-    orange: { primary: '#dd0c51', secondary: '#f05d8b' },
+    orange: { primary: '#7380b6', secondary: '#f05d8b' },
     violet: { primary: '#8b5cf6', secondary: '#a78bfa' },
     emerald: { primary: '#10b981', secondary: '#34d399' }
   };
@@ -272,10 +272,10 @@ const StreamPlayer = ({ stream }) => {
 
   const colorClasses = {
     orange: {
-      border: 'border-orange-500/30',
-      bg: 'bg-orange-500/10',
-      text: 'text-orange-400',
-      button: 'bg-orange-500 hover:bg-orange-600'
+      border: 'border-rose-600/30',
+      bg: 'bg-[#7380b6]/10',
+      text: 'text-rose-500',
+      button: 'bg-[#7380b6] hover:bg-[#5f6ca3]'
     },
     violet: {
       border: 'border-violet-500/30',

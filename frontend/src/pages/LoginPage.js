@@ -7,7 +7,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { toast } from 'sonner';
-import { Shield, ArrowLeft, KeyRound, Mail, Loader2, Radio, Code2, Newspaper, Cloud, Calendar, Sparkles, Globe, BarChart3, Activity, Mic2, Server, Shield as ShieldIcon, Gauge, Waves, ListChecks, FileCheck2, Lock, Search, Wand2, HeartPulse, FileText } from 'lucide-react';
+import { Shield, ArrowLeft, KeyRound, Mail, Loader2, Radio, Code2, Newspaper, Cloud, Calendar, Sparkles, Globe, BarChart3, Activity, Mic2, Server, Shield as ShieldIcon, Gauge, Waves, ListChecks, FileCheck2, Lock, Search, Wand2, HeartPulse, FileText, ChevronLeft } from 'lucide-react';
 import { getRedirectParam, createExchangeToken, buildAppRedirectUrl, fetchSubdomainConfig } from '../services/subdomainAuth';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -21,13 +21,13 @@ const ROOMS_IMG = '/images/clara_rooms.png'; // legacy hero fallback — kept fo
 
 import { Layers } from 'lucide-react';
 
-// Static brand background — CLR stripes on white
-const BRAND_BG = '/clara-login-bg.webp';
+// Static brand background — KOODH bears cosmic pattern
+const BRAND_BG = '/clara-login-bg-koodh.png';
 
 // Feature speech bubbles that pop up at fixed positions on the brand background.
 // Each bubble has a position (% from left/top) and a short description.
 const FEATURE_BUBBLES = [
-  { icon: Radio,      title: 'Radio Management',     desc: 'Live shows, RDS builder, stream monitor & scheduling — all in one place.',  top: '10%', left: '6%',  accent: '#dd0c51' },
+  { icon: Radio,      title: 'Radio Management',     desc: 'Live shows, RDS builder, stream monitor & scheduling — all in one place.',  top: '10%', left: '6%',  accent: '#7380b6' },
   { icon: Calendar,   title: 'Smart Scheduling',     desc: 'Clara Tasks with Google Calendar sync, approval flows & a kanban board.', top: '8%',  left: '40%', accent: '#7c1ac8' },
   { icon: Waves,      title: 'RDS Builder',          desc: 'Compose station name, PS, RT+ and traffic flags — pushed live to your encoder.', top: '24%', left: '64%', accent: '#ef4444' },
   { icon: FileText,   title: 'Content Library',      desc: 'Articles, social posts and shows in one editorial workspace with audit trails.', top: '36%', left: '8%', accent: '#0ea5e9' },
@@ -152,12 +152,12 @@ const LoginPage = () => {
 
   return (
     <div
-      className="min-h-screen flex relative overflow-hidden bg-[#F5F6F8]"
+      className="min-h-screen flex items-center justify-center relative overflow-hidden bg-[#F5F6F8] p-6"
       onMouseMove={handleMouseMove}
       data-testid="login-page"
     >
-      {/* Fullscreen brand background — CLR stripes on white */}
-      <div className="absolute inset-0 z-0 overflow-hidden bg-white" data-testid="login-hero-rooms">
+      {/* Fullscreen brand background — KOODH bears cosmic pattern */}
+      <div className="absolute inset-0 z-0 overflow-hidden bg-[#F5F6F8]" data-testid="login-hero-rooms">
         <img
           src={BRAND_BG}
           alt=""
@@ -172,65 +172,23 @@ const LoginPage = () => {
         />
       </div>
 
-      {/* Popping feature bubbles — hidden so the Clara bear illustration stays legible */}
-      <div className="hidden absolute inset-0 z-10 pointer-events-none">
-        {FEATURE_BUBBLES.map((b, idx) => {
-          const Icon = b.icon;
-          return (
-            <motion.div
-              key={b.title}
-              initial={{ opacity: 0, y: 12, scale: 0.94 }}
-              animate={{ opacity: 1, y: [0, -6, 0], scale: 1 }}
-              transition={{
-                opacity: { duration: 0.6, delay: idx * 0.18, ease: 'easeOut' },
-                scale:   { duration: 0.6, delay: idx * 0.18, ease: 'easeOut' },
-                y:       { duration: 4 + idx * 0.4, repeat: Infinity, ease: 'easeInOut', delay: idx * 0.3 },
-              }}
-              className="absolute max-w-[280px] pointer-events-auto"
-              style={{ top: b.top, left: b.left, willChange: 'opacity, transform' }}
-            >
-              <div className="relative bg-white/95 backdrop-blur-md rounded-2xl border border-zinc-200 px-4 py-3 shadow-[0_12px_32px_rgba(0,0,0,0.12)]">
-                <div className="flex items-start gap-3">
-                  <span
-                    className="inline-flex items-center justify-center w-8 h-8 rounded-xl flex-shrink-0"
-                    style={{ backgroundColor: `${b.accent}15`, color: b.accent }}
-                  >
-                    <Icon className="w-4 h-4" strokeWidth={2.4} />
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-[13px] font-bold text-zinc-900 leading-tight">{b.title}</p>
-                    <p className="text-[11px] text-zinc-600 leading-snug mt-1">{b.desc}</p>
-                  </div>
-                </div>
-                {/* Speech-bubble tail */}
-                <div className="absolute -bottom-2 left-6 w-3 h-3 rotate-45 bg-white/95 border-r border-b border-zinc-200" />
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
-
       {/* Legacy fallback reference (not rendered) */}
       {false && <img src={ROOMS_IMG} alt="" style={{ display: 'none' }} />}
 
-      {/* Right side: login form */}
-      <div className="relative z-10 w-full lg:w-[460px] xl:w-[500px] flex flex-col items-center justify-center p-8 lg:p-12 bg-white border-l border-slate-200/60">
+      {/* Centered login card */}
+      <div className="relative z-10 w-full max-w-[440px] bg-white rounded-3xl shadow-[0_30px_80px_rgba(15,23,42,0.18)] p-8 sm:p-10" data-testid="login-card">
 
-        <div className="w-full max-w-[380px] flex flex-col items-center">
+        <div className="w-full flex flex-col items-center">
           {/* Logo — Clara Campaigns chevron + divider + wordmark (horizontal lockup) */}
-          <div className="mb-10 flex items-center gap-3" data-testid="login-logo-wrapper">
+          <div className="mb-6 flex items-center gap-3" data-testid="login-logo-wrapper">
             <img
               src="/clara-chevron.png"
               alt="Clara"
-              className="h-9 w-9 object-contain"
+              className="h-7 w-auto object-contain"
               data-testid="login-chevron"
             />
-            <div className="h-7 w-px bg-slate-200" />
-            {logoUrl ? (
-              <img src={logoUrl} alt={platformName} className="h-7 object-contain" data-testid="login-logo" />
-            ) : (
-              <span className="font-display text-xl font-bold text-slate-900 tracking-tight whitespace-nowrap" data-testid="login-logo-text">{platformName}</span>
-            )}
+            <div className="h-6 w-px bg-slate-300" />
+            <span className="font-display text-lg font-bold text-slate-900 tracking-tight whitespace-nowrap" data-testid="login-logo-text">{platformName}</span>
           </div>
 
           <div className="w-full">

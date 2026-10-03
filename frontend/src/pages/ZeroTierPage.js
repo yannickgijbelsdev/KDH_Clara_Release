@@ -414,7 +414,7 @@ const ZeroTierPage = () => {
           <Button
             onClick={handleSaveConfig}
             disabled={savingConfig}
-            className="bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/20"
+            className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white shadow-lg shadow-[#7380b6]/20"
             data-testid="zt-save-config"
           >
             <Save className="w-4 h-4 mr-1" /> {savingConfig ? 'Saving...' : 'Save Configuration'}
@@ -754,7 +754,7 @@ const ZeroTierPage = () => {
                           ) : (
                             <Button
                               size="sm"
-                              className="bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/20"
+                              className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white shadow-lg shadow-[#7380b6]/20"
                               onClick={(e) => { e.stopPropagation(); handleAuthorize(selectedMember.id, true); }}
                               data-testid="zt-auth-btn"
                             >

@@ -111,7 +111,7 @@ export default function DiscoveryTokensPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7c1ac8] to-[#dd0c51] flex items-center justify-center text-white shadow-sm">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7c1ac8] to-[#7380b6] flex items-center justify-center text-white shadow-sm">
               <Radar className="w-5 h-5" />
             </div>
             <div>

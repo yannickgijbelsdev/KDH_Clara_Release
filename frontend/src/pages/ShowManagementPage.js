@@ -359,7 +359,7 @@ const ShowManagementPage = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-rose-600" />
       </div>
     );
   }
@@ -380,7 +380,7 @@ const ShowManagementPage = () => {
         <TabsList className="bg-zinc-100 border border-zinc-200 p-1">
           <TabsTrigger 
             value="titles" 
-            className="data-[state=active]:bg-orange-500 data-[state=active]:text-white"
+            className="data-[state=active]:bg-[#7380b6] data-[state=active]:text-white"
           >
             <Radio className="w-4 h-4 mr-2" />
             Show Titles ({showTitles.length})
@@ -405,7 +405,7 @@ const ShowManagementPage = () => {
               <Button
                 data-testid="add-title-btn"
                 onClick={openCreateTitleDialog}
-                className="gap-2 bg-orange-500 hover:bg-orange-600 text-white"
+                className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
               >
                 <Plus className="w-4 h-4" />
                 Add Title
@@ -417,7 +417,7 @@ const ShowManagementPage = () => {
                 <Radio className="w-16 h-16 mx-auto mb-4 opacity-30" />
                 <p className="text-lg">No show titles yet</p>
                 <p className="text-sm mb-4">Add titles that DJs can select when creating shows</p>
-                <Button onClick={openCreateTitleDialog} className="bg-orange-500 hover:bg-orange-600">
+                <Button onClick={openCreateTitleDialog} className="bg-[#7380b6] hover:bg-[#5f6ca3]">
                   <Plus className="w-4 h-4 mr-2" />
                   Add First Title
                 </Button>
@@ -431,7 +431,7 @@ const ShowManagementPage = () => {
                   >
                     <div className="flex items-center gap-4">
                       {/* Show Image or Icon */}
-                      <div className="w-16 h-16 rounded-lg bg-orange-500/20 flex items-center justify-center overflow-hidden flex-shrink-0">
+                      <div className="w-16 h-16 rounded-lg bg-[#7380b6]/20 flex items-center justify-center overflow-hidden flex-shrink-0">
                         {title.image ? (
                           <img
                             src={getImageUrl(title.image)}
@@ -439,7 +439,7 @@ const ShowManagementPage = () => {
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <Radio className="w-8 h-8 text-orange-500" />
+                          <Radio className="w-8 h-8 text-rose-600" />
                         )}
                       </div>
                       <div>
@@ -449,7 +449,7 @@ const ShowManagementPage = () => {
                             <span className="truncate max-w-[300px]">{title.description}</span>
                           )}
                           {title.default_start_time && title.default_end_time && (
-                            <span className="flex items-center gap-1 text-orange-400">
+                            <span className="flex items-center gap-1 text-rose-500">
                               <Clock className="w-3.5 h-3.5" />
                               {title.default_start_time} - {title.default_end_time}
                             </span>
@@ -472,7 +472,7 @@ const ShowManagementPage = () => {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="text-zinc-400 hover:text-orange-500 hover:bg-orange-500/10"
+                            className="text-zinc-400 hover:text-rose-600 hover:bg-[#7380b6]/10"
                           >
                             <Image className="w-4 h-4" />
                           </Button>
@@ -491,7 +491,7 @@ const ShowManagementPage = () => {
                           {title.image && (
                             <DropdownMenuItem
                               onClick={() => handleRemoveImage(title.id)}
-                              className="text-orange-500"
+                              className="text-rose-600"
                             >
                               <X className="w-4 h-4 mr-2" />
                               Remove Image
@@ -504,7 +504,7 @@ const ShowManagementPage = () => {
                         variant="ghost"
                         size="icon"
                         onClick={() => openEditTitleDialog(title)}
-                        className="text-zinc-400 hover:text-orange-500 hover:bg-orange-500/10"
+                        className="text-zinc-400 hover:text-rose-600 hover:bg-[#7380b6]/10"
                       >
                         <Edit2 className="w-4 h-4" />
                       </Button>
@@ -821,7 +821,7 @@ const ShowManagementPage = () => {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteTitle}
-              className="bg-orange-500 hover:bg-orange-600 text-white"
+              className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
             >
               Delete
             </AlertDialogAction>
@@ -845,7 +845,7 @@ const ShowManagementPage = () => {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteStudio}
-              className="bg-orange-500 hover:bg-orange-600 text-white"
+              className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
             >
               Delete
             </AlertDialogAction>

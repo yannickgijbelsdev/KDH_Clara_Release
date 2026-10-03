@@ -125,7 +125,7 @@ export default function PermissionAuditPanel({ token, onClose, inline = false })
                 value={stats?.top_blocked_features?.[0]?.feature || '-'}
                 sub={stats?.top_blocked_features?.[0] ? `${stats.top_blocked_features[0].action} (${stats.top_blocked_features[0].count}x)` : ''}
                 icon={AlertTriangle}
-                color="text-orange-400"
+                color="text-rose-500"
               />
             </div>
 

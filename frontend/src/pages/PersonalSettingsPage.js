@@ -65,7 +65,7 @@ const PersonalSettingsPage = () => {
       {/* Header */}
       <div className="mb-6 sm:mb-8">
         <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 mb-1 sm:mb-2 flex items-center gap-3">
-          <Settings className="w-8 h-8 text-orange-400" />
+          <Settings className="w-8 h-8 text-rose-500" />
           Personal Settings
         </h1>
         <p className="text-sm sm:text-base text-zinc-400">
@@ -76,18 +76,18 @@ const PersonalSettingsPage = () => {
       {/* Profile Section */}
       <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-6">
         <h2 className="text-lg font-semibold text-zinc-900 mb-4 flex items-center gap-2">
-          <User className="w-5 h-5 text-orange-400" />
+          <User className="w-5 h-5 text-rose-500" />
           Profile
         </h2>
         
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-bold text-2xl">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-rose-600 to-amber-600 flex items-center justify-center text-white font-bold text-2xl">
             {user?.name?.charAt(0).toUpperCase()}
           </div>
           <div>
             <p className="text-lg font-semibold text-zinc-900">{user?.name}</p>
             <p className="text-zinc-400">{user?.email}</p>
-            <p className="text-sm text-orange-400 capitalize">{user?.role}</p>
+            <p className="text-sm text-rose-500 capitalize">{user?.role}</p>
           </div>
         </div>
       </div>
@@ -95,7 +95,7 @@ const PersonalSettingsPage = () => {
       {/* Security Section */}
       <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-6">
         <h2 className="text-lg font-semibold text-zinc-900 mb-4 flex items-center gap-2">
-          <Shield className="w-5 h-5 text-orange-400" />
+          <Shield className="w-5 h-5 text-rose-500" />
           Beveiliging
         </h2>
         
@@ -105,7 +105,7 @@ const PersonalSettingsPage = () => {
       {/* App Install Prompt */}
       <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-6">
         <h2 className="text-lg font-semibold text-zinc-900 mb-4 flex items-center gap-2">
-          <Smartphone className="w-5 h-5 text-orange-400" />
+          <Smartphone className="w-5 h-5 text-rose-500" />
           Install App Prompt
         </h2>
         <div className="flex items-center justify-between">
@@ -118,7 +118,7 @@ const PersonalSettingsPage = () => {
           <Switch
             checked={preferences.show_pwa_prompt}
             onCheckedChange={(checked) => setPreferences(prev => ({ ...prev, show_pwa_prompt: checked }))}
-            className="data-[state=checked]:bg-orange-500"
+            className="data-[state=checked]:bg-[#7380b6]"
             data-testid="pwa-prompt-toggle"
           />
         </div>
@@ -127,7 +127,7 @@ const PersonalSettingsPage = () => {
       {/* Clara Login Scan */}
       <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-6">
         <h2 className="text-lg font-semibold text-zinc-900 mb-4 flex items-center gap-2">
-          <ScanSearch className="w-5 h-5 text-orange-400" />
+          <ScanSearch className="w-5 h-5 text-rose-500" />
           Clara System Scan
         </h2>
         <div className="flex items-center justify-between">
@@ -140,7 +140,7 @@ const PersonalSettingsPage = () => {
           <Switch
             checked={preferences.show_login_scan}
             onCheckedChange={(checked) => setPreferences(prev => ({ ...prev, show_login_scan: checked }))}
-            className="data-[state=checked]:bg-orange-500"
+            className="data-[state=checked]:bg-[#7380b6]"
             data-testid="login-scan-toggle"
           />
         </div>
@@ -151,7 +151,7 @@ const PersonalSettingsPage = () => {
         <Button
           onClick={handleSave}
           disabled={saving}
-          className="bg-orange-500 hover:bg-orange-600 text-white gap-2 px-6"
+          className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white gap-2 px-6"
         >
           {saving ? (
             <>

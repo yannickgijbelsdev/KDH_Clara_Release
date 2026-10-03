@@ -401,7 +401,7 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
         <DialogContent className="bg-white border-zinc-200 max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <KeyRound className="w-5 h-5 text-orange-500" />
+              <KeyRound className="w-5 h-5 text-rose-600" />
               Backup codes
             </DialogTitle>
             <DialogDescription>

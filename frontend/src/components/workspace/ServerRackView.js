@@ -11,7 +11,7 @@ import { Button } from '../../components/ui/button';
 import RackFirewallPanel from './RackFirewallPanel';
 
 const SITE_TYPE_CONFIG = {
-  radio:          { icon: Radio,        color: '#dd0c51', label: 'Radio' },
+  radio:          { icon: Radio,        color: '#7380b6', label: 'Radio' },
   server:         { icon: HardDrive,    color: '#3b82f6', label: 'Datacenter' },
   technical:      { icon: Network,      color: '#10b981', label: 'Data Conn.' },
   task_scheduler: { icon: LayoutGrid,   color: '#8b5cf6', label: 'Tasks' },
@@ -52,7 +52,7 @@ const ServerRack3D = ({ rackIndex, sites, isSelected, onClick, width = 320, fire
       <div
         className={`relative rounded-2xl overflow-hidden transition-all duration-300 border ${
           isSelected
-            ? 'border-orange-300 shadow-[0_8px_40px_rgba(221,12,81,0.15)] scale-[1.03]'
+            ? 'border-rose-300 shadow-[0_8px_40px_rgba(221,12,81,0.15)] scale-[1.03]'
             : 'border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)] group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] group-hover:scale-[1.02]'
         }`}
         style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}
@@ -155,7 +155,7 @@ const ServerRack3D = ({ rackIndex, sites, isSelected, onClick, width = 320, fire
       {isSelected && (
         <motion.div
           layoutId="rack-select-bar"
-          className="absolute -bottom-2 left-1/2 -translate-x-1/2 h-1 w-12 rounded-full bg-orange-500"
+          className="absolute -bottom-2 left-1/2 -translate-x-1/2 h-1 w-12 rounded-full bg-[#7380b6]"
           style={{ boxShadow: '0 0 12px rgba(221,12,81,0.5)' }}
         />
       )}
@@ -361,7 +361,7 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
                 <button
                   key={i}
                   onClick={() => setCarouselPage(i)}
-                  className={`w-2 h-2 rounded-full transition-colors ${i === carouselPage ? 'bg-orange-500' : 'bg-zinc-300 hover:bg-zinc-400'}`}
+                  className={`w-2 h-2 rounded-full transition-colors ${i === carouselPage ? 'bg-[#7380b6]' : 'bg-zinc-300 hover:bg-zinc-400'}`}
                 />
               ))}
             </div>
@@ -415,7 +415,7 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
                           className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
                             allOn
                               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200'
-                              : 'bg-orange-500 text-white shadow-lg shadow-orange-500/20 hover:bg-orange-600'
+                              : 'bg-[#7380b6] text-white shadow-lg shadow-[#7380b6]/20 hover:bg-[#7380b6]'
                           }`}
                           data-testid="rack-firewall-toggle-btn"
                         >
@@ -496,7 +496,7 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
                   <div className="px-5 py-2.5 border-t border-black/[0.05] flex justify-center flex-shrink-0">
                     <div className="flex gap-1.5">
                       {racks.map((_, i) => (
-                        <button key={i} onClick={(e) => { e.stopPropagation(); setSelectedRack(i); }} className={`h-2 rounded-full transition-all ${selectedRack === i ? 'bg-orange-500 w-6' : 'bg-zinc-300 hover:bg-zinc-400 w-2'}`} />
+                        <button key={i} onClick={(e) => { e.stopPropagation(); setSelectedRack(i); }} className={`h-2 rounded-full transition-all ${selectedRack === i ? 'bg-[#7380b6] w-6' : 'bg-zinc-300 hover:bg-zinc-400 w-2'}`} />
                       ))}
                     </div>
                   </div>
@@ -518,13 +518,13 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
           <div className="flex-1" />
           <motion.div
             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.4 }}
-            className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-3.5 flex items-center gap-3"
+            className="bg-white rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-3.5 flex items-center gap-3"
             data-testid="panel-status"
           >
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" style={{ boxShadow: '0 0 8px rgba(34,197,94,0.5)' }} />
             <span className="text-sm font-medium text-zinc-700">All systems operational</span>
             <div className="w-px h-5 bg-black/[0.06]" />
-            <Zap className="w-4 h-4 text-orange-500" />
+            <Zap className="w-4 h-4 text-rose-600" />
             <span className="text-sm font-bold text-zinc-900">{sites.length}/{sites.length}</span>
           </motion.div>
         </div>

@@ -74,7 +74,7 @@ export default function XmlUpload() {
         onDrop={handleDrop}
         className={`relative border-2 border-dashed rounded-xl p-12 text-center transition-all cursor-pointer ${
           isDragging
-            ? 'border-orange-500 bg-orange-500/5'
+            ? 'border-rose-600 bg-rose-600/5'
             : 'border-zinc-300 bg-white/60 hover:border-zinc-600 hover:bg-zinc-100/30'
         }`}
         data-testid="xml-dropzone"
@@ -88,10 +88,10 @@ export default function XmlUpload() {
         />
         <div className="flex flex-col items-center gap-4">
           {uploading ? (
-            <Loader2 className="w-12 h-12 text-orange-500 animate-spin" />
+            <Loader2 className="w-12 h-12 text-rose-600 animate-spin" />
           ) : (
             <div className="p-4 rounded-full bg-zinc-200 border border-zinc-300">
-              <Upload className={`w-8 h-8 ${isDragging ? 'text-orange-500' : 'text-zinc-500'}`} />
+              <Upload className={`w-8 h-8 ${isDragging ? 'text-rose-600' : 'text-zinc-500'}`} />
             </div>
           )}
           <div>

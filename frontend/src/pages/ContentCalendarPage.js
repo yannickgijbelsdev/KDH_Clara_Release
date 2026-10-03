@@ -83,7 +83,7 @@ const stationBadge = (stationCode, stations) => {
 
 const statusColors = {
   published: 'bg-green-500',
-  scheduled: 'bg-orange-500',
+  scheduled: 'bg-rose-600',
   draft: 'bg-zinc-500',
 };
 
@@ -358,7 +358,7 @@ const ContentCalendarPage = () => {
                     className={`
                       aspect-square p-1 rounded-lg transition-all duration-200 relative
                       ${isCurrentMonth ? 'bg-zinc-100' : 'bg-zinc-50'}
-                      ${isSelected ? 'ring-2 ring-orange-500 bg-orange-500/10' : ''}
+                      ${isSelected ? 'ring-2 ring-rose-600 bg-rose-600/10' : ''}
                       ${dayIsToday && !isSelected ? 'ring-2 ring-violet-500' : ''}
                       hover:bg-zinc-200
                     `}
@@ -416,7 +416,7 @@ const ContentCalendarPage = () => {
               <span className="text-xs text-zinc-400">Published</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-orange-500" />
+              <div className="w-2 h-2 rounded-full bg-rose-600" />
               <span className="text-xs text-zinc-400">Scheduled</span>
             </div>
             {stations.length > 0 && (
@@ -448,8 +448,8 @@ const ContentCalendarPage = () => {
       <div className="w-full lg:w-80 lg:shrink-0">
         <div className="bg-white border border-zinc-200 rounded-xl p-4 sm:p-6 lg:sticky lg:top-8">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-orange-500/20 rounded-lg">
-              <CalendarIcon className="w-5 h-5 text-orange-500" />
+            <div className="p-2 bg-rose-600/20 rounded-lg">
+              <CalendarIcon className="w-5 h-5 text-rose-600" />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-zinc-900">
@@ -506,7 +506,7 @@ const ContentCalendarPage = () => {
                             {entry.status === 'published' ? (
                               <CheckCircle className="w-3 h-3 text-green-400" />
                             ) : (
-                              <Timer className="w-3 h-3 text-orange-400" />
+                              <Timer className="w-3 h-3 text-rose-500" />
                             )}
                             <span>{entry.time}</span>
                             <span className="mx-1 text-zinc-700">|</span>

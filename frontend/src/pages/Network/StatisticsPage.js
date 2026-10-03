@@ -118,7 +118,7 @@ export default function StatisticsPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F0F0F2] flex items-center justify-center">
-        <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
+        <Loader2 className="w-6 h-6 animate-spin text-rose-600" />
       </div>
     );
   }
@@ -158,7 +158,7 @@ export default function StatisticsPage() {
           <Button
             onClick={exportPDF}
             disabled={exporting}
-            className="gap-2 bg-orange-600 hover:bg-orange-700"
+            className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3]"
             data-testid="export-pdf-btn"
           >
             {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
@@ -387,7 +387,7 @@ export default function StatisticsPage() {
                           <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
                             i === 0 ? 'bg-amber-500/20 text-amber-400' :
                             i === 1 ? 'bg-zinc-400/20 text-zinc-600' :
-                            'bg-orange-500/20 text-orange-400'
+                            'bg-[#7380b6]/20 text-rose-500'
                           }`}>{i + 1}</span>
                         ) : (
                           <span className="text-zinc-600 text-xs pl-1.5">{i + 1}</span>
@@ -436,7 +436,7 @@ function AuthorAvatar({ author }) {
     return <img src={avatarSrc} alt="" className="w-8 h-8 rounded-full object-cover" />;
   }
   return (
-    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white text-xs font-bold">
+    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-600 to-amber-600 flex items-center justify-center text-white text-xs font-bold">
       {author.name?.charAt(0)?.toUpperCase() || '?'}
     </div>
   );

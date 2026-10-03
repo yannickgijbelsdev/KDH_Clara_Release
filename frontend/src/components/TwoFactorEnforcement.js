@@ -76,8 +76,8 @@ const TwoFactorEnforcement = ({ user, onComplete, onSkipped }) => {
       >
         <DialogHeader>
           <div className="flex items-center justify-center mb-4">
-            <div className="w-16 h-16 rounded-full bg-orange-500/10 flex items-center justify-center">
-              <ShieldAlert className="w-8 h-8 text-orange-400" />
+            <div className="w-16 h-16 rounded-full bg-[#7380b6]/10 flex items-center justify-center">
+              <ShieldAlert className="w-8 h-8 text-rose-500" />
             </div>
           </div>
           <DialogTitle className="text-center text-xl">
@@ -94,7 +94,7 @@ const TwoFactorEnforcement = ({ user, onComplete, onSkipped }) => {
         <div className="space-y-3 mt-2">
           <Button
             onClick={() => setShowSetup(true)}
-            className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white font-semibold gap-2"
+            className="w-full h-12 bg-[#7380b6] hover:bg-[#5f6ca3] text-white font-semibold gap-2"
             data-testid="2fa-setup-btn"
           >
             <Shield className="w-4 h-4" />

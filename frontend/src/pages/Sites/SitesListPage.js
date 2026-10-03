@@ -121,7 +121,7 @@ export default function SitesListPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-600"></div>
       </div>
     );
   }
@@ -131,7 +131,7 @@ export default function SitesListPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Globe className="h-8 w-8 text-orange-500" />
+          <Globe className="h-8 w-8 text-rose-600" />
           <div>
             <h1 className="text-2xl font-bold text-zinc-900">Sites</h1>
             <p className="text-sm text-zinc-400">Manage your public landing pages</p>
@@ -139,7 +139,7 @@ export default function SitesListPage() {
         </div>
         <Button 
           onClick={() => setShowCreateDialog(true)}
-          className="bg-orange-500 hover:bg-orange-600"
+          className="bg-[#7380b6] hover:bg-[#5f6ca3]"
         >
           <Plus className="h-4 w-4 mr-2" />
           New site
@@ -156,7 +156,7 @@ export default function SitesListPage() {
           </p>
           <Button 
             onClick={() => setShowCreateDialog(true)}
-            className="bg-orange-500 hover:bg-orange-600"
+            className="bg-[#7380b6] hover:bg-[#5f6ca3]"
           >
             <Plus className="h-4 w-4 mr-2" />
             Create site
@@ -192,7 +192,7 @@ export default function SitesListPage() {
                         }
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-orange-400 hover:text-orange-300 flex items-center gap-1"
+                        className="text-sm text-rose-500 hover:text-rose-300 flex items-center gap-1"
                       >
                         {mainSiteSlug ? `/${mainSiteSlug}/${site.slug}` : `/${site.slug}`}
                         <ExternalLink className="h-3 w-3" />
@@ -293,7 +293,7 @@ export default function SitesListPage() {
             <Button 
               onClick={createSite} 
               disabled={creating}
-              className="bg-orange-500 hover:bg-orange-600"
+              className="bg-[#7380b6] hover:bg-[#5f6ca3]"
             >
               {creating ? 'Creating...' : 'Create'}
             </Button>

@@ -23,11 +23,11 @@ export default function TicketUpdatePopup({ tickets, onClose, onOpenTicket }) {
         data-testid="ticket-update-popup"
       >
         <div className="bg-white rounded-2xl shadow-[0_15px_60px_rgba(0,0,0,0.12)] border border-zinc-200/60 overflow-hidden">
-          <div className="h-1 bg-gradient-to-r from-orange-400 to-amber-400" />
+          <div className="h-1 bg-gradient-to-r from-rose-500 to-amber-400" />
           <div className="p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <Bell className="w-4 h-4 text-orange-500" />
+                <Bell className="w-4 h-4 text-rose-600" />
                 <span className="text-sm font-bold text-zinc-900">Ticket Updates</span>
               </div>
               <button onClick={onClose} className="p-1 rounded-lg hover:bg-zinc-100" data-testid="close-ticket-popup">

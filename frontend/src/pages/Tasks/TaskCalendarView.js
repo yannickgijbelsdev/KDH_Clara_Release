@@ -6,14 +6,14 @@ import { ChevronLeft, ChevronRight, Flag } from 'lucide-react';
 const PRIORITY_DOT = {
   low: 'bg-zinc-400',
   medium: 'bg-blue-400',
-  high: 'bg-orange-400',
+  high: 'bg-rose-500',
   urgent: 'bg-red-400',
 };
 
 const PRIORITY_BG = {
   low: 'bg-zinc-500/15 border-zinc-500/30 text-zinc-600',
   medium: 'bg-blue-500/15 border-blue-500/30 text-blue-300',
-  high: 'bg-orange-500/15 border-orange-500/30 text-orange-300',
+  high: 'bg-rose-600/15 border-rose-600/30 text-rose-300',
   urgent: 'bg-red-500/15 border-red-500/30 text-red-300',
 };
 
@@ -102,9 +102,9 @@ function MonthView({ year, month, tasksByDate, onTaskClick }) {
             key={i}
             className={`min-h-[100px] border-b border-r border-zinc-200 p-1.5 ${outside ? 'bg-zinc-50' : 'bg-white'}`}
           >
-            <div className={`text-xs font-medium mb-1 ${isToday ? 'text-orange-400' : outside ? 'text-zinc-600' : 'text-zinc-400'}`}>
+            <div className={`text-xs font-medium mb-1 ${isToday ? 'text-rose-500' : outside ? 'text-zinc-600' : 'text-zinc-400'}`}>
               {isToday ? (
-                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-orange-500 text-white text-[11px] font-bold">{date.getDate()}</span>
+                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-rose-600 text-white text-[11px] font-bold">{date.getDate()}</span>
               ) : date.getDate()}
             </div>
             <div className="space-y-0.5">
@@ -134,12 +134,12 @@ function WeekView({ baseDate, tasksByDate, onTaskClick }) {
         const isToday = key === today;
         const dayTasks = tasksByDate[key] || [];
         return (
-          <div key={i} className={`rounded-xl border p-3 min-h-[200px] ${isToday ? 'border-orange-500/40 bg-orange-500/5' : 'border-zinc-200 bg-white/60'}`}>
+          <div key={i} className={`rounded-xl border p-3 min-h-[200px] ${isToday ? 'border-rose-600/40 bg-rose-600/5' : 'border-zinc-200 bg-white/60'}`}>
             <div className="text-center mb-3">
-              <div className={`text-[10px] font-semibold uppercase ${isToday ? 'text-orange-400' : 'text-zinc-500'}`}>
+              <div className={`text-[10px] font-semibold uppercase ${isToday ? 'text-rose-500' : 'text-zinc-500'}`}>
                 {DAY_LABELS[i]}
               </div>
-              <div className={`text-lg font-bold ${isToday ? 'text-orange-400' : 'text-zinc-600'}`}>
+              <div className={`text-lg font-bold ${isToday ? 'text-rose-500' : 'text-zinc-600'}`}>
                 {date.getDate()}
               </div>
               <div className="text-[10px] text-zinc-600">
@@ -247,7 +247,7 @@ export default function TaskCalendarView({ tasks, columns, onTaskClick }) {
           <div className="hidden md:flex items-center gap-3 text-[10px]">
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-zinc-400" /> Low</span>
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-400" /> Medium</span>
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-orange-400" /> High</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-rose-500" /> High</span>
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400" /> Urgent</span>
             {overdue.length > 0 && (
               <span className="text-red-400 font-semibold flex items-center gap-1">

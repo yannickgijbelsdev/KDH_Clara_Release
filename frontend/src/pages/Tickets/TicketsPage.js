@@ -79,7 +79,7 @@ function TicketList() {
             onClick={() => setFilter(s)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
               filter === s
-                ? 'bg-orange-600 text-white'
+                ? 'bg-[#7380b6] text-white'
                 : 'bg-zinc-100 text-zinc-600 border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-200'
             }`}
             data-testid={`filter-${s}`}
@@ -91,7 +91,7 @@ function TicketList() {
 
       {loading ? (
         <div className="flex justify-center py-16">
-          <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
+          <Loader2 className="w-6 h-6 animate-spin text-rose-600" />
         </div>
       ) : tickets.length === 0 ? (
         <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-16 text-center">
@@ -216,7 +216,7 @@ function TicketDetail({ ticketId }) {
   const isAdmin = user?.is_network_admin || false;
 
   if (loading) {
-    return <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-orange-500" /></div>;
+    return <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-rose-600" /></div>;
   }
   if (!ticket) {
     return <div className="text-center py-20 text-zinc-500 text-base">Ticket not found</div>;
@@ -267,7 +267,7 @@ function TicketDetail({ ticketId }) {
           {/* Original Description */}
           <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-5">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-9 h-9 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-400 text-sm font-bold">
+              <div className="w-9 h-9 rounded-full bg-[#7380b6]/20 flex items-center justify-center text-rose-500 text-sm font-bold">
                 {ticket.creator_name?.charAt(0)?.toUpperCase() || '?'}
               </div>
               <div>
@@ -320,13 +320,13 @@ function TicketDetail({ ticketId }) {
                 onChange={e => setMessage(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
                 placeholder="Type a reply..."
-                className="flex-1 bg-zinc-50 border border-zinc-200 rounded-xl px-5 py-3 text-base text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-orange-500"
+                className="flex-1 bg-zinc-50 border border-zinc-200 rounded-xl px-5 py-3 text-base text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-rose-600"
                 data-testid="reply-message-input"
               />
               <Button
                 onClick={sendMessage}
                 disabled={sending || !message.trim()}
-                className="bg-orange-600 hover:bg-orange-700 h-auto px-5"
+                className="bg-[#7380b6] hover:bg-[#5f6ca3] h-auto px-5"
                 data-testid="reply-send-btn"
               >
                 {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}

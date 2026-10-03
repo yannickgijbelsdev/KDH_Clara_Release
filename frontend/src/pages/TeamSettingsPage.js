@@ -449,8 +449,8 @@ const TeamSettingsPage = () => {
       <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-8">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-orange-500/20 rounded-lg">
-              <Building2 className="w-5 h-5 text-orange-500" />
+            <div className="p-2 bg-rose-600/20 rounded-lg">
+              <Building2 className="w-5 h-5 text-rose-600" />
             </div>
             <h2 className="text-lg font-semibold text-zinc-900">Site Information</h2>
           </div>
@@ -704,7 +704,7 @@ const TeamSettingsPage = () => {
                               setSelectedUser(member);
                               setDeleteDialogOpen(true);
                             }}
-                            className="text-orange-500 focus:text-orange-500"
+                            className="text-rose-600 focus:text-rose-600"
                           >
                             <Trash2 className="w-4 h-4 mr-2" />
                             Remove User

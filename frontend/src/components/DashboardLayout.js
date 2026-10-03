@@ -346,9 +346,9 @@ const DashboardLayout = () => {
       <span className={`
         ml-auto px-1.5 py-0.5 text-xs font-medium rounded-full min-w-[20px] text-center
         ${highlight 
-          ? 'bg-orange-500 text-white' 
+          ? 'bg-[#7380b6] text-white' 
           : isActive 
-            ? 'bg-orange-500/30 text-orange-300' 
+            ? 'bg-[#7380b6]/30 text-rose-300' 
             : 'bg-zinc-600 text-zinc-200'
         }
       `}>
@@ -392,7 +392,7 @@ const DashboardLayout = () => {
       <div className="min-h-screen bg-[#F0F0F2]">
         {/* Impersonation Banner */}
         {impersonating && (
-          <div className="fixed top-0 left-0 right-0 z-[60] bg-orange-500 text-white px-4 py-2">
+          <div className="fixed top-0 left-0 right-0 z-[60] bg-[#7380b6] text-white px-4 py-2">
             <div className="flex items-center justify-between max-w-screen-xl mx-auto">
               <div className="flex items-center gap-2 text-sm">
                 <ArrowLeftRight className="w-4 h-4" />
@@ -404,7 +404,7 @@ const DashboardLayout = () => {
                 size="sm"
                 variant="ghost"
                 onClick={handleExitImpersonation}
-                className="text-white hover:bg-orange-600 gap-2"
+                className="text-white hover:bg-[#7380b6] gap-2"
               >
                 <LogOut className="w-4 h-4" />
                 Return to {impersonating.name}
@@ -421,7 +421,7 @@ const DashboardLayout = () => {
                 <img src={brandingData.logo_url.startsWith('/') ? `${process.env.REACT_APP_BACKEND_URL}${brandingData.logo_url}` : brandingData.logo_url} alt={brandName} className="h-7 object-contain" />
               ) : (
                 <>
-                  <div className="p-2 bg-orange-500 rounded-lg">
+                  <div className="p-2 bg-[#7380b6] rounded-lg">
                     <span className="text-zinc-700 font-black text-sm">C</span>
                   </div>
                   <BrandLogo className="text-lg font-bold text-zinc-900" />
@@ -489,7 +489,7 @@ const DashboardLayout = () => {
                       defaultOpen={true}
                     >
                       <CollapsibleTrigger className="w-full">
-                        <div className="flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-orange-400">
+                        <div className="flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-rose-500">
                           <div className="flex items-center gap-2">
                             {currentSite.logo_url ? (
                               <img 
@@ -524,14 +524,14 @@ const DashboardLayout = () => {
                                 data-testid={`site-nav-${item.tab}`}
                                 className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all duration-200 text-left ${
                                   isActive
-                                    ? 'bg-orange-500/20 text-orange-400'
+                                    ? 'bg-[#7380b6]/20 text-rose-500'
                                     : 'text-zinc-400 hover:text-zinc-700 hover:bg-white/5'
                                 }`}
                               >
                                 <Icon className="w-4 h-4" />
                                 <span>{item.label}</span>
                                 {item.tab === 'submissions' && submissionCounts[currentSiteId] > 0 && (
-                                  <span className="ml-auto px-1.5 py-0.5 text-xs font-medium rounded-full min-w-[20px] text-center bg-orange-500 text-white">
+                                  <span className="ml-auto px-1.5 py-0.5 text-xs font-medium rounded-full min-w-[20px] text-center bg-[#7380b6] text-white">
                                     {submissionCounts[currentSiteId] > 99 ? '99+' : submissionCounts[currentSiteId]}
                                   </span>
                                 )}
@@ -557,7 +557,7 @@ const DashboardLayout = () => {
                       onOpenChange={() => toggleGroup(group.id)}
                     >
                       <CollapsibleTrigger className="w-full">
-                        <div className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors ${groupActive ? 'text-orange-400' : 'text-zinc-400 hover:text-zinc-700 hover:bg-white/5'}`}>
+                        <div className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors ${groupActive ? 'text-rose-500' : 'text-zinc-400 hover:text-zinc-700 hover:bg-white/5'}`}>
                           <div className="flex items-center gap-2">
                             <GroupIcon className="w-4 h-4" />
                             <span className="text-sm font-medium">{group.label}</span>
@@ -584,7 +584,7 @@ const DashboardLayout = () => {
                                 data-testid={`nav-${item.to.slice(1)}-link`}
                                 className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all duration-200 ${
                                   isActive
-                                    ? 'bg-orange-500/20 text-orange-400'
+                                    ? 'bg-[#7380b6]/20 text-rose-500'
                                     : 'text-zinc-400 hover:text-zinc-700 hover:bg-white/5'
                                 }`}
                               >
@@ -609,7 +609,7 @@ const DashboardLayout = () => {
                     <TooltipTrigger asChild>
                       <NavLink
                         to={sitesBasePath}
-                        className="w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-200 text-zinc-500 hover:text-orange-500 hover:bg-orange-500/10 mb-2"
+                        className="w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-200 text-zinc-500 hover:text-rose-600 hover:bg-[#7380b6]/10 mb-2"
                       >
                         <ArrowLeft className="w-5 h-5" />
                       </NavLink>
@@ -637,14 +637,14 @@ const DashboardLayout = () => {
                           className={`
                             w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-200 relative
                             ${isActive 
-                              ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30' 
-                              : 'text-zinc-500 hover:text-orange-500 hover:bg-orange-500/10'
+                              ? 'bg-[#7380b6] text-white shadow-lg shadow-[#7380b6]/30' 
+                              : 'text-zinc-500 hover:text-rose-600 hover:bg-[#7380b6]/10'
                             }
                           `}
                         >
                           <Icon className="w-5 h-5" />
                           {badgeCount > 0 && (
-                            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded-full bg-orange-500 text-white">
+                            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded-full bg-[#7380b6] text-white">
                               {badgeCount > 99 ? '99+' : badgeCount}
                             </span>
                           )}
@@ -673,8 +673,8 @@ const DashboardLayout = () => {
                           className={`
                             w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-200 relative
                             ${isActive 
-                              ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30' 
-                              : 'text-zinc-500 hover:text-orange-500 hover:bg-orange-500/10'
+                              ? 'bg-[#7380b6] text-white shadow-lg shadow-[#7380b6]/30' 
+                              : 'text-zinc-500 hover:text-rose-600 hover:bg-[#7380b6]/10'
                             }
                           `}
                         >
@@ -704,7 +704,7 @@ const DashboardLayout = () => {
                   variant="ghost"
                   size="icon"
                   data-testid="user-menu-btn"
-                  className={`${useGroupedMenu ? 'w-full justify-start gap-3 px-3 h-12' : 'w-11 h-11'} rounded-xl hover:bg-orange-500/10`}
+                  className={`${useGroupedMenu ? 'w-full justify-start gap-3 px-3 h-12' : 'w-11 h-11'} rounded-xl hover:bg-[#7380b6]/10`}
                 >
                   {getAvatarUrl(user) ? (
                     <img 
@@ -713,7 +713,7 @@ const DashboardLayout = () => {
                       className="w-9 h-9 rounded-full object-cover flex-shrink-0"
                     />
                   ) : (
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-rose-600 to-amber-600 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
                       {user?.name?.charAt(0).toUpperCase()}
                     </div>
                   )}
@@ -734,7 +734,7 @@ const DashboardLayout = () => {
                       className="w-10 h-10 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-rose-600 to-amber-600 flex items-center justify-center text-white font-semibold">
                       {user?.name?.charAt(0).toUpperCase()}
                     </div>
                   )}
@@ -791,7 +791,7 @@ const DashboardLayout = () => {
                 <DropdownMenuItem
                   data-testid="logout-btn"
                   onClick={handleLogout}
-                  className="text-orange-500 focus:text-orange-500 focus:bg-orange-500/10"
+                  className="text-rose-600 focus:text-rose-600 focus:bg-[#7380b6]/10"
                 >
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign out
@@ -817,7 +817,7 @@ const DashboardLayout = () => {
                   <img src={brandingData.logo_url.startsWith('/') ? `${process.env.REACT_APP_BACKEND_URL}${brandingData.logo_url}` : brandingData.logo_url} alt={brandName} className="h-7 object-contain" />
                 ) : (
                   <>
-                    <div className="p-2 bg-orange-500 rounded-lg">
+                    <div className="p-2 bg-[#7380b6] rounded-lg">
                       <span className="text-zinc-700 font-black text-sm">C</span>
                     </div>
                     <BrandLogo className="text-lg font-bold text-zinc-900" />
@@ -869,7 +869,7 @@ const DashboardLayout = () => {
                                 className={({ isActive }) =>
                                   `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                                     isActive
-                                      ? 'bg-orange-500/20 text-orange-500'
+                                      ? 'bg-[#7380b6]/20 text-rose-600'
                                       : 'text-zinc-400 hover:text-zinc-700 hover:bg-white/5'
                                   }`
                                 }
@@ -905,7 +905,7 @@ const DashboardLayout = () => {
                         className={({ isActive }) =>
                           `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                             isActive
-                              ? 'bg-orange-500/20 text-orange-500'
+                              ? 'bg-[#7380b6]/20 text-rose-600'
                               : 'text-zinc-400 hover:text-zinc-700 hover:bg-white/5'
                           }`
                         }
@@ -934,7 +934,7 @@ const DashboardLayout = () => {
                     className="w-10 h-10 rounded-full object-cover"
                   />
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-rose-600 to-amber-600 flex items-center justify-center text-white font-semibold">
                     {user?.name?.charAt(0).toUpperCase()}
                   </div>
                 )}
@@ -946,7 +946,7 @@ const DashboardLayout = () => {
               <Button
                 variant="ghost"
                 onClick={handleLogout}
-                className="w-full justify-start gap-2 text-orange-500 hover:text-orange-400 hover:bg-orange-500/10 mt-2"
+                className="w-full justify-start gap-2 text-rose-600 hover:text-rose-500 hover:bg-[#7380b6]/10 mt-2"
               >
                 <LogOut className="w-4 h-4" />
                 Sign out

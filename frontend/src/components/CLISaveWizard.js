@@ -48,7 +48,7 @@ export default function CLISaveWizard({ open, onClose }) {
       <DialogContent className="sm:max-w-md bg-white border-zinc-200 p-0 overflow-hidden [&>button]:hidden" data-testid="cli-save-wizard">
         <div className="h-1 bg-zinc-200">
           <div
-            className="h-full bg-orange-500 transition-all duration-700 ease-out"
+            className="h-full bg-rose-600 transition-all duration-700 ease-out"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -57,10 +57,10 @@ export default function CLISaveWizard({ open, onClose }) {
           <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 transition-all duration-500 ${
             completed
               ? 'bg-emerald-500/15 border border-emerald-500/30'
-              : 'bg-orange-500/15 border border-orange-500/30'
+              : 'bg-rose-600/15 border border-rose-600/30'
           }`}>
             <Icon className={`w-8 h-8 transition-all duration-500 ${
-              completed ? 'text-emerald-400' : 'text-orange-400'
+              completed ? 'text-emerald-400' : 'text-rose-500'
             } ${!completed ? 'animate-pulse' : ''}`} />
           </div>
 
@@ -74,7 +74,7 @@ export default function CLISaveWizard({ open, onClose }) {
                 key={i}
                 className={`h-1 rounded-full transition-all duration-300 ${
                   i <= currentStep
-                    ? completed ? 'w-4 bg-emerald-500' : 'w-4 bg-orange-500'
+                    ? completed ? 'w-4 bg-emerald-500' : 'w-4 bg-rose-600'
                     : 'w-2 bg-zinc-300'
                 }`}
               />

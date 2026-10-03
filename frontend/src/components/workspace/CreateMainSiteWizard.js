@@ -41,7 +41,7 @@ const WIZARD_THUMBNAILS = {
 };
 
 const SITE_TYPES = [
-  { id: 'radio',          icon: Radio,       label: 'Radio Station',     desc: 'Shows, calendar, content library, RDS',    color: '#dd0c51', features: ['shows', 'calendar', 'content_library', 'media_library', 'team_chat', 'rds_settings'], optionalFeatures: [] },
+  { id: 'radio',          icon: Radio,       label: 'Radio Station',     desc: 'Shows, calendar, content library, RDS',    color: '#7380b6', features: ['shows', 'calendar', 'content_library', 'media_library', 'team_chat', 'rds_settings'], optionalFeatures: [] },
   { id: 'server',         icon: HardDrive,   label: 'Virtual Datacenter', desc: 'XML imports, VMix, Radio Automation',      color: '#3b82f6', features: ['team_settings'], optionalFeatures: ['xml_imports', 'server_api_keys', 'vmix_director', 'canva_director', 'radioplayer', 'radio_automation'] },
   { id: 'task_scheduler', icon: LayoutGrid,  label: 'Task Manager',      desc: 'Task boards, project management',          color: '#8b5cf6', features: ['task_boards', 'team_settings'], optionalFeatures: [] },
   { id: 'technical',      icon: Network,     label: 'Data Connection',   desc: 'ZeroTier networking, data connections',     color: '#10b981', features: ['zerotier', 'team_settings'], optionalFeatures: [] },
@@ -55,9 +55,9 @@ const OPTIONAL_FEATURE_INFO = {
   vmix_director:    { icon: Video,     label: 'VMix Director',      desc: 'Video mixing and live production',      color: '#8b5cf6' },
   canva_director:   { icon: Palette,   label: 'Canva Director',     desc: 'Visual design and graphics control',    color: '#ec4899' },
   radioplayer:      { icon: Podcast,   label: 'Radioplayer',        desc: 'Radioplayer API integration',           color: '#06b6d4' },
-  radio_automation: { icon: Disc3,     label: 'Radio Automation',   desc: 'A/B player, playlists, cloud playout',  color: '#dd0c51' },
+  radio_automation: { icon: Disc3,     label: 'Radio Automation',   desc: 'A/B player, playlists, cloud playout',  color: '#7380b6' },
   // Custom-site extras
-  shows:            { icon: Radio,     label: 'Shows',              desc: 'Show management & calendar',            color: '#dd0c51' },
+  shows:            { icon: Radio,     label: 'Shows',              desc: 'Show management & calendar',            color: '#7380b6' },
   calendar:         { icon: LayoutGrid,label: 'Calendar',           desc: 'Show schedule view',                    color: '#f59e0b' },
   content_library:  { icon: FileCode,  label: 'Content Library',    desc: 'Articles, news, blog editor',           color: '#0ea5e9' },
   media_library:    { icon: Image,     label: 'Media Library',      desc: 'Images, audio, video assets',           color: '#8b5cf6' },
@@ -336,7 +336,7 @@ const StepDetails = ({ name, slug, onNameChange, onSlugChange, siteType }) => {
 };
 
 /* ── Station colors palette ── */
-const STATION_COLORS = ['#dd0c51', '#8b5cf6', '#3b82f6', '#10b981', '#ef4444', '#ec4899', '#06b6d4', '#eab308'];
+const STATION_COLORS = ['#7380b6', '#8b5cf6', '#3b82f6', '#10b981', '#ef4444', '#ec4899', '#06b6d4', '#eab308'];
 
 const STREAM_TYPES = [
   { value: 'shoutcast_v1', label: 'Shoutcast v1' },
@@ -678,7 +678,7 @@ const StepAdmin = ({ adminId, onAdminChange, users, token }) => (
             adminId === u.id ? 'border-zinc-900 bg-zinc-50' : 'border-zinc-100 hover:border-zinc-300 hover:bg-zinc-50'
           }`}
         >
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-rose-500 to-amber-500 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
             {u.name?.charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 text-left min-w-0">
@@ -941,7 +941,7 @@ const StepZeroTier = ({ ztConfig, onZtConfigChange }) => {
               {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </Button>
           </div>
-          <p className="text-xs text-zinc-400 mt-1">Get your token from <a href="https://my.zerotier.com/account" target="_blank" rel="noreferrer" className="text-orange-500 hover:underline">my.zerotier.com/account</a></p>
+          <p className="text-xs text-zinc-400 mt-1">Get your token from <a href="https://my.zerotier.com/account" target="_blank" rel="noreferrer" className="text-rose-600 hover:underline">my.zerotier.com/account</a></p>
         </div>
         <div>
           <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Network ID</Label>
@@ -954,8 +954,8 @@ const StepZeroTier = ({ ztConfig, onZtConfigChange }) => {
           />
         </div>
       </div>
-      <div className="mt-5 p-3 bg-orange-50 border border-orange-100 rounded-xl">
-        <p className="text-xs text-orange-600">
+      <div className="mt-5 p-3 bg-rose-50 border border-rose-100 rounded-xl">
+        <p className="text-xs text-rose-700">
           <strong>Tip:</strong> You can skip this step and configure ZeroTier later from the site settings.
         </p>
       </div>

@@ -130,7 +130,7 @@ export default function LoginWizard({ open, onClose, siteName, userName, user })
               <div className="relative mb-6">
                 {/* Animated orange glow pulse */}
                 <motion.div
-                  className="absolute inset-0 rounded-full bg-orange-400"
+                  className="absolute inset-0 rounded-full bg-rose-500"
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{
                     scale: [0, 1.6, 1.25],
@@ -140,7 +140,7 @@ export default function LoginWizard({ open, onClose, siteName, userName, user })
                   style={{ width: 80, height: 80, filter: 'blur(12px)' }}
                 />
                 <motion.div
-                  className="absolute inset-0 rounded-full bg-orange-300"
+                  className="absolute inset-0 rounded-full bg-rose-300"
                   initial={{ scale: 1, opacity: 0 }}
                   animate={{
                     scale: [1, 1.35, 1.1],
@@ -154,12 +154,12 @@ export default function LoginWizard({ open, onClose, siteName, userName, user })
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-                  className="relative w-20 h-20 rounded-full overflow-hidden ring-2 ring-orange-200"
+                  className="relative w-20 h-20 rounded-full overflow-hidden ring-2 ring-rose-200"
                 >
                   {getAvatarUrl(user) ? (
                     <img src={getAvatarUrl(user)} alt={userName} className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-bold text-2xl">
+                    <div className="w-full h-full bg-gradient-to-br from-rose-600 to-amber-600 flex items-center justify-center text-white font-bold text-2xl">
                       {userName?.charAt(0)?.toUpperCase() || '?'}
                     </div>
                   )}

@@ -155,7 +155,7 @@ export default function ZeroTrustPanel({ token }) {
           icon={Lock}
           label="Actieve lockouts"
           value={overview?.active_lockouts ?? 0}
-          accent="bg-orange-50 text-orange-600"
+          accent="bg-rose-50 text-rose-700"
         />
         <StatTile
           testid="zt-tile-devices"
@@ -226,7 +226,7 @@ export default function ZeroTrustPanel({ token }) {
         <CardContent className="p-5">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-zinc-800 flex items-center gap-2">
-              <Lock className="w-4 h-4 text-orange-500" /> Brute-force lockouts
+              <Lock className="w-4 h-4 text-rose-600" /> Brute-force lockouts
             </h3>
             <span className="text-xs text-zinc-400">{lockouts.length} totaal</span>
           </div>

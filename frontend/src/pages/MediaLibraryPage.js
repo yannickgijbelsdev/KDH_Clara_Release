@@ -752,7 +752,7 @@ const MediaLibraryPage = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-rose-600" />
       </div>
     );
   }
@@ -792,7 +792,7 @@ const MediaLibraryPage = () => {
                 data-testid="upload-media-btn"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
-                className="bg-orange-500 hover:bg-orange-600"
+                className="bg-[#7380b6] hover:bg-[#5f6ca3]"
               >
                 {uploading ? (
                   <>
@@ -879,7 +879,7 @@ const MediaLibraryPage = () => {
                   All Files
                 </button>
                 <ChevronRight className="w-4 h-4 text-zinc-600" />
-                <span className="text-orange-400">
+                <span className="text-rose-500">
                   {folders.find(f => f.id === currentFolder)?.name || 'Folder'}
                 </span>
               </div>
@@ -898,7 +898,7 @@ const MediaLibraryPage = () => {
             {canEdit && !searchQuery && kindFilter === 'all' && (
               <Button
                 onClick={() => fileInputRef.current?.click()}
-                className="bg-orange-500 hover:bg-orange-600"
+                className="bg-[#7380b6] hover:bg-[#5f6ca3]"
               >
                 <Upload className="w-4 h-4 mr-2" />
                 Upload Files
@@ -914,7 +914,7 @@ const MediaLibraryPage = () => {
                 <div
                   data-testid={`media-asset-${asset.id}`}
                   className={cn(
-                    "glass-card rounded-xl p-4 hover:border-orange-500/30 transition-all group",
+                    "glass-card rounded-xl p-4 hover:border-rose-600/30 transition-all group",
                     canPreview(asset) && "cursor-pointer"
                   )}
                   onClick={() => canPreview(asset) && setPreviewAsset(asset)}
@@ -1012,7 +1012,7 @@ const MediaLibraryPage = () => {
                                 e.stopPropagation();
                                 handleDeleteAsset(asset);
                               }}
-                              className="text-orange-500 focus:text-orange-500"
+                              className="text-rose-600 focus:text-rose-600"
                             >
                               <Trash2 className="w-4 h-4 mr-2" />
                               Delete
@@ -1071,7 +1071,7 @@ const MediaLibraryPage = () => {
         {/* Drag Overlay */}
         <DragOverlay>
           {activeAsset && (
-            <div className="glass-card rounded-xl p-4 opacity-90 shadow-2xl border-orange-500/50">
+            <div className="glass-card rounded-xl p-4 opacity-90 shadow-2xl border-rose-600/50">
               <div className="flex items-center gap-3">
                 <div className={cn(
                   'p-2 rounded-lg',
@@ -1079,7 +1079,7 @@ const MediaLibraryPage = () => {
                   activeAsset.mime_type?.startsWith('image/') ? 'bg-green-500/20' :
                   'bg-blue-500/20'
                 )}>
-                  <File className="w-5 h-5 text-orange-400" />
+                  <File className="w-5 h-5 text-rose-500" />
                 </div>
                 <span className="text-sm text-zinc-700 font-medium truncate max-w-[200px]">
                   {activeAsset.title}
@@ -1095,7 +1095,7 @@ const MediaLibraryPage = () => {
         <DialogContent className="bg-white border-zinc-200">
           <DialogHeader>
             <DialogTitle className="text-zinc-900 flex items-center gap-2">
-              <FolderPlus className="w-5 h-5 text-orange-500" />
+              <FolderPlus className="w-5 h-5 text-rose-600" />
               New Folder
             </DialogTitle>
           </DialogHeader>
@@ -1109,7 +1109,7 @@ const MediaLibraryPage = () => {
           />
           {newFolderParent && (
             <p className="text-sm text-zinc-400">
-              Creating inside: <span className="text-orange-400">{folders.find(f => f.id === newFolderParent)?.name}</span>
+              Creating inside: <span className="text-rose-500">{folders.find(f => f.id === newFolderParent)?.name}</span>
             </p>
           )}
           <DialogFooter>
@@ -1127,7 +1127,7 @@ const MediaLibraryPage = () => {
               data-testid="create-folder-btn"
               onClick={handleCreateFolder}
               disabled={folderLoading || !newFolderName.trim()}
-              className="bg-orange-500 hover:bg-orange-600"
+              className="bg-[#7380b6] hover:bg-[#5f6ca3]"
             >
               {folderLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Create'}
             </Button>
@@ -1154,7 +1154,7 @@ const MediaLibraryPage = () => {
             <Button
               onClick={handleRenameFolder}
               disabled={!newFolderName.trim()}
-              className="bg-orange-500 hover:bg-orange-600"
+              className="bg-[#7380b6] hover:bg-[#5f6ca3]"
             >
               Save
             </Button>
@@ -1213,14 +1213,14 @@ const MediaLibraryPage = () => {
         <DialogContent className="bg-white border-zinc-200 sm:max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="text-zinc-900 flex items-center gap-2">
-              <Share2 className="w-5 h-5 text-orange-500" />
+              <Share2 className="w-5 h-5 text-rose-600" />
               Share &ldquo;{sharingFolder?.name}&rdquo;
             </DialogTitle>
           </DialogHeader>
           
           {sharingLoading ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
+              <Loader2 className="w-6 h-6 animate-spin text-rose-600" />
             </div>
           ) : (
             <div className="flex-1 overflow-y-auto space-y-6 py-2">
@@ -1283,7 +1283,7 @@ const MediaLibraryPage = () => {
                           type="checkbox"
                           checked={selectedUsersToShare.includes(user.id)}
                           onChange={() => toggleUserSelection(user.id)}
-                          className="rounded border-zinc-300 bg-zinc-100 text-orange-500 focus:ring-orange-500"
+                          className="rounded border-zinc-300 bg-zinc-100 text-rose-600 focus:ring-rose-600"
                         />
                         <span className="text-sm text-zinc-600">{user.name}</span>
                         <span className="text-xs text-zinc-500">{user.role}</span>
@@ -1324,7 +1324,7 @@ const MediaLibraryPage = () => {
                             type="checkbox"
                             checked={selectedSeriesToShare.includes(series.id)}
                             onChange={() => toggleSeriesSelection(series.id)}
-                            className="rounded border-zinc-300 bg-zinc-100 text-orange-500 focus:ring-orange-500"
+                            className="rounded border-zinc-300 bg-zinc-100 text-rose-600 focus:ring-rose-600"
                           />
                           <span className="text-sm text-zinc-600">{series.title}</span>
                         </label>
@@ -1365,7 +1365,7 @@ const MediaLibraryPage = () => {
                             type="checkbox"
                             checked={selectedShowsToShare.includes(show.id)}
                             onChange={() => toggleShowSelection(show.id)}
-                            className="rounded border-zinc-300 bg-zinc-100 text-orange-500 focus:ring-orange-500"
+                            className="rounded border-zinc-300 bg-zinc-100 text-rose-600 focus:ring-rose-600"
                           />
                           <span className="text-sm text-zinc-600">{show.title}</span>
                           {show.scheduled_date && (
@@ -1432,7 +1432,7 @@ const MediaLibraryPage = () => {
             <Button
               data-testid="save-rename-btn"
               onClick={handleEditTitle}
-              className="bg-orange-500 hover:bg-orange-600"
+              className="bg-[#7380b6] hover:bg-[#5f6ca3]"
             >
               Save
             </Button>
@@ -1449,7 +1449,7 @@ const MediaLibraryPage = () => {
                 <>
                   {(() => {
                     const FileIcon = getFileIcon(previewAsset.kind, previewAsset.mime_type);
-                    return <FileIcon className="w-5 h-5 text-orange-500" />;
+                    return <FileIcon className="w-5 h-5 text-rose-600" />;
                   })()}
                   <span className="truncate">{previewAsset?.title}</span>
                 </>
@@ -1548,7 +1548,7 @@ const MediaLibraryPage = () => {
             </Button>
             <Button
               onClick={() => window.open(getFileUrl(previewAsset), '_blank')}
-              className="bg-orange-500 hover:bg-orange-600"
+              className="bg-[#7380b6] hover:bg-[#5f6ca3]"
             >
               <Download className="w-4 h-4 mr-2" />
               Download
@@ -1562,7 +1562,7 @@ const MediaLibraryPage = () => {
         <DialogContent className="bg-white border-zinc-200 sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-zinc-900 flex items-center gap-2">
-              <Share2 className="w-5 h-5 text-orange-500" />
+              <Share2 className="w-5 h-5 text-rose-600" />
               Share &ldquo;{shareAsset?.title}&rdquo;
             </DialogTitle>
           </DialogHeader>
@@ -1570,7 +1570,7 @@ const MediaLibraryPage = () => {
           <div className="space-y-4">
             {shareLoading ? (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
+                <Loader2 className="w-6 h-6 animate-spin text-rose-600" />
               </div>
             ) : shareInfo?.has_share_link ? (
               <>
@@ -1644,7 +1644,7 @@ const MediaLibraryPage = () => {
                     data-testid="create-share-link-btn"
                     onClick={handleCreateShareLink}
                     disabled={shareLoading}
-                    className="bg-orange-500 hover:bg-orange-600"
+                    className="bg-[#7380b6] hover:bg-[#5f6ca3]"
                   >
                     {shareLoading ? (
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -1695,7 +1695,7 @@ const MediaLibraryPage = () => {
         >
           <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-2xl min-w-[320px]">
             <div className="flex items-center gap-3 mb-4">
-              <Loader2 className="w-6 h-6 text-orange-500 animate-spin" />
+              <Loader2 className="w-6 h-6 text-rose-600 animate-spin" />
               <div>
                 <p className="text-zinc-700 font-medium">Uploading file...</p>
                 <p className="text-zinc-400 text-sm truncate max-w-[220px]">{uploadFileName}</p>
@@ -1703,11 +1703,11 @@ const MediaLibraryPage = () => {
             </div>
             <div className="w-full bg-zinc-100 rounded-full h-3 overflow-hidden">
               <div
-                className="bg-gradient-to-r from-orange-500 to-orange-400 h-full rounded-full transition-all duration-300 ease-out"
+                className="bg-gradient-to-r from-rose-600 to-rose-500 h-full rounded-full transition-all duration-300 ease-out"
                 style={{ width: `${uploadProgress}%` }}
               />
             </div>
-            <p className="text-center text-orange-400 text-sm font-medium mt-2">{uploadProgress}%</p>
+            <p className="text-center text-rose-500 text-sm font-medium mt-2">{uploadProgress}%</p>
           </div>
         </div>
       )}
@@ -1726,8 +1726,8 @@ const DroppableAllFiles = ({ isSelected, assetCount, onSelect }) => {
       ref={setNodeRef}
       className={cn(
         "flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer transition-colors mb-1",
-        isSelected ? "bg-orange-500/20 text-orange-400" : "hover:bg-white/5 text-zinc-400",
-        isOver && "bg-orange-500/30 ring-2 ring-orange-500/50"
+        isSelected ? "bg-[#7380b6]/20 text-rose-500" : "hover:bg-white/5 text-zinc-400",
+        isOver && "bg-[#7380b6]/30 ring-2 ring-rose-600/50"
       )}
       onClick={onSelect}
     >
@@ -1763,8 +1763,8 @@ const DroppableFolderItem = ({
       <div
         className={cn(
           "flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer transition-colors group",
-          isSelected ? "bg-orange-500/20 text-orange-400" : "hover:bg-white/5 text-zinc-400",
-          isOver && "bg-orange-500/30 ring-2 ring-orange-500/50",
+          isSelected ? "bg-[#7380b6]/20 text-rose-500" : "hover:bg-white/5 text-zinc-400",
+          isOver && "bg-[#7380b6]/30 ring-2 ring-rose-600/50",
           depth > 0 && "ml-4"
         )}
         onClick={onSelect}
@@ -1888,7 +1888,7 @@ const TextFilePreview = ({ url }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8 bg-white/80 backdrop-blur rounded-lg">
-        <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-rose-600" />
       </div>
     );
   }

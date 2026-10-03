@@ -45,7 +45,7 @@ function timeAgo(iso) {
 
 /* ── Config ── */
 const SITE_TYPE_CONFIG = {
-  radio:          { icon: Radio,        color: '#dd0c51', label: 'Radio',       bg: '/images/env_radio.jpg' },
+  radio:          { icon: Radio,        color: '#7380b6', label: 'Radio',       bg: '/images/env_radio.jpg' },
   server:         { icon: HardDrive,    color: '#3b82f6', label: 'Datacenter',  bg: '/images/env_server.jpg' },
   technical:      { icon: Network,      color: '#10b981', label: 'Data Conn.',  bg: '/images/env_technical.jpg' },
   task_scheduler: { icon: LayoutGrid,   color: '#8b5cf6', label: 'Tasks',       bg: '/images/env_task_scheduler.jpg' },
@@ -86,7 +86,7 @@ const BackupSiteCard = ({ site, index, isSelected, onClick, backupCount, lastBac
       <div
         className={`relative rounded-2xl overflow-hidden transition-all duration-300 border ${
           isSelected
-            ? 'border-orange-300 shadow-[0_8px_40px_rgba(221,12,81,0.15)] scale-[1.03]'
+            ? 'border-rose-300 shadow-[0_8px_40px_rgba(221,12,81,0.15)] scale-[1.03]'
             : 'border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)] group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] group-hover:scale-[1.02]'
         }`}
         style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}
@@ -136,7 +136,7 @@ const BackupSiteCard = ({ site, index, isSelected, onClick, backupCount, lastBac
       {isSelected && (
         <motion.div
           layoutId="backup-select-bar"
-          className="absolute -bottom-2 left-1/2 -translate-x-1/2 h-1 w-12 rounded-full bg-orange-500"
+          className="absolute -bottom-2 left-1/2 -translate-x-1/2 h-1 w-12 rounded-full bg-rose-600"
           style={{ boxShadow: '0 0 12px rgba(221,12,81,0.5)' }}
         />
       )}
@@ -609,7 +609,7 @@ export default function BackupManagementPage() {
         <div className="flex items-start justify-between flex-shrink-0 mb-4">
           <motion.div
             initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-            className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4"
+            className="bg-white rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4"
             data-testid="panel-backup-header"
           >
             <button onClick={() => navigate('/network')} className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-black/[0.05] transition-colors" data-testid="backup-back-btn">
@@ -626,7 +626,7 @@ export default function BackupManagementPage() {
 
           <motion.div
             initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.05 }}
-            className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-3"
+            className="bg-white rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-3"
             data-testid="panel-backup-stats"
           >
             <div className="flex items-center gap-2">
@@ -653,7 +653,7 @@ export default function BackupManagementPage() {
                   <div key={envId} className="flex flex-col items-center">
                     {/* Environment label */}
                     {(Object.keys(sitesByEnv).length > 1 || env) && (
-                      <div className="bg-white/70 backdrop-blur-xl rounded-full px-4 py-1.5 border border-black/[0.05] shadow-sm mb-4">
+                      <div className="bg-white rounded-full px-4 py-1.5 border border-black/[0.05] shadow-sm mb-4">
                         <div className="flex items-center gap-2">
                           <div className="w-2 h-2 rounded-full" style={{ backgroundColor: env?.color || '#71717a' }} />
                           <span className="text-[11px] font-semibold text-zinc-600">{env?.name || 'Production'}</span>
@@ -718,7 +718,7 @@ export default function BackupManagementPage() {
           <div className="flex-1" />
           <motion.div
             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.4 }}
-            className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-3.5 flex items-center gap-3"
+            className="bg-white rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-3.5 flex items-center gap-3"
             data-testid="panel-backup-status"
           >
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" style={{ boxShadow: '0 0 8px rgba(34,197,94,0.5)' }} />

@@ -59,7 +59,7 @@ async function handleRequest(request) {
   const route = data.routes?.find(r => r.subdomain === subdomain);
 
   if (!route) {
-    return new Response('<html><body style="font-family:system-ui;background:#09090b;color:#a1a1aa;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0"><div style="text-align:center"><h1 style="color:#f4f4f5">Subdomain niet geconfigureerd</h1><p>' + hostname + ' is niet ingesteld.</p><a href="https://' + CONFIG.APP_SUBDOMAIN + '.' + CONFIG.BASE_DOMAIN + '" style="color:#dd0c51">Naar Clara</a></div></body></html>',
+    return new Response('<html><body style="font-family:system-ui;background:#09090b;color:#a1a1aa;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0"><div style="text-align:center"><h1 style="color:#f4f4f5">Subdomain niet geconfigureerd</h1><p>' + hostname + ' is niet ingesteld.</p><a href="https://' + CONFIG.APP_SUBDOMAIN + '.' + CONFIG.BASE_DOMAIN + '" style="color:#7380b6">Naar Clara</a></div></body></html>',
       { status: 404, headers: { 'Content-Type': 'text/html;charset=UTF-8' } });
   }
 
@@ -96,7 +96,7 @@ const ROUTE_TYPE_COLORS = {
   firewall: 'bg-red-500/20 text-red-400 border-red-500/30',
   app: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
 };
-const SITE_TYPE_COLORS = { radio: 'bg-orange-500/20 text-orange-400', technical: 'bg-emerald-500/20 text-emerald-400', server: 'bg-blue-500/20 text-blue-400', task_scheduler: 'bg-violet-500/20 text-violet-400', external_host: 'bg-cyan-500/20 text-cyan-400' };
+const SITE_TYPE_COLORS = { radio: 'bg-[#7380b6]/20 text-rose-500', technical: 'bg-emerald-500/20 text-emerald-400', server: 'bg-blue-500/20 text-blue-400', task_scheduler: 'bg-violet-500/20 text-violet-400', external_host: 'bg-cyan-500/20 text-cyan-400' };
 const SITE_TYPE_LABELS = { radio: 'Radio', technical: 'Data Connection', server: 'Virtual Datacenter', task_scheduler: 'Tasks', external_host: 'External Host' };
 const SITE_TYPE_IMAGES = { radio: '/images/env_domain.jpg', technical: '/images/env_domain.jpg', server: '/images/env_domain.jpg', task_scheduler: '/images/env_domain.jpg', external_host: '/images/env_domain.jpg', wp_security: '/images/env_domain.jpg' };
 const CYCLING_IMAGES = ['/images/env_domain.jpg'];
@@ -117,7 +117,7 @@ function StepIndicator({ steps, current }) {
         <div key={i} className="flex items-center gap-1">
           <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
             i < current ? 'bg-emerald-500/20 text-emerald-400' :
-            i === current ? 'bg-orange-500/20 text-orange-400 ring-1 ring-orange-500/40' :
+            i === current ? 'bg-[#7380b6]/20 text-rose-500 ring-1 ring-rose-600/40' :
             'bg-zinc-100 text-zinc-500'
           }`}>
             {i < current ? <Check className="w-3 h-3" /> : <span className="w-3 text-center">{i + 1}</span>}
@@ -438,7 +438,7 @@ export default function DomainManager() {
         ].map(tab => (
           <button key={tab.id} data-testid={`domain-tab-${tab.id}`} onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
-              activeTab === tab.id ? 'bg-white text-white border-b-2 border-orange-500' : 'text-zinc-500 hover:text-zinc-700'}`}>
+              activeTab === tab.id ? 'bg-white text-white border-b-2 border-rose-600' : 'text-zinc-500 hover:text-zinc-700'}`}>
             <tab.icon className="w-4 h-4" />{tab.label}
           </button>
         ))}
@@ -846,7 +846,7 @@ export default function DomainManager() {
           )}
 
           {/* Step 1: API Token */}
-          <Card className={`border-zinc-200 ${(setupStep === 0 || editStep === 0) ? 'bg-white ring-1 ring-orange-500/30' : 'bg-white'}`}>
+          <Card className={`border-zinc-200 ${(setupStep === 0 || editStep === 0) ? 'bg-white ring-1 ring-rose-600/30' : 'bg-white'}`}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3 cursor-pointer" onClick={() => setEditStep(editStep === 0 ? null : 0)}>
                 <div className="flex items-center gap-2">
@@ -858,7 +858,7 @@ export default function DomainManager() {
                   {cfConfig?.api_token_set && setupStep !== 0 && <span className="text-[10px] text-zinc-600 ml-1">(click to edit)</span>}
                 </div>
                 <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" rel="noopener noreferrer"
-                  className="text-xs text-orange-400 hover:text-orange-300 flex items-center gap-1" data-testid="cf-token-link"
+                  className="text-xs text-rose-500 hover:text-rose-300 flex items-center gap-1" data-testid="cf-token-link"
                   onClick={e => e.stopPropagation()}>
                   Open Cloudflare <ExternalLink className="w-3 h-3" />
                 </a>
@@ -866,11 +866,11 @@ export default function DomainManager() {
               {(setupStep === 0 || editStep === 0) && (
                 <div className="space-y-3">
                   <div className="rounded-md bg-zinc-100 border border-zinc-200/50 p-3 space-y-2">
-                    <p className="text-[10px] uppercase tracking-wider text-orange-400 font-semibold">How to create your Cloudflare API Token:</p>
+                    <p className="text-[10px] uppercase tracking-wider text-rose-500 font-semibold">How to create your Cloudflare API Token:</p>
                     <ol className="space-y-1.5 list-none">
                       <li className="flex items-start gap-2 text-xs text-zinc-600">
                         <span className="flex-shrink-0 w-4 h-4 rounded-full bg-zinc-200 text-zinc-400 flex items-center justify-center text-[10px] font-bold mt-0.5">1</span>
-                        <span>Go to <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline">dash.cloudflare.com/profile/api-tokens</a></span>
+                        <span>Go to <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" rel="noopener noreferrer" className="text-rose-500 hover:underline">dash.cloudflare.com/profile/api-tokens</a></span>
                       </li>
                       <li className="flex items-start gap-2 text-xs text-zinc-600">
                         <span className="flex-shrink-0 w-4 h-4 rounded-full bg-zinc-200 text-zinc-400 flex items-center justify-center text-[10px] font-bold mt-0.5">2</span>
@@ -913,7 +913,7 @@ export default function DomainManager() {
           </Card>
 
           {/* Step 2: Zone ID */}
-          <Card className={`border-zinc-200 ${(setupStep === 1 || editStep === 1) ? 'bg-white ring-1 ring-orange-500/30' : 'bg-white'}`}>
+          <Card className={`border-zinc-200 ${(setupStep === 1 || editStep === 1) ? 'bg-white ring-1 ring-rose-600/30' : 'bg-white'}`}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3 cursor-pointer" onClick={() => setEditStep(editStep === 1 ? null : 1)}>
                 <div className="flex items-center gap-2">
@@ -925,7 +925,7 @@ export default function DomainManager() {
                   {cfConfig?.zone_id && setupStep !== 1 && <span className="text-[10px] text-zinc-600 ml-1">(click to edit)</span>}
                 </div>
                 <a href={cfZoneUrl} target="_blank" rel="noopener noreferrer"
-                  className="text-xs text-orange-400 hover:text-orange-300 flex items-center gap-1" data-testid="cf-zone-link"
+                  className="text-xs text-rose-500 hover:text-rose-300 flex items-center gap-1" data-testid="cf-zone-link"
                   onClick={e => e.stopPropagation()}>
                   Open Zone <ExternalLink className="w-3 h-3" />
                 </a>
@@ -933,11 +933,11 @@ export default function DomainManager() {
               {(setupStep === 1 || editStep === 1) && (
                 <div className="space-y-3">
                   <div className="rounded-md bg-zinc-100 border border-zinc-200/50 p-3 space-y-2">
-                    <p className="text-[10px] uppercase tracking-wider text-orange-400 font-semibold">How to find your Zone ID:</p>
+                    <p className="text-[10px] uppercase tracking-wider text-rose-500 font-semibold">How to find your Zone ID:</p>
                     <ol className="space-y-1.5 list-none">
                       <li className="flex items-start gap-2 text-xs text-zinc-600">
                         <span className="flex-shrink-0 w-4 h-4 rounded-full bg-zinc-200 text-zinc-400 flex items-center justify-center text-[10px] font-bold mt-0.5">1</span>
-                        <span>Go to <a href="https://dash.cloudflare.com" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline">dash.cloudflare.com</a></span>
+                        <span>Go to <a href="https://dash.cloudflare.com" target="_blank" rel="noopener noreferrer" className="text-rose-500 hover:underline">dash.cloudflare.com</a></span>
                       </li>
                       <li className="flex items-start gap-2 text-xs text-zinc-600">
                         <span className="flex-shrink-0 w-4 h-4 rounded-full bg-zinc-200 text-zinc-400 flex items-center justify-center text-[10px] font-bold mt-0.5">2</span>
@@ -978,7 +978,7 @@ export default function DomainManager() {
           </Card>
 
           {/* Step 3: Verify Connection */}
-          <Card className={`border-zinc-200 ${setupStep === 2 ? 'bg-white ring-1 ring-orange-500/30' : 'bg-white'}`}>
+          <Card className={`border-zinc-200 ${setupStep === 2 ? 'bg-white ring-1 ring-rose-600/30' : 'bg-white'}`}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -1016,7 +1016,7 @@ export default function DomainManager() {
                           </ol>
                           {cfVerifyResult.link && (
                             <a href={cfVerifyResult.link} target="_blank" rel="noopener noreferrer"
-                              className="mt-2 inline-flex items-center gap-1 text-xs text-orange-400 hover:text-orange-300 transition-colors">
+                              className="mt-2 inline-flex items-center gap-1 text-xs text-rose-500 hover:text-rose-300 transition-colors">
                               <ExternalLink className="w-3 h-3" />
                               {cfVerifyResult.link_label || 'Open link'}
                             </a>
@@ -1034,7 +1034,7 @@ export default function DomainManager() {
           </Card>
 
           {/* Step 4: Sync DNS */}
-          <Card className={`border-zinc-200 ${setupStep === 3 ? 'bg-gradient-to-r from-orange-50 to-white ring-1 ring-orange-500/30' : 'bg-white'}`}>
+          <Card className={`border-zinc-200 ${setupStep === 3 ? 'bg-gradient-to-r from-rose-50 to-white ring-1 ring-rose-600/30' : 'bg-white'}`}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -1042,7 +1042,7 @@ export default function DomainManager() {
                   <span className="text-sm font-medium text-zinc-700">Sync DNS Records</span>
                 </div>
                 <a href={cfDnsUrl} target="_blank" rel="noopener noreferrer"
-                  className="text-xs text-orange-400 hover:text-orange-300 flex items-center gap-1" data-testid="cf-dns-link">
+                  className="text-xs text-rose-500 hover:text-rose-300 flex items-center gap-1" data-testid="cf-dns-link">
                   View in Cloudflare <ExternalLink className="w-3 h-3" />
                 </a>
               </div>
@@ -1050,7 +1050,7 @@ export default function DomainManager() {
                 <div className="space-y-3">
                   <p className="text-xs text-zinc-400">Automatically create or update DNS records in Cloudflare for all your subdomain routes and site domains.</p>
                   <div className="flex gap-2">
-                    <Button onClick={() => { setCfSyncDialog(true); syncWithCloudflare(); }} disabled={cfSyncing} className="flex-1 bg-orange-600 hover:bg-orange-700 text-white" data-testid="sync-cloudflare-btn">
+                    <Button onClick={() => { setCfSyncDialog(true); syncWithCloudflare(); }} disabled={cfSyncing} className="flex-1 bg-[#7380b6] hover:bg-[#5f6ca3] text-white" data-testid="sync-cloudflare-btn">
                       {cfSyncing ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Syncing...</> : <><RefreshCw className="w-4 h-4 mr-2" />Sync with Cloudflare</>}
                     </Button>
                     <Button variant="outline" onClick={fetchCfDnsRecords} disabled={cfLoadingRecords} data-testid="refresh-cf-dns-btn">
@@ -1081,7 +1081,7 @@ export default function DomainManager() {
                         <span className="text-sm font-mono text-zinc-700">{record.name}</span>
                         <ArrowRight className="w-3 h-3 text-zinc-600" />
                         <span className="text-xs text-zinc-400 font-mono truncate max-w-[200px]">{record.content}</span>
-                        {record.proxied && <span className="px-1.5 py-0.5 rounded text-[10px] bg-orange-500/15 text-orange-400">Proxied</span>}
+                        {record.proxied && <span className="px-1.5 py-0.5 rounded text-[10px] bg-[#7380b6]/15 text-rose-500">Proxied</span>}
                       </div>
                       <button onClick={() => deleteCfRecord(record.id, record.name)} className="opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-600 p-1" data-testid={`delete-cf-record-${record.id}`}>
                         <Trash2 className="w-3.5 h-3.5" />
@@ -1094,7 +1094,7 @@ export default function DomainManager() {
           )}
 
           {/* Step 5: Cloudflare Worker */}
-          <Card className={`border-zinc-200 ${setupStep === 4 ? 'bg-gradient-to-r from-orange-50 to-white ring-1 ring-orange-500/30' : 'bg-white'}`}>
+          <Card className={`border-zinc-200 ${setupStep === 4 ? 'bg-gradient-to-r from-rose-50 to-white ring-1 ring-rose-600/30' : 'bg-white'}`}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3 cursor-pointer" onClick={() => setEditStep(editStep === 4 ? null : 4)}>
                 <div className="flex items-center gap-2">
@@ -1102,21 +1102,21 @@ export default function DomainManager() {
                     {workerResult?.status === 'ok' ? <Check className="w-3 h-3" /> : '5'}
                   </div>
                   <span className="text-sm font-medium text-zinc-700">Cloudflare Worker</span>
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-orange-500/10 text-orange-400 border border-orange-500/20">Required for subdomains</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-[#7380b6]/10 text-rose-500 border border-rose-600/20">Required for subdomains</span>
                 </div>
                 {workerResult?.status === 'ok' && <span className="text-xs text-emerald-400 flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Worker active</span>}
               </div>
               {(setupStep >= 2 || editStep === 4) && (
                 <div className="space-y-4">
                   <div className="rounded-md bg-zinc-100 border border-zinc-200/50 p-3">
-                    <p className="text-[10px] uppercase tracking-wider text-orange-400 font-semibold mb-2">What is this?</p>
+                    <p className="text-[10px] uppercase tracking-wider text-rose-500 font-semibold mb-2">What is this?</p>
                     <p className="text-xs text-zinc-400">The Cloudflare Worker makes subdomains like <code className="text-[10px] bg-zinc-200 px-1 py-0.5 rounded">login.{baseDomain}</code> work by proxying them to Clara. Without it, subdomains just show an error page.</p>
                   </div>
                   <div className="rounded-md bg-zinc-100 border border-zinc-200/50 p-3 space-y-2">
-                    <p className="text-[10px] uppercase tracking-wider text-orange-400 font-semibold">How to deploy:</p>
+                    <p className="text-[10px] uppercase tracking-wider text-rose-500 font-semibold">How to deploy:</p>
                     <ol className="space-y-1.5 list-none">
                       {[
-                        <>Go to <a href="https://dash.cloudflare.com" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline">dash.cloudflare.com</a> → <strong className="text-zinc-100">Workers & Pages</strong></>,
+                        <>Go to <a href="https://dash.cloudflare.com" target="_blank" rel="noopener noreferrer" className="text-rose-500 hover:underline">dash.cloudflare.com</a> → <strong className="text-zinc-100">Workers & Pages</strong></>,
                         <>Click <strong className="text-zinc-100">"Create"</strong> → <strong className="text-zinc-100">"Create Worker"</strong> → name: <code className="text-[10px] bg-zinc-200 px-1 py-0.5 rounded">clara-subdomain-router</code></>,
                         <>Click <strong className="text-zinc-100">"Deploy"</strong> → then <strong className="text-zinc-100">"Edit code"</strong></>,
                         <>Delete all placeholder code → <strong className="text-zinc-100">paste the script below</strong></>,
@@ -1150,7 +1150,7 @@ export default function DomainManager() {
                     <p className="text-[10px] text-zinc-600">Full script will be copied when you click "Copy script"</p>
                   </div>
                   <div className="space-y-2">
-                    <Button onClick={testWorker} disabled={workerTesting} className="w-full bg-orange-600 hover:bg-orange-700 text-white" data-testid="test-worker-btn">
+                    <Button onClick={testWorker} disabled={workerTesting} className="w-full bg-[#7380b6] hover:bg-[#5f6ca3] text-white" data-testid="test-worker-btn">
                       {workerTesting ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Testing Worker...</> : <><Zap className="w-4 h-4 mr-2" />Test Worker Connection</>}
                     </Button>
                     {workerResult && (
@@ -1358,7 +1358,7 @@ export default function DomainManager() {
                   <code className="text-xs text-amber-400 font-mono">_clara-verify.{domainForm.custom_domain} &rarr; verify.{baseDomain}</code>
                 </div>
               </div>
-              <a href={cfDnsUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full py-2 px-4 rounded-lg bg-orange-600/15 border border-orange-600/30 text-orange-400 text-sm hover:bg-orange-600/25 transition-colors">
+              <a href={cfDnsUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full py-2 px-4 rounded-lg bg-[#7380b6]/15 border border-rose-700/30 text-rose-500 text-sm hover:bg-[#7380b6]/25 transition-colors">
                 <ExternalLink className="w-4 h-4" /> Add records in Cloudflare
               </a>
               <div className="flex gap-2">
@@ -1469,13 +1469,13 @@ export default function DomainManager() {
         <DialogContent className="bg-white border-zinc-200 max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <RefreshCw className={`w-5 h-5 text-orange-400 ${cfSyncing ? 'animate-spin' : ''}`} />Cloudflare DNS Sync
+              <RefreshCw className={`w-5 h-5 text-rose-500 ${cfSyncing ? 'animate-spin' : ''}`} />Cloudflare DNS Sync
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             {cfSyncing && (
               <div className="flex flex-col items-center justify-center py-8">
-                <Loader2 className="w-8 h-8 animate-spin text-orange-400 mb-3" />
+                <Loader2 className="w-8 h-8 animate-spin text-rose-500 mb-3" />
                 <p className="text-sm text-zinc-400">Syncing DNS records with Cloudflare...</p>
               </div>
             )}

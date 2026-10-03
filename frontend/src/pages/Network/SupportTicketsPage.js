@@ -198,7 +198,7 @@ export default function SupportTicketsPage({ inline, onClose }) {
                 <button
                   key={t.id}
                   onClick={() => setSelectedTicket(t.id)}
-                  className={`w-full text-left p-4 border-b border-zinc-50 transition-all hover:bg-zinc-50 ${isSelected ? 'bg-orange-50/50' : ''}`}
+                  className={`w-full text-left p-4 border-b border-zinc-50 transition-all hover:bg-zinc-50 ${isSelected ? 'bg-rose-50/50' : ''}`}
                   data-testid={`ticket-item-${t.id}`}
                 >
                   <div className="flex items-start gap-3">
@@ -213,7 +213,7 @@ export default function SupportTicketsPage({ inline, onClose }) {
                         <span className="text-[10px] text-zinc-300">{new Date(t.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                       </div>
                     </div>
-                    {hasUnread && <div className="w-2.5 h-2.5 rounded-full bg-orange-500 mt-2 flex-shrink-0" />}
+                    {hasUnread && <div className="w-2.5 h-2.5 rounded-full bg-rose-600 mt-2 flex-shrink-0" />}
                   </div>
                 </button>
               );
@@ -295,7 +295,7 @@ export default function SupportTicketsPage({ inline, onClose }) {
                   <div key={msg.id} className={`flex ${isAdmin ? 'justify-end' : 'justify-start'}`} data-testid={`msg-${msg.id}`}>
                     <div className="max-w-[70%]">
                       {!isAdmin && <p className="text-[10px] text-zinc-400 mb-1 ml-1">{msg.sender_name} <User className="w-3 h-3 inline text-zinc-300" /></p>}
-                      {isAdmin && <p className="text-[10px] text-zinc-400 mb-1 mr-1 text-right">{msg.sender_name} <Shield className="w-3 h-3 inline text-orange-400" /></p>}
+                      {isAdmin && <p className="text-[10px] text-zinc-400 mb-1 mr-1 text-right">{msg.sender_name} <Shield className="w-3 h-3 inline text-rose-500" /></p>}
                       <div className={`px-4 py-2.5 rounded-2xl text-sm shadow-sm ${isAdmin ? 'bg-zinc-900 text-white rounded-br-md' : 'bg-zinc-200/70 text-zinc-800 rounded-bl-md border border-zinc-300/60'}`}>
                         <p className="whitespace-pre-wrap break-words">{msg.text}</p>
                         {msg.attachments?.map(att => (
