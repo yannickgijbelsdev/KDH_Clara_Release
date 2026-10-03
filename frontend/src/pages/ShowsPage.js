@@ -367,24 +367,21 @@ const ShowsPage = () => {
 
   return (
     <div data-testid="shows-page">
-      {/* Quick Action Bar */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="bg-white rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4" data-testid="panel-show-count">
-          <div className="text-3xl font-bold text-zinc-900">{loading ? '–' : shows.length}</div>
-          <div>
-            <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">Shows</div>
-            <div className="text-sm font-semibold text-zinc-700">Radio shows</div>
-          </div>
-          {canCreateShows && (
-            <Button
-              data-testid="create-show-btn"
-              onClick={() => setIsCreateOpen(true)}
-              className="ml-1 bg-[#7380b6] hover:bg-[#5f6ca3] text-white rounded-full px-4 gap-1.5 text-sm shadow-lg shadow-[#7380b6]/20"
-            >
-              <Plus className="w-3.5 h-3.5" /> New Show
-            </Button>
-          )}
+      {/* Page Header — title left, primary CTA right */}
+      <div className="flex items-start justify-between mb-10">
+        <div data-testid="panel-show-count">
+          <h1 className="text-4xl font-bold text-slate-900 tracking-tight">Shows</h1>
+          <p className="text-sm text-zinc-500 mt-1">{loading ? '…' : `${shows.length} radio show(s)`}</p>
         </div>
+        {canCreateShows && (
+          <Button
+            data-testid="create-show-btn"
+            onClick={() => setIsCreateOpen(true)}
+            className="gap-2 shadow-lg shadow-[#7380b6]/20"
+          >
+            <Plus className="w-4 h-4" /> New Show
+          </Button>
+        )}
       </div>
 
       {/* Filters */}
@@ -394,7 +391,7 @@ const ShowsPage = () => {
             <Button
               variant="outline"
               data-testid="status-filter-btn"
-              className="bg-zinc-100 border-zinc-200 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 gap-2"
+              className="gap-2"
             >
               <Filter className="w-4 h-4" />
               {statusFilter ? statusLabels[statusFilter] : 'All Status'}
