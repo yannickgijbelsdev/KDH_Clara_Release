@@ -272,22 +272,22 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
         <div className="flex items-start justify-between flex-shrink-0 mb-4">
           <motion.div
             initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-            className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4"
+            className="bg-white rounded-2xl border border-slate-200 clara-soft p-4 flex items-center gap-4"
             data-testid="panel-server-count"
           >
-            <div className="text-3xl font-bold text-zinc-900">{sites.length}</div>
+            <div className="text-3xl font-bold text-slate-900 font-display">{sites.length}</div>
             <div>
-              <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">{envName}</div>
-              <div className="text-sm font-semibold text-zinc-700">Servers online</div>
+              <div className="text-[10px] text-slate-400 uppercase tracking-wider font-medium">{envName}</div>
+              <div className="text-sm font-semibold text-slate-700">Servers online</div>
             </div>
-            <Button onClick={onCreateSite} className="ml-1 bg-orange-500 hover:bg-orange-600 text-white rounded-full px-4 gap-1.5 text-sm shadow-lg shadow-orange-500/20" data-testid="create-site-btn">
+            <Button onClick={onCreateSite} className="ml-1 bg-rose-600 hover:bg-rose-700 text-white rounded-full px-4 gap-1.5 text-sm font-medium" data-testid="create-site-btn">
               <Plus className="w-3.5 h-3.5" /> New Server
             </Button>
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.05 }}
-            className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-3"
+            className="bg-white rounded-2xl border border-slate-200 clara-soft p-4 flex items-center gap-3"
             data-testid="panel-stats"
           >
             <div className="flex items-center gap-2">

@@ -148,75 +148,77 @@ export default function NetworkHeader({
 
   return (
     <TooltipProvider delayDuration={0}>
-      {/* ─── Top Navigation Bar ─── */}
+      {/* ─── Top Navigation Bar (Clara Campaigns layout) ─── */}
       <nav
-        className="h-[64px] flex-shrink-0 flex flex-nowrap items-center px-3 sm:px-5 gap-2 sm:gap-4 bg-transparent z-50 overflow-x-hidden whitespace-nowrap"
+        className="h-16 flex-shrink-0 sticky top-0 z-50 bg-[#F5F6F8]/90 backdrop-blur-xl"
         data-testid="workspace-topbar"
       >
+       <div className="max-w-[1400px] mx-auto px-6 h-full flex items-center gap-3">
         {/* Mobile menu button */}
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
           data-testid="mobile-menu-btn"
-          className="lg:hidden w-9 h-9 flex items-center justify-center rounded-xl text-zinc-500 hover:text-zinc-900 hover:bg-black/5 transition-colors"
+          className="lg:hidden w-9 h-9 flex items-center justify-center rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
         >
           <Menu className="w-5 h-5" />
         </button>
 
-        {/* Logo */}
-        <Link
-          to="/network"
-          className={brandLogoUrl
-            ? "relative flex items-center flex-shrink-0 hover:opacity-80 transition-opacity group"
-            : "relative bg-zinc-900 text-white rounded-full px-4 py-2 flex items-center gap-2 text-sm font-semibold hover:bg-zinc-800 transition-colors flex-shrink-0 group overflow-hidden"}
-          data-testid="logo-pill"
-        >
-          {brandLogoUrl ? (
-            <img src={brandLogoUrl} alt={brandName} className="h-7 object-contain relative z-10" />
-          ) : (
-            <><Network className="w-4 h-4 relative z-10" /><span className="hidden sm:inline relative z-10">{brandName}</span></>
-          )}
-        </Link>
-        <span className="hidden lg:inline text-sm text-zinc-400 font-medium flex-shrink-0" data-testid="enterprise-global-label">Enterprise Global</span>
+        {/* Logo lockup — mark + divider + Outfit wordmark */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          <Link to="/network" className="hover:opacity-80 transition-opacity" data-testid="logo-pill">
+            {brandLogoUrl ? (
+              <img src={brandLogoUrl} alt={brandName} className="h-6 w-6 object-contain" />
+            ) : (
+              <span className="h-6 w-6 rounded-md bg-slate-900 text-white flex items-center justify-center">
+                <Network className="w-3.5 h-3.5" />
+              </span>
+            )}
+          </Link>
+          <div className="hidden sm:block h-5 w-px bg-slate-200/70" />
+          <span className="hidden sm:block font-display font-semibold text-slate-900 text-[15px] whitespace-nowrap" data-testid="enterprise-global-label">
+            {brandName || 'Enterprise Global'}
+          </span>
+        </div>
 
-        {/* Environment switcher */}
+        {/* Environment switcher — workspace pill style */}
         {environments.length > 0 && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
                 size="sm"
-                className="h-9 text-xs gap-1.5 border-white/40 bg-white/20 backdrop-blur-xl text-zinc-700 rounded-full hover:bg-white/35 shadow-[0_2px_8px_rgba(0,0,0,0.04)]"
+                className="h-9 gap-2 px-2.5 border-slate-200 bg-white text-slate-800 rounded-full hover:bg-slate-50 max-w-[220px]"
                 data-testid="env-switcher"
               >
-                <Server className="w-3 h-3" />
-                <span className="hidden lg:inline">
+                <Server className="w-4 h-4 text-slate-400 shrink-0" />
+                <span className="truncate text-sm font-medium">
                   {environments.find(e => e.id === selectedEnvId)?.name || 'Environment'}
                 </span>
-                <ChevronDown className="w-3 h-3 opacity-50" />
+                <ChevronDown className="w-4 h-4 text-slate-400" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="start"
-              className="bg-white/30 backdrop-blur-2xl border-white/40 shadow-[0_8px_40px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.6)] rounded-2xl"
+              className="bg-white border-slate-200 shadow-[0_8px_40px_rgba(15,23,42,0.1)] rounded-2xl"
             >
               {environments.map(env => (
                 <DropdownMenuItem
                   key={env.id}
                   onClick={() => setSelectedEnvId(env.id)}
-                  className={`cursor-pointer ${selectedEnvId === env.id ? 'bg-orange-50 text-orange-600' : 'text-zinc-600 focus:text-zinc-900 focus:bg-black/5'}`}
+                  className={`cursor-pointer ${selectedEnvId === env.id ? 'bg-rose-50 text-rose-600' : 'text-slate-600 focus:text-slate-900 focus:bg-slate-50'}`}
                 >
                   <div className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: env.color || '#3b82f6' }} />
                   {env.name}
-                  <span className="ml-auto text-xs text-zinc-500">{env.site_count || 0}</span>
+                  <span className="ml-auto text-xs text-slate-500">{env.site_count || 0}</span>
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
         )}
 
-        {/* Pill Tabs (desktop) */}
+        {/* Pill Tabs — LEFT aligned (Clara Campaigns pattern) */}
         <div
-          className="hidden lg:flex items-center gap-1 mx-auto rounded-[28px] p-1.5 bg-transparent flex-1 min-w-0 justify-center"
+          className="hidden lg:flex items-center gap-0.5 ml-3 flex-1 min-w-0"
           data-testid="pill-nav"
         >
           {NAV_ITEMS.slice(0, 5).map(tab => {
@@ -225,13 +227,13 @@ export default function NetworkHeader({
               <button
                 key={tab.id}
                 onClick={() => handleNavClick(tab)}
-                className={`relative px-3 xl:px-5 py-2.5 rounded-[20px] text-sm font-medium transition-colors duration-200 z-[1] whitespace-nowrap flex-shrink-0 ${active ? 'text-white' : 'text-zinc-500 hover:text-zinc-700'}`}
+                className={`relative px-3.5 py-2 rounded-full text-sm font-medium transition-colors z-[1] whitespace-nowrap flex-shrink-0 hover:text-slate-900 ${active ? 'text-white' : 'text-slate-500'}`}
                 data-testid={`pill-${tab.id}`}
               >
                 {active && (
                   <motion.div
                     layoutId="network-pill-active"
-                    className="absolute inset-0 bg-zinc-900/80 backdrop-blur-md rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.1)]"
+                    className="absolute inset-0 bg-slate-900 rounded-full shadow-lg shadow-slate-900/25"
                     transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                     style={{ zIndex: -1 }}
                   />
@@ -347,6 +349,7 @@ export default function NetworkHeader({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+       </div>
       </nav>
 
       {/* Mobile Sidebar Overlay */}
