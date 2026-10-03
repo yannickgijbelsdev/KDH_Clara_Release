@@ -104,7 +104,7 @@ function MonthView({ year, month, tasksByDate, onTaskClick }) {
           >
             <div className={`text-xs font-medium mb-1 ${isToday ? 'text-rose-500' : outside ? 'text-zinc-600' : 'text-zinc-400'}`}>
               {isToday ? (
-                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-rose-600 text-white text-[11px] font-bold">{date.getDate()}</span>
+                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#7380b6] text-white text-[11px] font-bold">{date.getDate()}</span>
               ) : date.getDate()}
             </div>
             <div className="space-y-0.5">

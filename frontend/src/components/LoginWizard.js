@@ -173,7 +173,7 @@ export default function LoginWizard({ open, onClose, siteName, userName, user })
 
               <button
                 onClick={() => onClose?.()}
-                className="w-full px-6 py-3 rounded-full bg-zinc-900 hover:bg-zinc-800 text-white text-sm font-semibold transition-colors"
+                className="w-full px-6 py-3 rounded-full bg-[#7380b6] hover:bg-[#5f6ca3] text-white text-sm font-semibold transition-colors"
                 data-testid="login-done-btn"
               >
                 {siteName ? `Enter ${siteName}` : 'Enter Clara'}

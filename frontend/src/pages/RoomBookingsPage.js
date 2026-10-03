@@ -299,7 +299,7 @@ export default function RoomBookingsPage() {
               Rooms are shared with the radio schedule (Studios). {isAdmin ? '' : 'Only admins can create or edit rooms.'}
             </p>
             {isAdmin && (
-              <Button onClick={openNewRoom} className="bg-zinc-900 text-white hover:bg-zinc-800" data-testid="new-room-btn">
+              <Button onClick={openNewRoom} className="bg-[#7380b6] text-white hover:bg-[#5f6ca3]" data-testid="new-room-btn">
                 <Plus className="w-4 h-4 mr-1" /> New room
               </Button>
             )}
@@ -503,7 +503,7 @@ export default function RoomBookingsPage() {
           )}
           <DialogFooter>
             <Button variant="ghost" onClick={() => setRoomDraft(null)}><X className="w-4 h-4 mr-1" /> Cancel</Button>
-            <Button onClick={saveRoom} disabled={saving} className="bg-zinc-900 text-white hover:bg-zinc-800" data-testid="room-save-btn">
+            <Button onClick={saveRoom} disabled={saving} className="bg-[#7380b6] text-white hover:bg-[#5f6ca3]" data-testid="room-save-btn">
               {saving ? 'Saving…' : 'Save'}
             </Button>
           </DialogFooter>

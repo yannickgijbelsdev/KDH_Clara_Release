@@ -618,7 +618,7 @@ const WordPressSettingsPage = () => {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-rose-500 hover:bg-rose-600 text-white"
+              className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
             >
               Remove
             </AlertDialogAction>

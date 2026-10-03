@@ -100,7 +100,7 @@ export default function SetupWizard({ open, onClose, siteType = 'radio', siteNam
           {completed && (
             <button
               onClick={() => onClose?.()}
-              className="mt-6 px-6 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white text-sm font-medium transition-colors"
+              className="mt-6 px-6 py-2 rounded-lg bg-[#7380b6] hover:bg-[#5f6ca3] text-white text-sm font-medium transition-colors"
               data-testid="setup-done-btn"
             >
               Get Started

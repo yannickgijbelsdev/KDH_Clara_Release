@@ -799,7 +799,7 @@ const TeamSettingsPage = () => {
                 <ChevronLeft className="w-4 h-4" /> Cancel
               </Button>
               <Button type="submit" data-testid="submit-invite-btn" disabled={inviting}
-                className="gap-2 bg-zinc-900 hover:bg-zinc-900 text-white px-6 rounded-full">
+                className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white px-6 rounded-full">
                 {inviting ? <><Loader2 className="w-4 h-4 animate-spin" /> Inviting...</> : <><Zap className="w-4 h-4" /> Send Invite</>}
               </Button>
             </div>
@@ -836,7 +836,7 @@ const TeamSettingsPage = () => {
                     className="h-12 bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400 rounded-xl"
                   />
                   <Button onClick={() => searchAvailableUsers(userSearchQuery)} disabled={searchingUsers}
-                    className="bg-zinc-900 hover:bg-zinc-900 text-white rounded-xl h-12">
+                    className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white rounded-xl h-12">
                     {searchingUsers ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Search'}
                   </Button>
                 </div>
@@ -908,7 +908,7 @@ const TeamSettingsPage = () => {
               <ChevronLeft className="w-4 h-4" /> Cancel
             </Button>
             <Button onClick={handleAddExistingUser} disabled={!selectedExistingUser || addingExistingUser}
-              className="gap-2 bg-zinc-900 hover:bg-zinc-900 text-white px-6 rounded-full">
+              className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white px-6 rounded-full">
               {addingExistingUser ? <><Loader2 className="w-4 h-4 animate-spin" /> Adding...</> : <><Zap className="w-4 h-4" /> Add User</>}
             </Button>
           </div>
@@ -932,7 +932,7 @@ const TeamSettingsPage = () => {
               <Label className="text-zinc-700 font-medium">Temporary Password</Label>
               <div className="flex items-center gap-2">
                 <Input value={tempPassword} readOnly className="h-12 bg-zinc-50 border-zinc-200 text-zinc-900 font-mono rounded-xl" />
-                <Button onClick={() => copyToClipboard(tempPassword)} className="h-12 bg-zinc-900 hover:bg-zinc-900 text-white rounded-xl">
+                <Button onClick={() => copyToClipboard(tempPassword)} className="h-12 bg-[#7380b6] hover:bg-[#5f6ca3] text-white rounded-xl">
                   {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                 </Button>
               </div>
@@ -942,7 +942,7 @@ const TeamSettingsPage = () => {
 
           <div className="flex items-center justify-end px-8 py-4 border-t border-zinc-100 flex-shrink-0">
             <Button onClick={() => { setPasswordDialogOpen(false); setTempPassword(''); }}
-              className="bg-zinc-900 hover:bg-zinc-900 text-white px-6 rounded-full">Done</Button>
+              className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white px-6 rounded-full">Done</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -1018,7 +1018,7 @@ const TeamSettingsPage = () => {
                 <ChevronLeft className="w-4 h-4" /> Cancel
               </Button>
               <Button type="submit" data-testid="save-user-btn" disabled={savingUser}
-                className="gap-2 bg-zinc-900 hover:bg-zinc-900 text-white px-6 rounded-full">
+                className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white px-6 rounded-full">
                 {savingUser ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : <><Zap className="w-4 h-4" /> Save Changes</>}
               </Button>
             </div>
@@ -1062,7 +1062,7 @@ const TeamSettingsPage = () => {
                 <ChevronLeft className="w-4 h-4" /> Cancel
               </Button>
               <Button type="submit" data-testid="confirm-reset-password-btn" disabled={resettingPassword}
-                className="gap-2 bg-zinc-900 hover:bg-zinc-900 text-white px-6 rounded-full">
+                className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white px-6 rounded-full">
                 {resettingPassword ? <><Loader2 className="w-4 h-4 animate-spin" /> Resetting...</> : <><Zap className="w-4 h-4" /> Reset Password</>}
               </Button>
             </div>

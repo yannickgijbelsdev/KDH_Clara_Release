@@ -254,7 +254,7 @@ export default function DiscoveryTokensPage() {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={revoke} className="bg-rose-600 hover:bg-rose-700 !text-white">Revoke</AlertDialogAction>
+              <AlertDialogAction onClick={revoke} className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white">Revoke</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

@@ -202,7 +202,7 @@ export default function EnterpriseAssistantPage() {
       {sidebarOpen && (
         <div className="w-56 border-r border-zinc-100 flex flex-col bg-zinc-50/50 flex-shrink-0">
           <div className="p-3">
-            <Button onClick={() => startNewChat(mode)} className="w-full justify-start gap-2 bg-zinc-900 hover:bg-zinc-800 text-white border-0 h-9 text-xs" data-testid="new-chat-btn">
+            <Button onClick={() => startNewChat(mode)} className="w-full justify-start gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white border-0 h-9 text-xs" data-testid="new-chat-btn">
               <Plus className="w-3.5 h-3.5" /> New chat
             </Button>
           </div>

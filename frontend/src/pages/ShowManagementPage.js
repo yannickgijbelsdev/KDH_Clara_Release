@@ -746,7 +746,7 @@ const ShowManagementPage = () => {
                 <ChevronLeft className="w-4 h-4" /> Cancel
               </Button>
               <Button type="submit" disabled={savingTitle}
-                className="gap-2 bg-zinc-900 hover:bg-zinc-900 text-white px-6 rounded-full">
+                className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white px-6 rounded-full">
                 {savingTitle ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : <><Zap className="w-4 h-4" /> {editingTitle ? 'Update Title' : 'Add Title'}</>}
               </Button>
             </div>
@@ -797,7 +797,7 @@ const ShowManagementPage = () => {
                 <ChevronLeft className="w-4 h-4" /> Cancel
               </Button>
               <Button type="submit" disabled={savingStudio}
-                className="gap-2 bg-zinc-900 hover:bg-zinc-900 text-white px-6 rounded-full">
+                className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white px-6 rounded-full">
                 {savingStudio ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : <><Zap className="w-4 h-4" /> {editingStudio ? 'Update Studio' : 'Add Studio'}</>}
               </Button>
             </div>

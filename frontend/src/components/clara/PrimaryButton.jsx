@@ -23,7 +23,7 @@ export function PrimaryButton({ children, onClick, icon: Icon, className = '', d
       whileTap={disabled ? undefined : { scale: 0.97 }}
       onClick={onClick}
       disabled={disabled}
-      className={`inline-flex items-center gap-2 bg-rose-600 hover:bg-rose-700 text-white text-sm font-medium px-4 py-2 rounded-full transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${className}`}
+      className={`inline-flex items-center gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white text-sm font-medium px-4 py-2 rounded-full transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${className}`}
       {...props}
     >
       {Icon && <Icon className="h-4 w-4" />}

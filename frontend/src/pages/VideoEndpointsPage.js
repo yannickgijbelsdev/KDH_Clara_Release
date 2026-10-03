@@ -200,7 +200,7 @@ export default function VideoEndpointsPage() {
         <Button
           onClick={openCreate}
           data-testid="new-video-endpoint-btn"
-          className="bg-rose-500 hover:bg-rose-600 text-white"
+          className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
         >
           <Plus className="w-4 h-4 mr-2" /> New endpoint
         </Button>
@@ -524,7 +524,7 @@ export default function VideoEndpointsPage() {
             <Button
               onClick={save}
               disabled={saving}
-              className="bg-zinc-900 text-white hover:bg-zinc-800"
+              className="bg-[#7380b6] text-white hover:bg-[#5f6ca3]"
               data-testid="video-save-btn"
             >
               {saving ? 'Saving…' : (editing ? 'Save changes' : 'Create endpoint')}

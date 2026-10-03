@@ -206,3 +206,22 @@ Tests:
 - Frontend: ✅ admin room-bookings smoke green (page renders, tabs work, dialog contains every new field).
 - Not yet manually verified: non-admin UI restriction on the Rooms tab + ShowDetailPage save flow (API-level 403s + conflict responses are covered by pytest).
 - Next: VDC push once user greenlights.
+
+
+## 2026-10-03 — Clara Campaigns Layout + Koodh Avatar
+### What shipped
+- **Header lockup**: chevron.png + 1px slate divider + "Clara" wordmark on both MainSiteDashboardLayout and NetworkHeader; header canvas is `bg-[#F5F6F8]` (no border/blur) so it blends with the workspace background.
+- **Compact user menu**: hidden name/role; the trigger is now avatar + chevron, preceded by a round Help icon and a vertical divider. Dropdown panels dropped backdrop-blur in favour of solid white + slate border + shadow-lg.
+- **Login redesign**: full-bleed KOODH cosmic bear background; a single centred white rounded card with the chevron+divider+Clara lockup, "Welcome back" heading and periwinkle Sign in button. Removed the floating feature-bubbles column.
+- **TopLoader**: progress bar is now `bg-blue-500` (was orange).
+- **Universal Koodh avatar fallback** (`utils/avatar.js`): `getAvatarUrl` always returns a URL — real avatar if present, otherwise `/koodh-avatar.png`. Every initials fallback across the app is now the Koodh bear mascot (no "Y" / "A" circles any more).
+- **Universal periwinkle buttons**: Shadcn `Button` component variants (default, destructive, outline, secondary, ghost) all render `bg-[#7380b6] hover:bg-[#5f6ca3] text-white`. All raw `<button>` and `<Button>` instances across `pages/` + `components/` that used `bg-rose-600`, `bg-zinc-900`, `bg-slate-900` or the orange-era legacy palette as filled CTAs were swept to the same hex. Login submit, LoginWizard "Enter Clara", New Server, New Show, New Room, Save/Done flows, Content Deploy — one tone across the app, white text.
+
+### Not shipped (intentional)
+- Status badges, delete-icon tints, dark pill-nav active state and secondary outline buttons kept their current palette to preserve meaning (the user asked only for CTA buttons to turn blue + white).
+
+### Status
+- Frontend: ✅ compiles clean (only pre-existing React Hook warnings remain).
+- Verified by screenshot: login page, dashboard header + "New Server" CTA, loader bar.
+- Testing agent run queued (iteration_173).
+

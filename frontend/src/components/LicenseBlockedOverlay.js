@@ -96,7 +96,7 @@ export default function LicenseBlockedOverlay({ siteName }) {
             <div className="space-y-2.5">
               <Button
                 onClick={handleAskClara}
-                className="w-full bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl gap-2 h-11 text-sm font-medium"
+                className="w-full bg-[#7380b6] hover:bg-[#5f6ca3] text-white rounded-xl gap-2 h-11 text-sm font-medium"
                 data-testid="license-ask-clara-btn"
               >
                 <Sparkles className="w-4 h-4" />

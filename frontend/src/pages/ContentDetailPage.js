@@ -939,7 +939,7 @@ const ContentDetailPage = () => {
               data-testid="publish-wp-btn"
               onClick={() => !isPublishBlocked && openPublishDialog()}
               disabled={isPublishBlocked}
-              className="gap-2 bg-zinc-900 hover:bg-zinc-900 text-white rounded-full px-5"
+              className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white rounded-full px-5"
             >
               <Upload className="w-4 h-4" />
               {hasPublishedSites ? 'Sync to WordPress' : 'Publish to WordPress'}
@@ -1805,7 +1805,7 @@ const ContentDetailPage = () => {
                 <Button variant="ghost" onClick={() => setPublishDialogOpen(false)} className="text-zinc-500">Cancel</Button>
                 <Button data-testid="confirm-publish-btn" onClick={handlePublish}
                   disabled={Object.values(selectedSites).filter(Boolean).length === 0}
-                  className="gap-2 bg-zinc-900 hover:bg-zinc-900 text-white px-6 rounded-full">
+                  className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white px-6 rounded-full">
                   <Upload className="w-4 h-4" />
                   Publish to {Object.values(selectedSites).filter(Boolean).length} Site(s)
                 </Button>
@@ -1896,7 +1896,7 @@ const ContentDetailPage = () => {
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                   className="mt-8 flex justify-center">
                   <Button onClick={() => setPublishDialogOpen(false)}
-                    className={`${deployFailed ? 'bg-red-500 hover:bg-red-600' : 'bg-zinc-900 hover:bg-zinc-900'} text-white px-8 rounded-full`}>
+                    className={`${deployFailed ? 'bg-red-500 hover:bg-red-600' : 'bg-[#7380b6] hover:bg-[#5f6ca3]'} text-white px-8 rounded-full`}>
                     {deployFailed ? 'Close' : 'Done'}
                   </Button>
                 </motion.div>

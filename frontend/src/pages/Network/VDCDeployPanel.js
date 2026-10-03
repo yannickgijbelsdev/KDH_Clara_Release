@@ -191,7 +191,7 @@ export default function VDCDeployPanel() {
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => setShowKeyInput(false)}>Cancel</Button>
             <Button size="sm" onClick={saveKey} disabled={keySaving || !keyInput.includes('PRIVATE KEY')}
-              className="bg-zinc-900 hover:bg-zinc-800 text-white" data-testid="save-key-btn">
+              className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white" data-testid="save-key-btn">
               {keySaving ? 'Saving...' : 'Save Key'}
             </Button>
           </div>

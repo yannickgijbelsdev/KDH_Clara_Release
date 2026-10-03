@@ -156,7 +156,7 @@ export default function ImageCopyrightDialog({ open, onOpenChange, initial = {},
             onClick={save}
             disabled={saving}
             data-testid="copyright-save-btn"
-            className="bg-zinc-900 text-white hover:bg-zinc-800"
+            className="bg-[#7380b6] text-white hover:bg-[#5f6ca3]"
           >
             {saving ? 'Saving…' : 'Save attribution'}
           </Button>

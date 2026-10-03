@@ -641,7 +641,7 @@ const ZeroTierPage = () => {
                         ) : (
                           <Button
                             size="sm"
-                            className="h-7 px-2.5 text-xs bg-rose-500 hover:bg-rose-600 text-white"
+                            className="h-7 px-2.5 text-xs bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
                             onClick={() => handleAuthorize(member.id, true)}
                             data-testid={`zt-auth-inline-${member.id}`}
                           >

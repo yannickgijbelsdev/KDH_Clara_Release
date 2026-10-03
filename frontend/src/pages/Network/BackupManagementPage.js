@@ -218,7 +218,7 @@ const BackupDetailPanel = ({
             onClick={onCreateBackup}
             disabled={creating}
             size="sm"
-            className="gap-1.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-xs"
+            className="gap-1.5 bg-[#7380b6] hover:bg-[#5f6ca3] text-white rounded-xl text-xs"
             data-testid="panel-create-backup-btn"
           >
             {creating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <HardDrive className="w-3.5 h-3.5" />}
@@ -398,7 +398,7 @@ const BackupDetailPanel = ({
                 </Button>
                 <Button
                   size="sm"
-                  className="bg-zinc-900 hover:bg-zinc-800 text-white gap-1.5 rounded-xl"
+                  className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white gap-1.5 rounded-xl"
                   onClick={handleClone}
                   disabled={!cloneName.trim() || cloning}
                   data-testid="clone-confirm-btn"

@@ -1147,7 +1147,7 @@ const StepImportDataset = ({ token, onDone, onBack }) => {
           <Button
             onClick={startImport}
             disabled={selectedSites.size === 0}
-            className="bg-zinc-900 hover:bg-zinc-800 text-white rounded-full px-5 gap-2"
+            className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white rounded-full px-5 gap-2"
             data-testid="import-start-btn"
           >
             <Upload className="w-4 h-4" />
@@ -1191,7 +1191,7 @@ const StepImportDataset = ({ token, onDone, onBack }) => {
         ))}
       </div>
       <div className="mt-4 pt-3 border-t border-zinc-100 flex justify-end">
-        <Button onClick={onDone} className="bg-zinc-900 hover:bg-zinc-800 text-white rounded-full px-5 gap-2" data-testid="import-done-btn">
+        <Button onClick={onDone} className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white rounded-full px-5 gap-2" data-testid="import-done-btn">
           <Check className="w-4 h-4" /> Done
         </Button>
       </div>
@@ -1526,7 +1526,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
             <Button
               onClick={handleNext}
               disabled={!canNext()}
-              className="gap-2 bg-zinc-900 hover:bg-zinc-900 text-white px-6 rounded-full"
+              className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white px-6 rounded-full"
               data-testid="wizard-next-btn"
             >
               {stepName === 'Security' ? (

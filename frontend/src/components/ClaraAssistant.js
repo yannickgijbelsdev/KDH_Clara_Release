@@ -380,7 +380,7 @@ export default function ClaraAssistant() {
                       onClick={sendMessage}
                       disabled={!input.trim() || loading}
                       size="icon"
-                      className="rounded-full bg-zinc-900 hover:bg-zinc-800 text-white w-10 h-10 shrink-0"
+                      className="rounded-full bg-[#7380b6] hover:bg-[#5f6ca3] text-white w-10 h-10 shrink-0"
                       data-testid="clara-send-btn"
                     >
                       {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}

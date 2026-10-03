@@ -387,7 +387,7 @@ export default function SupportTicketsPage({ inline, onClose }) {
                 <Button
                   onClick={handleSendMessage}
                   disabled={sending || (!msgInput.trim() && pendingAttachments.length === 0)}
-                  className="h-10 w-10 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white p-0 flex-shrink-0"
+                  className="h-10 w-10 rounded-xl bg-[#7380b6] hover:bg-[#5f6ca3] text-white p-0 flex-shrink-0"
                   data-testid="send-msg-btn"
                 >
                   {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}

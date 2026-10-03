@@ -583,7 +583,7 @@ export default function IntegrationsTab({ mainSite, token }) {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => confirmTarget?.action === 'delete' ? remove(confirmTarget.integ) : disconnect(confirmTarget.integ)}
-              className="bg-rose-600 hover:bg-rose-700 !text-white"
+              className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white"
             >
               {confirmTarget?.action === 'delete' ? 'Remove' : 'Disconnect'}
             </AlertDialogAction>

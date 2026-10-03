@@ -313,7 +313,7 @@ export default function ImageRightsModal({
             onClick={save}
             disabled={saving || rows.length === 0}
             data-testid="image-rights-save-btn"
-            className="bg-zinc-900 text-white hover:bg-zinc-800"
+            className="bg-[#7380b6] text-white hover:bg-[#5f6ca3]"
           >
             {saving ? 'Saving…' : 'Save rights'}
           </Button>
