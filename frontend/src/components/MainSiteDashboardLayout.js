@@ -1201,9 +1201,7 @@ const MainSiteDashboardContent = () => {
               {brandingData.logo_type === 'image' && brandingData.logo_url ? (
                 <img src={brandingData.logo_url.startsWith('/') ? `${process.env.REACT_APP_BACKEND_URL}${brandingData.logo_url}` : brandingData.logo_url} alt={brandName} className="h-6 w-6 object-contain" />
               ) : (
-                <span className="h-6 w-6 rounded-md bg-slate-900 text-white flex items-center justify-center">
-                  <Radio className="w-3.5 h-3.5" />
-                </span>
+                <img src="/clara-chevron.png" alt={brandName} className="h-6 w-6 object-contain" />
               )}
             </button>
             <div className="hidden sm:block h-5 w-px bg-slate-200/70" />

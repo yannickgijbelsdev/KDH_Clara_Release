@@ -280,7 +280,7 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
               <div className="text-[10px] text-slate-400 uppercase tracking-wider font-medium">{envName}</div>
               <div className="text-sm font-semibold text-slate-700">Servers online</div>
             </div>
-            <Button onClick={onCreateSite} className="ml-1 bg-rose-600 hover:bg-rose-700 text-white rounded-full px-4 gap-1.5 text-sm font-medium" data-testid="create-site-btn">
+            <Button onClick={onCreateSite} className="ml-1 bg-[#7380b6] hover:bg-[#5f6ca3] text-white rounded-full px-4 gap-1.5 text-sm font-medium" data-testid="create-site-btn">
               <Plus className="w-3.5 h-3.5" /> New Server
             </Button>
           </motion.div>

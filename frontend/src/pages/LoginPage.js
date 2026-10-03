@@ -22,7 +22,7 @@ const ROOMS_IMG = '/images/clara_rooms.png'; // legacy hero fallback — kept fo
 import { Layers } from 'lucide-react';
 
 // Static brand background — CLR stripes on white
-const BRAND_BG = '/koodh_clr_stripes.png';
+const BRAND_BG = '/clara-login-bg.webp';
 
 // Feature speech bubbles that pop up at fixed positions on the brand background.
 // Each bubble has a position (% from left/top) and a short description.
@@ -172,8 +172,8 @@ const LoginPage = () => {
         />
       </div>
 
-      {/* Popping feature bubbles overlaid on the brand background — all shown together with gentle float */}
-      <div className="hidden lg:block absolute inset-0 z-10 pointer-events-none">
+      {/* Popping feature bubbles — hidden so the Clara bear illustration stays legible */}
+      <div className="hidden absolute inset-0 z-10 pointer-events-none">
         {FEATURE_BUBBLES.map((b, idx) => {
           const Icon = b.icon;
           return (
@@ -217,12 +217,19 @@ const LoginPage = () => {
       <div className="relative z-10 w-full lg:w-[460px] xl:w-[500px] flex flex-col items-center justify-center p-8 lg:p-12 bg-white border-l border-slate-200/60">
 
         <div className="w-full max-w-[380px] flex flex-col items-center">
-          {/* Logo — horizontally & vertically centered above the form */}
-          <div className="mb-10 flex justify-center" data-testid="login-logo-wrapper">
+          {/* Logo — Clara Campaigns chevron + divider + wordmark (horizontal lockup) */}
+          <div className="mb-10 flex items-center gap-3" data-testid="login-logo-wrapper">
+            <img
+              src="/clara-chevron.png"
+              alt="Clara"
+              className="h-9 w-9 object-contain"
+              data-testid="login-chevron"
+            />
+            <div className="h-7 w-px bg-slate-200" />
             {logoUrl ? (
-              <img src={logoUrl} alt={platformName} className="h-10 object-contain" data-testid="login-logo" />
+              <img src={logoUrl} alt={platformName} className="h-7 object-contain" data-testid="login-logo" />
             ) : (
-              <span className="text-2xl font-bold text-zinc-900 tracking-tight" data-testid="login-logo-text">{platformName}</span>
+              <span className="font-display text-xl font-bold text-slate-900 tracking-tight whitespace-nowrap" data-testid="login-logo-text">{platformName}</span>
             )}
           </div>
 
@@ -238,8 +245,8 @@ const LoginPage = () => {
               Back to login
             </button>
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-rose-50 rounded-xl">
-                <Mail className="w-6 h-6 text-rose-600" />
+              <div className="p-2 bg-[#7380b6]/10 rounded-xl">
+                <Mail className="w-6 h-6 text-[#7380b6]" />
               </div>
               <h2 className="font-display text-2xl font-bold text-slate-900">Forgot password</h2>
             </div>
@@ -258,14 +265,14 @@ const LoginPage = () => {
                       placeholder="you@example.com"
                       required
                       autoFocus
-                      className="bg-black/[0.03] border-black/[0.08] text-zinc-900 placeholder:text-zinc-400 h-12 rounded-xl focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500/30"
+                      className="bg-black/[0.03] border-black/[0.08] text-zinc-900 placeholder:text-zinc-400 h-12 rounded-xl focus:ring-2 focus:ring-[#7380b6]/25 focus:border-[#7380b6]/40"
                     />
                   </div>
                   <Button
                     type="submit"
                     data-testid="forgot-submit-btn"
                     disabled={forgotLoading}
-                className="w-full h-11 bg-rose-600 hover:bg-rose-700 text-white font-medium rounded-full transition-colors"
+                className="w-full h-11 bg-[#7380b6] hover:bg-[#5f6ca3] text-white font-medium rounded-full transition-colors"
                   >
                     {forgotLoading ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Sending...</> : 'Send temporary password'}
                   </Button>
@@ -292,8 +299,8 @@ const LoginPage = () => {
           </>
         ) : !requires2FA ? (
           <>
-            <h2 className="font-display text-2xl font-bold text-slate-900 mb-1">Welcome back</h2>
-            <p className="text-zinc-500 mb-8 text-sm">Sign in to access your dashboard</p>
+            <h2 className="font-display text-3xl font-bold text-slate-900 mb-1 tracking-tight">Welcome back</h2>
+            <p className="text-slate-500 mb-8 text-sm">Sign in to access your dashboard</p>
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-zinc-700 text-sm font-medium">Email</Label>
@@ -305,7 +312,7 @@ const LoginPage = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
                   required
-                  className="bg-black/[0.03] border-black/[0.08] text-zinc-900 placeholder:text-zinc-400 h-12 rounded-xl focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500/30"
+                  className="bg-black/[0.03] border-black/[0.08] text-zinc-900 placeholder:text-zinc-400 h-12 rounded-xl focus:ring-2 focus:ring-[#7380b6]/25 focus:border-[#7380b6]/40"
                 />
               </div>
               <div className="space-y-2">
@@ -318,21 +325,21 @@ const LoginPage = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="bg-black/[0.03] border-black/[0.08] text-zinc-900 placeholder:text-zinc-400 h-12 rounded-xl focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500/30"
+                  className="bg-black/[0.03] border-black/[0.08] text-zinc-900 placeholder:text-zinc-400 h-12 rounded-xl focus:ring-2 focus:ring-[#7380b6]/25 focus:border-[#7380b6]/40"
                 />
               </div>
               <Button
                 type="submit"
                 data-testid="login-submit-btn"
                 disabled={isLoading}
-                className="w-full h-11 bg-rose-600 hover:bg-rose-700 text-white font-medium rounded-full transition-colors"
+                className="w-full h-11 bg-[#7380b6] hover:bg-[#5f6ca3] text-white font-medium rounded-full transition-colors"
               >
                 {isLoading ? 'Signing in...' : 'Sign in'}
               </Button>
               <button
                 type="button"
                 onClick={() => { setShowForgotPassword(true); setForgotEmail(email); }}
-                className="w-full text-center text-sm text-zinc-400 hover:text-rose-600 transition-colors mt-1"
+                className="w-full text-center text-sm text-zinc-400 hover:text-[#7380b6] transition-colors mt-1"
                 data-testid="forgot-password-link"
               >
                 Forgot password?
@@ -349,8 +356,8 @@ const LoginPage = () => {
               Back
             </button>
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-rose-50 rounded-xl">
-                <Shield className="w-6 h-6 text-rose-600" />
+              <div className="p-2 bg-[#7380b6]/10 rounded-xl">
+                <Shield className="w-6 h-6 text-[#7380b6]" />
               </div>
               <h2 className="font-display text-2xl font-bold text-slate-900">Two-factor authentication</h2>
             </div>
@@ -373,7 +380,7 @@ const LoginPage = () => {
                     placeholder="000000"
                     required
                     autoFocus
-                    className="bg-black/[0.03] border-black/[0.08] text-zinc-900 placeholder:text-zinc-400 h-12 text-center text-2xl tracking-[0.5em] font-mono rounded-xl focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500/30"
+                    className="bg-black/[0.03] border-black/[0.08] text-zinc-900 placeholder:text-zinc-400 h-12 text-center text-2xl tracking-[0.5em] font-mono rounded-xl focus:ring-2 focus:ring-[#7380b6]/25 focus:border-[#7380b6]/40"
                   />
                 </div>
               ) : (
@@ -388,7 +395,7 @@ const LoginPage = () => {
                     placeholder="XXXX-XXXX"
                     required
                     autoFocus
-                    className="bg-black/[0.03] border-black/[0.08] text-zinc-900 placeholder:text-zinc-400 h-12 text-center text-lg tracking-wider font-mono rounded-xl focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500/30"
+                    className="bg-black/[0.03] border-black/[0.08] text-zinc-900 placeholder:text-zinc-400 h-12 text-center text-lg tracking-wider font-mono rounded-xl focus:ring-2 focus:ring-[#7380b6]/25 focus:border-[#7380b6]/40"
                   />
                 </div>
               )}
@@ -396,7 +403,7 @@ const LoginPage = () => {
                 type="submit"
                 data-testid="login-2fa-submit-btn"
                 disabled={isLoading || (!useBackupCode && totpCode.length !== 6)}
-                className="w-full h-11 bg-rose-600 hover:bg-rose-700 text-white font-medium rounded-full transition-colors"
+                className="w-full h-11 bg-[#7380b6] hover:bg-[#5f6ca3] text-white font-medium rounded-full transition-colors"
               >
                 {isLoading ? 'Verifying...' : 'Verify'}
               </Button>

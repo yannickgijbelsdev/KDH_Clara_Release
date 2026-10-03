@@ -205,7 +205,7 @@ export default function NetworkHeader({
                 <DropdownMenuItem
                   key={env.id}
                   onClick={() => setSelectedEnvId(env.id)}
-                  className={`cursor-pointer ${selectedEnvId === env.id ? 'bg-rose-50 text-rose-600' : 'text-slate-600 focus:text-slate-900 focus:bg-slate-50'}`}
+                  className={`cursor-pointer ${selectedEnvId === env.id ? 'bg-[#7380b6]/10 text-[#7380b6]' : 'text-slate-600 focus:text-slate-900 focus:bg-slate-50'}`}
                 >
                   <div className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: env.color || '#3b82f6' }} />
                   {env.name}
