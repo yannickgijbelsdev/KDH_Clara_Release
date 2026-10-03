@@ -56,7 +56,7 @@ const SITE_TYPE_CONFIG = {
 
 const STATUS_CONFIG = {
   completed: { icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50', label: 'Completed' },
-  failed: { icon: XCircle, color: 'text-red-500', bg: 'bg-red-50', label: 'Failed' },
+  failed: { icon: XCircle, color: 'text-[#7380b6]0', bg: 'bg-[#7380b6]/10', label: 'Failed' },
   in_progress: { icon: Loader2, color: 'text-amber-500', bg: 'bg-amber-50', label: 'In Progress', spin: true },
 };
 
@@ -86,7 +86,7 @@ const BackupSiteCard = ({ site, index, isSelected, onClick, backupCount, lastBac
       <div
         className={`relative rounded-2xl overflow-hidden transition-all duration-300 border ${
           isSelected
-            ? 'border-rose-300 shadow-[0_8px_40px_rgba(221,12,81,0.15)] scale-[1.03]'
+            ? 'border-[#7380b6]/40 shadow-[0_8px_40px_rgba(221,12,81,0.15)] scale-[1.03]'
             : 'border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)] group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] group-hover:scale-[1.02]'
         }`}
         style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}
@@ -136,7 +136,7 @@ const BackupSiteCard = ({ site, index, isSelected, onClick, backupCount, lastBac
       {isSelected && (
         <motion.div
           layoutId="backup-select-bar"
-          className="absolute -bottom-2 left-1/2 -translate-x-1/2 h-1 w-12 rounded-full bg-rose-600"
+          className="absolute -bottom-2 left-1/2 -translate-x-1/2 h-1 w-12 rounded-full bg-[#7380b6]"
           style={{ boxShadow: '0 0 12px rgba(221,12,81,0.5)' }}
         />
       )}
@@ -218,7 +218,7 @@ const BackupDetailPanel = ({
             onClick={onCreateBackup}
             disabled={creating}
             size="sm"
-            className="gap-1.5 bg-[#7380b6] hover:bg-[#5f6ca3] text-white rounded-full text-xs"
+            className="gap-1.5 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white rounded-full text-xs"
             data-testid="panel-create-backup-btn"
           >
             {creating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <HardDrive className="w-3.5 h-3.5" />}
@@ -264,7 +264,7 @@ const BackupDetailPanel = ({
                   <button
                     onClick={() => onRemoveClone(clone.id)}
                     disabled={deletingClone === clone.id}
-                    className="w-6 h-6 rounded-md flex items-center justify-center hover:bg-red-100 text-zinc-400 hover:text-red-500 transition-colors"
+                    className="w-6 h-6 rounded-md flex items-center justify-center hover:bg-[#7380b6]/15 text-zinc-400 hover:text-[#7380b6]0 transition-colors"
                     data-testid={`panel-delete-clone-${clone.id}`}
                   >
                     {deletingClone === clone.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
@@ -314,7 +314,7 @@ const BackupDetailPanel = ({
                         <span>{formatBytes(backup.size_bytes)}</span>
                       </div>
                       {backup.error_message && (
-                        <p className="text-[10px] text-red-400 mt-1 truncate">{backup.error_message}</p>
+                        <p className="text-[10px] text-[#7380b6] mt-1 truncate">{backup.error_message}</p>
                       )}
                     </div>
                     <div className="flex items-center gap-0.5 flex-shrink-0">
@@ -331,7 +331,7 @@ const BackupDetailPanel = ({
                       )}
                       <button
                         onClick={() => onDeleteBackup(backup.id)}
-                        className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-red-50 text-zinc-300 hover:text-red-500 transition-colors"
+                        className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[#7380b6]/10 text-zinc-300 hover:text-[#7380b6]0 transition-colors"
                         title="Delete"
                         data-testid={`delete-backup-${backup.id}`}
                       >
@@ -398,7 +398,7 @@ const BackupDetailPanel = ({
                 </Button>
                 <Button
                   size="sm"
-                  className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white gap-1.5 rounded-full"
+                  className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white gap-1.5 rounded-full"
                   onClick={handleClone}
                   disabled={!cloneName.trim() || cloning}
                   data-testid="clone-confirm-btn"

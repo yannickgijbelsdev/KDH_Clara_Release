@@ -340,7 +340,7 @@ export default function IntegrationsTab({ mainSite, token }) {
                       <Button size="sm" variant="outline" onClick={() => check(it)} disabled={busyId === it.id} className="gap-1.5" data-testid={`check-${it.id}`}>
                         {busyId === it.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />} Check
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => setConfirmTarget({ action: 'disconnect', integ: it })} className="gap-1.5 text-rose-600 border-rose-200 hover:bg-rose-50" data-testid={`disconnect-${it.id}`}>
+                      <Button size="sm" variant="outline" onClick={() => setConfirmTarget({ action: 'disconnect', integ: it })} className="gap-1.5 text-[#7380b6] border-[#7380b6]/30 hover:bg-[#7380b6]/10" data-testid={`disconnect-${it.id}`}>
                         <Power className="w-3.5 h-3.5" /> Disconnect
                       </Button>
                     </>
@@ -351,7 +351,7 @@ export default function IntegrationsTab({ mainSite, token }) {
                     </Button>
                   )}
                   {(it.status === 'pending_registration' || it.status === 'disconnected') && (
-                    <Button size="sm" variant="outline" onClick={() => setConfirmTarget({ action: 'delete', integ: it })} className="gap-1.5 text-rose-600 border-rose-200 hover:bg-rose-50" data-testid={`delete-${it.id}`}>
+                    <Button size="sm" variant="outline" onClick={() => setConfirmTarget({ action: 'delete', integ: it })} className="gap-1.5 text-[#7380b6] border-[#7380b6]/30 hover:bg-[#7380b6]/10" data-testid={`delete-${it.id}`}>
                       <Trash2 className="w-3.5 h-3.5" /> Remove
                     </Button>
                   )}
@@ -432,14 +432,14 @@ export default function IntegrationsTab({ mainSite, token }) {
                     >🧪 Preview</button>
                     <button
                       onClick={() => showPrompt(promptDialog._integ, 'production')}
-                      className={`px-3 py-1.5 border-l border-zinc-300 ${promptDialog.target === 'production' ? 'bg-[#7380b6] text-white' : 'bg-white text-zinc-700 hover:bg-zinc-100'}`}
+                      className={`px-3 py-1.5 border-l border-zinc-300 ${promptDialog.target === 'production' ? 'bg-[#7380b6] !text-white [&_svg]:!text-white' : 'bg-white text-zinc-700 hover:bg-zinc-100'}`}
                       data-testid="target-production-btn"
                     >🚀 Production</button>
                   </div>
                 </div>
                 <p className="text-[11px] text-zinc-600 mt-2 font-mono break-all">{promptDialog.callback_url}</p>
                 {promptDialog.promote_warning && (
-                  <div className="mt-2 rounded bg-rose-50 border border-rose-200 p-2 text-[11px] text-rose-900">
+                  <div className="mt-2 rounded bg-[#7380b6]/10 border border-[#7380b6]/30 p-2 text-[11px] text-[#4a5583]">
                     ⚠️ {promptDialog.promote_warning}
                   </div>
                 )}

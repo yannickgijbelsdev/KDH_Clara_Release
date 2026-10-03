@@ -68,7 +68,7 @@ const actionIcons = {
 const categoryColors = {
   auth: 'bg-blue-500/20 text-blue-400',
   user: 'bg-violet-500/20 text-violet-400',
-  show: 'bg-[#7380b6]/20 text-rose-500',
+  show: 'bg-[#7380b6]/20 text-[#7380b6]0',
   rundown: 'bg-amber-500/20 text-amber-400',
   content: 'bg-green-500/20 text-green-400',
   media: 'bg-cyan-500/20 text-cyan-400',
@@ -273,7 +273,7 @@ const LogsPage = () => {
         <td className="px-4 py-3">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-zinc-50 rounded-lg">
-              <ActionIcon className="w-4 h-4 text-rose-500" />
+              <ActionIcon className="w-4 h-4 text-[#7380b6]0" />
             </div>
             <div>
               <p className="text-zinc-700 font-medium">{log.action}</p>
@@ -333,7 +333,7 @@ const LogsPage = () => {
               }}
               variant={showArchive ? "default" : "outline"}
               className={showArchive 
-                ? "gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white" 
+                ? "gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white" 
                 : "gap-2 border-zinc-300 text-zinc-600 hover:bg-zinc-100"
               }
             >
@@ -361,7 +361,7 @@ const LogsPage = () => {
           </div>
           <div className="bg-white border border-zinc-200 rounded-xl p-4">
             <p className="text-zinc-500 text-sm">Last 24 Hours</p>
-            <p className="text-2xl font-bold text-rose-600">{stats.recent_24h.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-[#7380b6]">{stats.recent_24h.toLocaleString()}</p>
           </div>
           <div className="bg-white border border-zinc-200 rounded-xl p-4">
             <p className="text-zinc-500 text-sm">Chat Events</p>
@@ -421,17 +421,17 @@ const LogsPage = () => {
                     className={`
                       aspect-square rounded-lg text-sm relative transition-colors
                       ${isSelected 
-                        ? 'bg-[#7380b6] text-white' 
+                        ? 'bg-[#7380b6] !text-white [&_svg]:!text-white' 
                         : hasLogs 
                           ? 'bg-zinc-200 text-zinc-900 hover:bg-zinc-300' 
                           : 'text-zinc-600 cursor-not-allowed'
                       }
-                      ${isToday(day) && !isSelected ? 'ring-2 ring-rose-600/50' : ''}
+                      ${isToday(day) && !isSelected ? 'ring-2 ring-[#7380b6]/50' : ''}
                     `}
                   >
                     {format(day, 'd')}
                     {hasLogs && (
-                      <span className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] text-[10px] font-bold rounded-full flex items-center justify-center ${isSelected ? 'bg-white text-rose-600' : 'bg-[#7380b6] text-white'}`}>
+                      <span className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] text-[10px] font-bold rounded-full flex items-center justify-center ${isSelected ? 'bg-white text-[#7380b6]' : 'bg-[#7380b6] !text-white [&_svg]:!text-white'}`}>
                         {count > 99 ? '99+' : count}
                       </span>
                     )}

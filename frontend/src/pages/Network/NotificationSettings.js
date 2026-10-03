@@ -283,7 +283,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                           <span className="text-sm font-medium text-zinc-900 block">{p.name}</span>
                           <span className="text-xs text-zinc-500">{p.host}:{p.port}</span>
                         </div>
-                        {smtpForm.provider === p.id && <Check className="w-4 h-4 text-rose-500 ml-auto" />}
+                        {smtpForm.provider === p.id && <Check className="w-4 h-4 text-[#7380b6]0 ml-auto" />}
                       </button>
                     ))}
                   </div>
@@ -419,13 +419,13 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                       onClick={() => setSystemAlert(prev => ({ ...prev, mode: m.id }))}
                       className={`p-3 rounded-lg border text-left transition-colors ${
                         systemAlert.mode === m.id
-                          ? 'border-rose-600/50 bg-rose-600/10'
+                          ? 'border-[#7380b6]/50 bg-[#7380b6]/10'
                           : 'border-zinc-300 bg-zinc-100/70 hover:border-zinc-300'
                       }`}
                       data-testid={`system-alert-mode-${m.id}`}
                     >
-                      <m.icon className={`w-4 h-4 mb-1 ${systemAlert.mode === m.id ? 'text-rose-500' : 'text-zinc-500'}`} />
-                      <p className={`text-xs font-medium ${systemAlert.mode === m.id ? 'text-rose-500' : 'text-white'}`}>{m.label}</p>
+                      <m.icon className={`w-4 h-4 mb-1 ${systemAlert.mode === m.id ? 'text-[#7380b6]0' : 'text-zinc-500'}`} />
+                      <p className={`text-xs font-medium ${systemAlert.mode === m.id ? 'text-[#7380b6]0' : 'text-white'}`}>{m.label}</p>
                       <p className="text-[10px] text-zinc-500">{m.desc}</p>
                     </button>
                   ))}
@@ -470,7 +470,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                         <span className="text-sm font-medium text-zinc-900 block">Global (all sites)</span>
                         <span className="text-xs text-zinc-500">Default fallback settings</span>
                       </div>
-                      {!selectedSiteId && <Check className="w-4 h-4 text-rose-500 ml-auto" />}
+                      {!selectedSiteId && <Check className="w-4 h-4 text-[#7380b6]0 ml-auto" />}
                     </button>
                     {mainSites.map(site => (
                       <button
@@ -486,7 +486,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                           <span className="text-sm font-medium text-zinc-900 block">{site.name}</span>
                           <span className="text-xs text-zinc-500">/{site.slug}</span>
                         </div>
-                        {selectedSiteId === site.id && <Check className="w-4 h-4 text-rose-500 ml-auto" />}
+                        {selectedSiteId === site.id && <Check className="w-4 h-4 text-[#7380b6]0 ml-auto" />}
                       </button>
                     ))}
                   </div>
@@ -516,7 +516,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                       transition={{ delay: i * 0.08 + 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                       className={`${isExpanded ? 'w-full max-w-lg' : 'w-[260px]'} flex-shrink-0 group transition-all duration-300`}
                     >
-                      <div className={`rounded-2xl overflow-hidden border shadow-[0_4px_24px_rgba(0,0,0,0.06)] group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] transition-all duration-300 ${isExpanded ? 'border-rose-200 shadow-[0_8px_32px_rgba(0,0,0,0.10)]' : 'border-black/[0.06] group-hover:scale-[1.02]'}`} style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}>
+                      <div className={`rounded-2xl overflow-hidden border shadow-[0_4px_24px_rgba(0,0,0,0.06)] group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] transition-all duration-300 ${isExpanded ? 'border-[#7380b6]/30 shadow-[0_8px_32px_rgba(0,0,0,0.10)]' : 'border-black/[0.06] group-hover:scale-[1.02]'}`} style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}>
                         {/* Clickable header area */}
                         <button
                           className="w-full text-left"
@@ -558,7 +558,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                                     onClick={() => setRoleMode(role.slug, m.id)}
                                     className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-colors ${
                                       roleCfg.mode === m.id
-                                        ? 'bg-rose-600/10 border-rose-600/30 text-rose-600'
+                                        ? 'bg-[#7380b6]/10 border-[#7380b6]/30 text-[#7380b6]'
                                         : 'bg-zinc-50 border-zinc-200 text-zinc-400 hover:border-zinc-300'
                                     }`}
                                     data-testid={`role-mode-${role.slug}-${m.id}`}
@@ -581,7 +581,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                                   return (
                                     <div key={cat.id} className="flex items-center justify-between p-2.5 rounded-lg hover:bg-zinc-50">
                                       <div className="flex items-center gap-2.5">
-                                        <Icon className={`w-4 h-4 ${active ? 'text-rose-500' : 'text-zinc-400'}`} />
+                                        <Icon className={`w-4 h-4 ${active ? 'text-[#7380b6]0' : 'text-zinc-400'}`} />
                                         <div>
                                           <span className="text-sm text-zinc-700">{cat.name}</span>
                                           <p className="text-xs text-zinc-400">{cat.description}</p>
@@ -668,7 +668,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                               <span className="bg-white/90 backdrop-blur-lg rounded-lg px-2 py-0.5 border border-black/[0.06] shadow-sm text-[9px] font-bold text-emerald-600">{sentCount} sent</span>
                             )}
                             {failedCount > 0 && (
-                              <span className="bg-white/90 backdrop-blur-lg rounded-lg px-2 py-0.5 border border-black/[0.06] shadow-sm text-[9px] font-bold text-red-600" data-testid={`notif-log-${i}-failed`}>{failedCount} failed</span>
+                              <span className="bg-white/90 backdrop-blur-lg rounded-lg px-2 py-0.5 border border-black/[0.06] shadow-sm text-[9px] font-bold text-[#7380b6]" data-testid={`notif-log-${i}-failed`}>{failedCount} failed</span>
                             )}
                             {attemptedCount === 0 && sentCount === 0 && failedCount === 0 && (
                               <span className="bg-white/90 backdrop-blur-lg rounded-lg px-2 py-0.5 border border-black/[0.06] shadow-sm text-[9px] text-zinc-500">none</span>
@@ -703,7 +703,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
       <DialogContent className="bg-white border-zinc-200 max-w-3xl max-h-[90vh] overflow-y-auto" data-testid="notification-settings">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
-            <Bell className="w-5 h-5 text-rose-500" />
+            <Bell className="w-5 h-5 text-[#7380b6]0" />
             Email Notifications
           </DialogTitle>
         </DialogHeader>

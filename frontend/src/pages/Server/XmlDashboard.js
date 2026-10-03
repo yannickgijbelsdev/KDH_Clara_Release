@@ -16,7 +16,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const STATUS_CONFIG = {
   processing: { icon: Clock, label: 'Processing', cls: 'text-yellow-400 bg-yellow-400/10 border-yellow-500/20' },
   success: { icon: CheckCircle2, label: 'Success', cls: 'text-emerald-400 bg-emerald-400/10 border-emerald-500/20' },
-  failed: { icon: XCircle, label: 'Failed', cls: 'text-red-400 bg-red-400/10 border-red-500/20' },
+  failed: { icon: XCircle, label: 'Failed', cls: 'text-[#7380b6] bg-[#7380b6]/10 border-[#7380b6]/20' },
 };
 
 export default function XmlDashboard() {
@@ -81,7 +81,7 @@ export default function XmlDashboard() {
         </div>
         <Button
           onClick={() => navigate('xml-upload')}
-          className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
+          className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white"
           data-testid="upload-xml-btn"
         >
           <Upload className="w-4 h-4 mr-2" />
@@ -107,7 +107,7 @@ export default function XmlDashboard() {
               key={s}
               onClick={() => { setStatusFilter(s); setPage(1); }}
               className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-                statusFilter === s ? 'bg-[#7380b6]/20 text-rose-500 border border-rose-600/30' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200 border border-zinc-200'
+                statusFilter === s ? 'bg-[#7380b6]/20 text-[#7380b6]0 border border-[#7380b6]/30' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200 border border-zinc-200'
               }`}
               data-testid={`filter-${s || 'all'}`}
             >
@@ -177,7 +177,7 @@ export default function XmlDashboard() {
                         <button onClick={() => handleDownload(imp.id, imp.file_name)} className="p-1.5 rounded hover:bg-zinc-200 text-zinc-400 hover:text-zinc-700" title="Download">
                           <Download className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDelete(imp.id)} className="p-1.5 rounded hover:bg-red-500/20 text-zinc-400 hover:text-red-400" title="Delete" data-testid={`delete-${imp.id}`}>
+                        <button onClick={() => handleDelete(imp.id)} className="p-1.5 rounded hover:bg-[#7380b6]/100/20 text-zinc-400 hover:text-[#7380b6]" title="Delete" data-testid={`delete-${imp.id}`}>
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>

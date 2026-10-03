@@ -104,7 +104,7 @@ export default function MigrationTool() {
       <Card className="bg-white border-zinc-200">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-white">
-            <Database className="w-5 h-5 text-rose-600" />
+            <Database className="w-5 h-5 text-[#7380b6]" />
             Database Migration
           </CardTitle>
           <CardDescription className="text-zinc-400">
@@ -122,7 +122,7 @@ export default function MigrationTool() {
         <DialogContent className="bg-white border-zinc-200 max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-zinc-900 flex items-center gap-2">
-              <Database className="w-5 h-5 text-rose-600" />
+              <Database className="w-5 h-5 text-[#7380b6]" />
               Multisite Migration Tool
             </DialogTitle>
             <DialogDescription className="text-zinc-400">
@@ -132,7 +132,7 @@ export default function MigrationTool() {
 
           {loading && !status && (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-8 h-8 animate-spin text-rose-600" />
+              <Loader2 className="w-8 h-8 animate-spin text-[#7380b6]" />
             </div>
           )}
 
@@ -152,7 +152,7 @@ export default function MigrationTool() {
                     <div className="text-xs text-zinc-400">Already Migrated</div>
                   </div>
                   <div className="bg-zinc-900 rounded p-3">
-                    <div className="text-2xl font-bold text-rose-600">{status.needs_migration}</div>
+                    <div className="text-2xl font-bold text-[#7380b6]">{status.needs_migration}</div>
                     <div className="text-xs text-zinc-400">Needs Migration</div>
                   </div>
                 </div>
@@ -163,7 +163,7 @@ export default function MigrationTool() {
                     <span>{status.main_sites.length} Main Site(s) exist</span>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 text-rose-600 text-sm">
+                  <div className="flex items-center gap-2 text-[#7380b6] text-sm">
                     <AlertTriangle className="w-4 h-4" />
                     <span>No Main Sites yet - migration required</span>
                   </div>
@@ -178,7 +178,7 @@ export default function MigrationTool() {
                     {Object.entries(status.collections).map(([name, data]) => (
                       <div key={name} className="flex items-center justify-between text-sm">
                         <span className="text-zinc-600">{data.description}</span>
-                        <span className={data.needs_migration > 0 ? 'text-rose-600' : 'text-green-500'}>
+                        <span className={data.needs_migration > 0 ? 'text-[#7380b6]' : 'text-green-500'}>
                           {data.needs_migration > 0 ? `${data.needs_migration} to migrate` : '✓ Done'}
                         </span>
                       </div>
@@ -245,11 +245,11 @@ export default function MigrationTool() {
 
               {/* Warning */}
               {needsMigration && (
-                <div className="bg-[#7380b6]/10 border border-rose-600/30 rounded-full p-4">
+                <div className="bg-[#7380b6]/10 border border-[#7380b6]/30 rounded-full p-4">
                   <div className="flex items-start gap-3">
-                    <AlertTriangle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
+                    <AlertTriangle className="w-5 h-5 text-[#7380b6] flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-rose-600 font-medium">Before you migrate</p>
+                      <p className="text-[#7380b6] font-medium">Before you migrate</p>
                       <ul className="text-sm text-zinc-400 mt-1 space-y-1">
                         <li>• First run a <strong>Dry Run</strong> to preview changes</li>
                         <li>• The migration adds main_site_id to existing documents</li>
@@ -265,14 +265,14 @@ export default function MigrationTool() {
           {/* Migration Result */}
           {migrationResult && (
             <div className="space-y-4">
-              <div className={`rounded-lg p-4 ${migrationResult.success ? 'bg-green-500/10 border border-green-500/30' : 'bg-red-500/10 border border-red-500/30'}`}>
+              <div className={`rounded-lg p-4 ${migrationResult.success ? 'bg-green-500/10 border border-green-500/30' : 'bg-[#7380b6]/100/10 border border-[#7380b6]/30'}`}>
                 <div className="flex items-center gap-2 mb-2">
                   {migrationResult.success ? (
                     <CheckCircle className="w-5 h-5 text-green-500" />
                   ) : (
-                    <XCircle className="w-5 h-5 text-red-500" />
+                    <XCircle className="w-5 h-5 text-[#7380b6]0" />
                   )}
-                  <span className={`font-medium ${migrationResult.success ? 'text-green-500' : 'text-red-500'}`}>
+                  <span className={`font-medium ${migrationResult.success ? 'text-green-500' : 'text-[#7380b6]0'}`}>
                     {migrationResult.message}
                   </span>
                 </div>
@@ -310,7 +310,7 @@ export default function MigrationTool() {
                         {Object.entries(migrationResult.stats.collections_updated).map(([name, data]) => (
                           <div key={name} className="flex justify-between text-xs">
                             <span className="text-zinc-400">{data.description}</span>
-                            <span className={data.updated > 0 ? 'text-rose-600' : 'text-green-500'}>
+                            <span className={data.updated > 0 ? 'text-[#7380b6]' : 'text-green-500'}>
                               {data.updated > 0 ? `${data.updated} ${migrationResult.dry_run ? 'would update' : 'updated'}` : 'No changes'}
                             </span>
                           </div>
@@ -322,8 +322,8 @@ export default function MigrationTool() {
               )}
 
               {migrationResult.errors?.length > 0 && (
-                <div className="bg-red-500/10 rounded-lg p-4">
-                  <h3 className="text-red-500 font-medium mb-2">Errors</h3>
+                <div className="bg-[#7380b6]/100/10 rounded-lg p-4">
+                  <h3 className="text-[#7380b6]0 font-medium mb-2">Errors</h3>
                   <ul className="text-sm text-zinc-400 space-y-1">
                     {migrationResult.errors.map((error, i) => (
                       <li key={i}>• {error}</li>

@@ -609,12 +609,12 @@ const MainSiteDashboardContent = () => {
     custom: 'Custom',
   };
   const SITE_TYPE_COLOR_MAP = {
-    radio: 'bg-[#7380b6]/15 text-rose-600 border-rose-600/25',
-    server: 'bg-red-500/15 text-red-400 border-red-500/25',
+    radio: 'bg-[#7380b6]/15 text-[#7380b6] border-[#7380b6]/25',
+    server: 'bg-[#7380b6]/100/15 text-[#7380b6] border-[#7380b6]/25',
     technical: 'bg-emerald-500/15 text-emerald-500 border-emerald-500/25',
     task_scheduler: 'bg-violet-500/15 text-violet-500 border-violet-500/25',
     external_host: 'bg-cyan-500/15 text-cyan-500 border-cyan-500/25',
-    wp_security: 'bg-red-500/15 text-red-500 border-red-500/25',
+    wp_security: 'bg-[#7380b6]/100/15 text-[#7380b6]0 border-[#7380b6]/25',
     code_studio: 'bg-purple-500/15 text-purple-500 border-purple-500/25',
     clara_custom: 'bg-fuchsia-500/15 text-fuchsia-500 border-fuchsia-500/25',
     custom: 'bg-fuchsia-500/15 text-fuchsia-500 border-fuchsia-500/25',
@@ -827,14 +827,14 @@ const MainSiteDashboardContent = () => {
           data-testid={`site-nav-${item.tab}`}
           className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors w-full text-left ${
             isActive
-              ? 'bg-[#7380b6]/10 text-rose-600'
+              ? 'bg-[#7380b6]/10 text-[#7380b6]'
               : 'text-zinc-400 hover:bg-zinc-50 hover:text-zinc-700'
           }`}
         >
           <Icon className="h-4 w-4" />
           <span className="flex-1">{item.label}</span>
           {item.tab === 'submissions' && submissionCounts[currentSiteId] > 0 && (
-            <span className="bg-[#7380b6] text-white text-xs px-2 py-0.5 rounded-full">
+            <span className="bg-[#7380b6] !text-white [&_svg]:!text-white text-xs px-2 py-0.5 rounded-full">
               {submissionCounts[currentSiteId]}
             </span>
           )}
@@ -850,7 +850,7 @@ const MainSiteDashboardContent = () => {
         className={({ isActive }) =>
           `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
             isActive
-              ? 'bg-[#7380b6]/10 text-rose-600'
+              ? 'bg-[#7380b6]/10 text-[#7380b6]'
               : 'text-zinc-400 hover:bg-zinc-50 hover:text-zinc-700'
           }`
         }
@@ -858,7 +858,7 @@ const MainSiteDashboardContent = () => {
         <Icon className="h-4 w-4" />
         <span className="flex-1">{item.label}</span>
         {badgeCount > 0 && (
-          <span className="bg-[#7380b6] text-white text-xs px-2 py-0.5 rounded-full">
+          <span className="bg-[#7380b6] !text-white [&_svg]:!text-white text-xs px-2 py-0.5 rounded-full">
             {badgeCount}
           </span>
         )}
@@ -908,7 +908,7 @@ const MainSiteDashboardContent = () => {
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
                     isActive
-                      ? 'bg-[#7380b6]/10 text-rose-600'
+                      ? 'bg-[#7380b6]/10 text-[#7380b6]'
                       : 'text-zinc-400 hover:bg-zinc-50 hover:text-zinc-700'
                   }`
                 }
@@ -972,7 +972,7 @@ const MainSiteDashboardContent = () => {
                       className={({ isActive }) =>
                         `flex items-center gap-2 px-2 py-2 rounded text-xs transition-colors ${
                           isActive
-                            ? 'bg-[#7380b6]/10 text-rose-600'
+                            ? 'bg-[#7380b6]/10 text-[#7380b6]'
                             : 'text-zinc-500 hover:bg-zinc-50 hover:text-zinc-600'
                         }`
                       }
@@ -1036,7 +1036,7 @@ const MainSiteDashboardContent = () => {
                   className={`
                     w-11 h-11 flex items-center justify-center rounded-2xl transition-all duration-200 relative
                     ${isActive 
-                      ? 'bg-[#7380b6]/15 text-rose-600 shadow-[0_2px_12px_rgba(221,12,81,0.15)]' 
+                      ? 'bg-[#7380b6]/15 text-[#7380b6] shadow-[0_2px_12px_rgba(221,12,81,0.15)]' 
                       : 'text-zinc-400 hover:text-zinc-700 hover:bg-black/[0.06]'
                     }
                   `}
@@ -1044,7 +1044,7 @@ const MainSiteDashboardContent = () => {
                   <Icon className="w-5 h-5" />
                   {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[3px] w-[3px] h-5 rounded-r-full bg-[#7380b6]" />}
                   {badgeCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded-full bg-[#7380b6] text-white ring-2 ring-white">
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded-full bg-[#7380b6] !text-white [&_svg]:!text-white ring-2 ring-white">
                       {badgeCount > 99 ? '99+' : badgeCount}
                     </span>
                   )}
@@ -1081,7 +1081,7 @@ const MainSiteDashboardContent = () => {
                   className={`
                     w-11 h-11 flex items-center justify-center rounded-2xl transition-all duration-200 relative
                     ${isActive 
-                      ? 'bg-[#7380b6]/15 text-rose-600 shadow-[0_2px_12px_rgba(221,12,81,0.15)]' 
+                      ? 'bg-[#7380b6]/15 text-[#7380b6] shadow-[0_2px_12px_rgba(221,12,81,0.15)]' 
                       : 'text-zinc-400 hover:text-zinc-700 hover:bg-black/[0.06]'
                     }
                   `}
@@ -1089,7 +1089,7 @@ const MainSiteDashboardContent = () => {
                   <Icon className="w-5 h-5" />
                   {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[3px] w-[3px] h-5 rounded-r-full bg-[#7380b6]" />}
                   {badgeCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded-full bg-[#7380b6] text-white ring-2 ring-white">
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded-full bg-[#7380b6] !text-white [&_svg]:!text-white ring-2 ring-white">
                       {badgeCount > 99 ? '99+' : badgeCount}
                     </span>
                   )}
@@ -1148,7 +1148,7 @@ const MainSiteDashboardContent = () => {
     return (
       <div className="h-screen flex items-center justify-center bg-[#F0F0F2]" style={{ height: '100dvh' }}>
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-rose-600 border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-[#7380b6] border-t-transparent rounded-full animate-spin" />
           <p className="text-sm text-zinc-400">Loading...</p>
         </div>
       </div>
@@ -1175,7 +1175,7 @@ const MainSiteDashboardContent = () => {
           </div>
         )}
         {impersonating && (
-          <div className="flex-shrink-0 bg-[#7380b6] text-white px-4 py-2 z-[60]">
+          <div className="flex-shrink-0 bg-[#7380b6] !text-white [&_svg]:!text-white px-4 py-2 z-[60]">
             <div className="flex items-center justify-between max-w-screen-xl mx-auto">
               <div className="flex items-center gap-2 text-sm">
                 <ArrowLeftRight className="w-4 h-4" />
@@ -1286,7 +1286,7 @@ const MainSiteDashboardContent = () => {
                         <DropdownMenuItem
                           key={site.id}
                           onClick={() => navigate(`/${site.slug}`)}
-                          className={`cursor-pointer ${site.slug === mainSiteSlug ? 'bg-rose-50 text-rose-700 font-medium' : 'text-zinc-600 focus:text-zinc-900 focus:bg-black/5'}`}
+                          className={`cursor-pointer ${site.slug === mainSiteSlug ? 'bg-[#7380b6]/10 text-[#5f6ca3] font-medium' : 'text-zinc-600 focus:text-zinc-900 focus:bg-black/5'}`}
                           data-testid={`switch-site-${site.slug}`}
                         >
                           {site.logo_url ? (
@@ -1300,7 +1300,7 @@ const MainSiteDashboardContent = () => {
                             <Globe className="w-4 h-4 mr-2 flex-shrink-0" />
                           )}
                           <span className="truncate">{site.name}</span>
-                          {site.slug === mainSiteSlug && <Check className="w-3.5 h-3.5 ml-auto text-rose-600 flex-shrink-0" />}
+                          {site.slug === mainSiteSlug && <Check className="w-3.5 h-3.5 ml-auto text-[#7380b6] flex-shrink-0" />}
                         </DropdownMenuItem>
                       ))}
                     </div>
@@ -1468,7 +1468,7 @@ const MainSiteDashboardContent = () => {
                   {getAvatarUrl(user) ? (
                     <img src={getAvatarUrl(user)} alt={user?.name} className="w-9 h-9 rounded-full object-cover" />
                   ) : (
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-rose-500 to-rose-700 flex items-center justify-center text-white font-semibold text-sm">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#7380b6] to-[#5f6ca3] flex items-center justify-center text-white font-semibold text-sm">
                       {user?.name?.charAt(0).toUpperCase()}
                     </div>
                   )}
@@ -1480,7 +1480,7 @@ const MainSiteDashboardContent = () => {
                   {getAvatarUrl(user) ? (
                     <img src={getAvatarUrl(user)} alt={user?.name} className="w-10 h-10 rounded-xl object-cover" />
                   ) : (
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-rose-700 flex items-center justify-center text-white font-semibold">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7380b6] to-[#5f6ca3] flex items-center justify-center text-white font-semibold">
                       {user?.name?.charAt(0).toUpperCase()}
                     </div>
                   )}
@@ -1504,7 +1504,7 @@ const MainSiteDashboardContent = () => {
                   Personal Settings
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-black/[0.06]" />
-                <DropdownMenuItem onClick={handleLogout} className="text-rose-600 focus:text-rose-700 focus:bg-rose-50">
+                <DropdownMenuItem onClick={handleLogout} className="text-[#7380b6] focus:text-[#5f6ca3] focus:bg-[#7380b6]/10">
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign out
                 </DropdownMenuItem>
@@ -1536,7 +1536,7 @@ const MainSiteDashboardContent = () => {
             </div>
             <div className="flex-1 overflow-y-auto">
               <nav className="space-y-1">
-                <NavLink to={`/${mainSiteSlug}`} end onClick={closeSidebar} className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-rose-50 text-rose-700' : 'text-zinc-500 hover:text-zinc-800 hover:bg-slate-50'}`}>
+                <NavLink to={`/${mainSiteSlug}`} end onClick={closeSidebar} className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-[#7380b6]/10 text-[#5f6ca3]' : 'text-zinc-500 hover:text-zinc-800 hover:bg-slate-50'}`}>
                   <LayoutDashboard className="w-5 h-5" /><span className="font-medium">Dashboard</span>
                 </NavLink>
                 {flatNavItems.map((item) => { const Icon = item.icon; return isLicenseBlocked ? (
@@ -1544,14 +1544,14 @@ const MainSiteDashboardContent = () => {
                     <Icon className="w-5 h-5" /><span className="font-medium">{item.label}</span>
                   </span>
                 ) : (
-                  <NavLink key={item.to} to={item.to} onClick={closeSidebar} className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-rose-50 text-rose-700' : 'text-zinc-500 hover:text-zinc-800 hover:bg-black/5'}`}>
+                  <NavLink key={item.to} to={item.to} onClick={closeSidebar} className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-[#7380b6]/10 text-[#5f6ca3]' : 'text-zinc-500 hover:text-zinc-800 hover:bg-black/5'}`}>
                     <Icon className="w-5 h-5" /><span className="font-medium">{item.label}</span>
                   </NavLink>
                 ); })}
               </nav>
             </div>
             <div className="pt-4 border-t border-black/[0.06] mt-4">
-              <Button variant="ghost" onClick={handleLogout} className="w-full justify-start gap-2 text-rose-600 hover:text-rose-700 hover:bg-rose-50">
+              <Button variant="ghost" onClick={handleLogout} className="w-full justify-start gap-2 text-[#7380b6] hover:text-[#5f6ca3] hover:bg-[#7380b6]/10">
                 <LogOut className="w-4 h-4" />Sign out
               </Button>
             </div>

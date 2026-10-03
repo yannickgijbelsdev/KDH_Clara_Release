@@ -171,7 +171,7 @@ export default function DiscoveryTokensPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => setRevokeTarget(t)}
-                    className="text-rose-600 border-rose-200 hover:bg-rose-50 gap-1.5"
+                    className="text-[#7380b6] border-[#7380b6]/30 hover:bg-[#7380b6]/10 gap-1.5"
                     data-testid={`revoke-token-${t.id}`}
                   >
                     <Trash2 className="w-3.5 h-3.5" /> Revoke

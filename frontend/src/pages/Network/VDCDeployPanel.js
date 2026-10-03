@@ -25,7 +25,7 @@ const PHASE_LABELS = {
 const LOG_COLORS = {
   info: 'text-zinc-400',
   success: 'text-emerald-400',
-  error: 'text-red-400',
+  error: 'text-[#7380b6]',
   debug: 'text-zinc-500',
 };
 
@@ -191,7 +191,7 @@ export default function VDCDeployPanel() {
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => setShowKeyInput(false)}>Cancel</Button>
             <Button size="sm" onClick={saveKey} disabled={keySaving || !keyInput.includes('PRIVATE KEY')}
-              className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white" data-testid="save-key-btn">
+              className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white" data-testid="save-key-btn">
               {keySaving ? 'Saving...' : 'Save Key'}
             </Button>
           </div>
@@ -203,7 +203,7 @@ export default function VDCDeployPanel() {
         <div className="rounded-xl border border-zinc-200/80 bg-white overflow-hidden">
           <div className="h-1 bg-zinc-100">
             <motion.div
-              className={`h-full ${hasError ? 'bg-red-500' : isComplete ? 'bg-emerald-500' : 'bg-zinc-900'}`}
+              className={`h-full ${hasError ? 'bg-[#7380b6]/100' : isComplete ? 'bg-emerald-500' : 'bg-zinc-900'}`}
               animate={{ width: `${progress}%` }}
               transition={{ duration: 0.3 }}
             />
@@ -212,12 +212,12 @@ export default function VDCDeployPanel() {
           <div className="p-4">
             <div className="flex items-center gap-3 mb-3">
               <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                hasError ? 'bg-red-50' : isComplete ? 'bg-emerald-50' : 'bg-zinc-100'
+                hasError ? 'bg-[#7380b6]/10' : isComplete ? 'bg-emerald-50' : 'bg-zinc-100'
               }`}>
                 {deploying && !hasError ? (
                   <Loader2 className="w-4 h-4 animate-spin text-zinc-600" />
                 ) : hasError ? (
-                  <XCircle className="w-4 h-4 text-red-500" />
+                  <XCircle className="w-4 h-4 text-[#7380b6]0" />
                 ) : isComplete ? (
                   <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                 ) : (
@@ -264,7 +264,7 @@ export default function VDCDeployPanel() {
                       return (
                         <div key={i} className="flex gap-2">
                           <span className="text-zinc-600 select-none flex-shrink-0">{time}</span>
-                          <span className={`text-zinc-500 flex-shrink-0 w-20 text-right ${entry.level === 'error' ? 'text-red-500' : ''}`}>
+                          <span className={`text-zinc-500 flex-shrink-0 w-20 text-right ${entry.level === 'error' ? 'text-[#7380b6]0' : ''}`}>
                             [{entry.phase}]
                           </span>
                           <span className={color}>{entry.message}</span>
@@ -278,9 +278,9 @@ export default function VDCDeployPanel() {
             )}
 
             {hasError && (
-              <div className="mt-3 bg-red-50 border border-red-100 rounded-lg p-3 flex items-start gap-2.5">
-                <XCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-red-600">{status.error}</p>
+              <div className="mt-3 bg-[#7380b6]/10 border border-[#7380b6]/20 rounded-lg p-3 flex items-start gap-2.5">
+                <XCircle className="w-4 h-4 text-[#7380b6] flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-[#7380b6]">{status.error}</p>
               </div>
             )}
 

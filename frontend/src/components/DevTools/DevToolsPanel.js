@@ -12,7 +12,7 @@ const METHOD_COLORS = {
   POST: 'text-blue-400',
   PUT: 'text-amber-400',
   PATCH: 'text-amber-400',
-  DELETE: 'text-red-400',
+  DELETE: 'text-[#7380b6]',
 };
 
 const STATUS_COLORS = {
@@ -20,11 +20,11 @@ const STATUS_COLORS = {
   201: 'text-green-400',
   204: 'text-green-400',
   400: 'text-amber-400',
-  401: 'text-red-400',
-  403: 'text-red-400',
+  401: 'text-[#7380b6]',
+  403: 'text-[#7380b6]',
   404: 'text-amber-400',
-  500: 'text-red-400',
-  ERR: 'text-red-400',
+  500: 'text-[#7380b6]',
+  ERR: 'text-[#7380b6]',
 };
 
 export default function DevToolsPanel() {
@@ -48,7 +48,7 @@ export default function DevToolsPanel() {
       {!panelOpen && (
         <button
           onClick={() => setPanelOpen(true)}
-          className="fixed bottom-4 right-4 z-[9999] w-10 h-10 rounded-full bg-[#7380b6] text-white flex items-center justify-center shadow-2xl hover:bg-[#7380b6] transition-all"
+          className="fixed bottom-4 right-4 z-[9999] w-10 h-10 rounded-full bg-[#7380b6] !text-white [&_svg]:!text-white flex items-center justify-center shadow-2xl hover:bg-[#7380b6] transition-all"
           data-testid="devtools-toggle"
         >
           <Activity className="w-5 h-5" />
@@ -69,9 +69,9 @@ export default function DevToolsPanel() {
           {/* Header */}
           <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-200 bg-white/60 rounded-t-2xl">
             <div className="flex items-center gap-2">
-              <Activity className="w-3.5 h-3.5 text-rose-600" />
-              <span className="text-xs font-bold text-rose-500">DevTools</span>
-              <span className="text-[10px] bg-[#7380b6]/20 text-rose-500 px-1.5 py-0.5 rounded-full">CLONE</span>
+              <Activity className="w-3.5 h-3.5 text-[#7380b6]" />
+              <span className="text-xs font-bold text-[#7380b6]0">DevTools</span>
+              <span className="text-[10px] bg-[#7380b6]/20 text-[#7380b6]0 px-1.5 py-0.5 rounded-full">CLONE</span>
             </div>
             <div className="flex items-center gap-1">
               <button
@@ -116,7 +116,7 @@ export default function DevToolsPanel() {
                 onClick={() => setPanelTab(tab.id)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all border-b-2 ${
                   panelTab === tab.id
-                    ? 'border-rose-600 text-rose-500'
+                    ? 'border-[#7380b6] text-[#7380b6]0'
                     : 'border-transparent text-zinc-500 hover:text-zinc-600'
                 }`}
                 data-testid={`devtools-tab-${tab.id}`}
@@ -341,7 +341,7 @@ function SnapshotsTabContent() {
       <button
         onClick={createSnapshot}
         disabled={creating}
-        className="flex items-center gap-2 px-3 py-2 rounded-full text-xs font-medium bg-[#7380b6] hover:bg-[#5f6ca3] text-white mb-3 disabled:opacity-50"
+        className="flex items-center gap-2 px-3 py-2 rounded-full text-xs font-medium bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white mb-3 disabled:opacity-50"
         data-testid="devtools-create-snapshot"
       >
         <Camera className="w-3.5 h-3.5" />
@@ -362,7 +362,7 @@ function SnapshotsTabContent() {
                   }`}>
                     {snap.type === 'pre-restore' ? 'Pre-Restore' : 'Snapshot'}
                   </span>
-                  <span className={`text-[10px] ${snap.status === 'completed' ? 'text-green-400' : 'text-red-400'}`}>
+                  <span className={`text-[10px] ${snap.status === 'completed' ? 'text-green-400' : 'text-[#7380b6]'}`}>
                     {snap.status}
                   </span>
                 </div>

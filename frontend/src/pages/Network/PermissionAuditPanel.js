@@ -12,7 +12,7 @@ const ACTION_COLORS = {
   view: 'bg-blue-500/10 text-blue-400',
   create: 'bg-green-500/10 text-green-400',
   edit: 'bg-amber-500/10 text-amber-400',
-  delete: 'bg-red-500/10 text-red-400',
+  delete: 'bg-[#7380b6]/100/10 text-[#7380b6]',
 };
 
 function timeAgo(isoString) {
@@ -111,7 +111,7 @@ export default function PermissionAuditPanel({ token, onClose, inline = false })
           <>
             {/* Stats Cards */}
             <div className="grid grid-cols-4 gap-3 px-6 py-4 border-b border-zinc-200">
-              <StatCard label="Total Denials" value={stats?.total_denials || 0} icon={ShieldAlert} color="text-red-400" />
+              <StatCard label="Total Denials" value={stats?.total_denials || 0} icon={ShieldAlert} color="text-[#7380b6]" />
               <StatCard label="Last 24h" value={stats?.denials_24h || 0} icon={Clock} color="text-amber-400" />
               <StatCard
                 label="Top Blocked User"
@@ -125,7 +125,7 @@ export default function PermissionAuditPanel({ token, onClose, inline = false })
                 value={stats?.top_blocked_features?.[0]?.feature || '-'}
                 sub={stats?.top_blocked_features?.[0] ? `${stats.top_blocked_features[0].action} (${stats.top_blocked_features[0].count}x)` : ''}
                 icon={AlertTriangle}
-                color="text-rose-500"
+                color="text-[#7380b6]0"
               />
             </div>
 

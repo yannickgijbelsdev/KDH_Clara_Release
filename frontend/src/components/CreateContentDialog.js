@@ -242,7 +242,7 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
                           type="button"
                           data-testid="create-category-inline-btn"
                           onClick={createCategoryInline}
-                          className="text-xs font-semibold text-rose-700 hover:text-rose-800 flex items-center gap-1 px-2 py-1 rounded-md hover:bg-rose-50"
+                          className="text-xs font-semibold text-[#5f6ca3] hover:text-[#4a5583] flex items-center gap-1 px-2 py-1 rounded-md hover:bg-[#7380b6]/10"
                         >
                           <Plus className="w-3 h-3" /> New category
                         </button>
@@ -260,7 +260,7 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
                           data-testid="content-category-option-none"
                         >
                           <span>No category</span>
-                          {!formData.category_id && <span className="text-rose-600">✓</span>}
+                          {!formData.category_id && <span className="text-[#7380b6]">✓</span>}
                         </button>
                         {categories.map((cat) => {
                           const active = formData.category_id === cat.id;
@@ -277,16 +277,16 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
                                 data-testid={`content-category-option-${cat.slug}`}
                                 className="flex-1 flex items-center gap-2 text-left"
                               >
-                                <Folder className={`w-4 h-4 ${active ? 'text-rose-600' : 'text-rose-300'}`} />
+                                <Folder className={`w-4 h-4 ${active ? 'text-[#7380b6]' : 'text-[#7380b6]'}`} />
                                 <span className={active ? 'text-zinc-900 font-semibold' : 'text-zinc-700'}>{cat.name}</span>
-                                {active && <span className="ml-auto text-rose-600">✓</span>}
+                                {active && <span className="ml-auto text-[#7380b6]">✓</span>}
                               </button>
                               {isAdmin && (
                                 <button
                                   type="button"
                                   data-testid={`delete-category-inline-${cat.slug}`}
                                   onClick={() => deleteCategoryInline(cat)}
-                                  className="flex-shrink-0 w-7 h-7 rounded-md text-zinc-300 hover:text-rose-500 hover:bg-rose-50 flex items-center justify-center"
+                                  className="flex-shrink-0 w-7 h-7 rounded-md text-zinc-300 hover:text-[#7380b6]0 hover:bg-[#7380b6]/10 flex items-center justify-center"
                                   title={`Delete "${cat.name}"`}
                                   aria-label={`Delete category ${cat.name}`}
                                 >
@@ -298,7 +298,7 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
                         })}
                         {categories.length === 0 && (
                           <div className="px-4 py-6 text-center text-xs text-zinc-400">
-                            No categories yet — use <span className="font-semibold text-rose-700">+ New category</span> above to add one.
+                            No categories yet — use <span className="font-semibold text-[#5f6ca3]">+ New category</span> above to add one.
                           </div>
                         )}
                       </div>
@@ -341,10 +341,10 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
                             );
                             openClara('seo');
                           }}
-                          className="p-6 rounded-2xl border-2 border-rose-200 hover:border-rose-500 bg-rose-50/50 text-left transition-all group"
+                          className="p-6 rounded-2xl border-2 border-[#7380b6]/30 hover:border-[#7380b6]/100 bg-[#7380b6]/10/50 text-left transition-all group"
                           data-testid="writing-method-clara"
                         >
-                          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-600 to-amber-500 flex items-center justify-center mb-4">
+                          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7380b6] to-amber-500 flex items-center justify-center mb-4">
                             <Sparkles className="w-6 h-6 text-white" />
                           </div>
                           <h3 className="font-bold text-zinc-900 mb-1">Write with Clara Assistent</h3>
@@ -367,7 +367,7 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
                             );
                             openClara('seo');
                           }}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-rose-700 bg-rose-50 hover:bg-rose-100 transition-colors"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-[#5f6ca3] bg-[#7380b6]/10 hover:bg-[#7380b6]/15 transition-colors"
                           title="The Clara Assistent is there to help you write better content"
                           data-testid="clara-editor-btn"
                         >
@@ -479,7 +479,7 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
           </Button>
           <Button onClick={handleNext} disabled={!canNext() || loading}
             data-testid="content-wizard-next-btn"
-            className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white px-6 rounded-full">
+            className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white px-6 rounded-full">
             {loading ? (
               <><Loader2 className="w-4 h-4 animate-spin" /> Creating...</>
             ) : wizardStep === 2 ? (

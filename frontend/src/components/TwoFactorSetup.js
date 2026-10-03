@@ -202,7 +202,7 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
                 variant="outline" 
                 size="sm"
                 onClick={() => setDisableDialogOpen(true)}
-                className="gap-2 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                className="gap-2 text-[#7380b6] hover:text-[#7380b6] hover:bg-[#7380b6]/100/10"
               >
                 <ShieldOff className="w-4 h-4" />
                 Disable
@@ -353,7 +353,7 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
       <Dialog open={disableDialogOpen} onOpenChange={setDisableDialogOpen}>
         <DialogContent className="bg-white border-zinc-200 max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-red-400">
+            <DialogTitle className="flex items-center gap-2 text-[#7380b6]">
               <ShieldOff className="w-5 h-5" />
               2FA uitschakelen
             </DialogTitle>
@@ -387,7 +387,7 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
               <Button 
                 onClick={disable2FA}
                 disabled={disableCode.length !== 6 || disabling}
-                className="flex-1 bg-red-600 hover:bg-red-700"
+                className="flex-1 bg-[#7380b6] hover:bg-[#5f6ca3]"
               >
                 {disabling ? 'Disabling...' : 'Disable'}
               </Button>
@@ -401,7 +401,7 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
         <DialogContent className="bg-white border-zinc-200 max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <KeyRound className="w-5 h-5 text-rose-600" />
+              <KeyRound className="w-5 h-5 text-[#7380b6]" />
               Backup codes
             </DialogTitle>
             <DialogDescription>

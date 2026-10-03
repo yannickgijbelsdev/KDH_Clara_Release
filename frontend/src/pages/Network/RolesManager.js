@@ -267,7 +267,7 @@ export default function RolesManager({ mainSiteId, mainSiteName, token, onClose 
                   key={role.id}
                   onClick={() => selectRole(role)}
                   className={`w-full text-left px-3 py-2.5 rounded-lg text-sm flex items-center justify-between group transition-all cursor-pointer ${
-                    activeRoleId === role.id ? 'bg-[#7380b6] text-white' : 'text-zinc-600 hover:bg-zinc-100'
+                    activeRoleId === role.id ? 'bg-[#7380b6] !text-white [&_svg]:!text-white' : 'text-zinc-600 hover:bg-zinc-100'
                   }`}
                   data-testid={`role-${role.slug}`}
                 >
@@ -279,7 +279,7 @@ export default function RolesManager({ mainSiteId, mainSiteName, token, onClose 
                   {!role.is_system && (
                     <button
                       onClick={(e) => { e.stopPropagation(); deleteRole(role.id); }}
-                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-zinc-200 rounded text-zinc-500 hover:text-red-400"
+                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-zinc-200 rounded text-zinc-500 hover:text-[#7380b6]"
                     >
                       <Trash2 className="w-3 h-3" />
                     </button>

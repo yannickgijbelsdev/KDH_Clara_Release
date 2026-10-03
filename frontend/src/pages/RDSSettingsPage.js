@@ -396,7 +396,7 @@ const RDSSettingsPage = () => {
       case 'success':
         return <CheckCircle className="w-4 h-4 text-green-500" />;
       case 'failed':
-        return <XCircle className="w-4 h-4 text-red-500" />;
+        return <XCircle className="w-4 h-4 text-[#7380b6]0" />;
       case 'no_show':
         return <AlertCircle className="w-4 h-4 text-yellow-500" />;
       default:
@@ -420,7 +420,7 @@ const RDSSettingsPage = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-rose-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#7380b6]" />
       </div>
     );
   }
@@ -432,7 +432,7 @@ const RDSSettingsPage = () => {
         <Button
           onClick={handleRefreshCache}
           disabled={refreshing}
-          className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
+          className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white"
           data-testid="refresh-cache-btn"
         >
           <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
@@ -444,7 +444,7 @@ const RDSSettingsPage = () => {
       <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Settings className="w-5 h-5 text-rose-500" />
+            <Settings className="w-5 h-5 text-[#7380b6]0" />
             <h2 className="text-lg font-semibold text-zinc-900">Configuration</h2>
           </div>
           {!editMode ? (
@@ -477,7 +477,7 @@ const RDSSettingsPage = () => {
                 size="sm"
                 onClick={handleSaveSettings}
                 disabled={saving}
-                className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
+                className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white"
               >
                 <Save className="w-4 h-4" />
                 {saving ? 'Saving...' : 'Save'}
@@ -940,7 +940,7 @@ const RDSSettingsPage = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => removeCustomStream(st.id, idx)}
-                          className="text-red-500 hover:text-red-600 hover:bg-red-50 p-1 h-7 w-7"
+                          className="text-[#7380b6]0 hover:text-[#7380b6] hover:bg-[#7380b6]/10 p-1 h-7 w-7"
                           data-testid={`remove-stream-${st.code}-${idx}`}
                         >
                           <Trash2 className="w-3 h-3" />
@@ -979,7 +979,7 @@ const RDSSettingsPage = () => {
                             className={`mt-2 text-[11px] rounded border px-2 py-1.5 ${
                               testRes.status === 'success'
                                 ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                                : 'bg-red-50 border-red-200 text-red-700'
+                                : 'bg-[#7380b6]/10 border-[#7380b6]/30 text-[#5f6ca3]'
                             }`}
                             data-testid={`test-result-${st.code}-${idx}`}
                           >
@@ -1103,7 +1103,7 @@ const RDSSettingsPage = () => {
                               className={`mt-1 text-[11px] rounded border px-2 py-1.5 ${
                                 testRes.status === 'success'
                                   ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                                  : 'bg-red-50 border-red-200 text-red-700'
+                                  : 'bg-[#7380b6]/10 border-[#7380b6]/30 text-[#5f6ca3]'
                               }`}
                               data-testid={`test-result-view-${st.code}-${i}`}
                             >
@@ -1137,7 +1137,7 @@ const RDSSettingsPage = () => {
       {/* Shoutcast Filters Section */}
       <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-6">
         <div className="flex items-center gap-2 mb-4">
-          <Filter className="w-5 h-5 text-rose-500" />
+          <Filter className="w-5 h-5 text-[#7380b6]0" />
           <h2 className="text-lg font-semibold text-zinc-900">Now Playing Filters</h2>
         </div>
         <p className="text-zinc-500 text-sm mb-4">
@@ -1183,7 +1183,7 @@ const RDSSettingsPage = () => {
                         <Input value={filter.match} onChange={(e) => updateFilter(stCode, idx, 'match', e.target.value)} placeholder="Text to filter" className="bg-zinc-50 border-zinc-200 text-zinc-900 text-xs flex-1" />
                         <span className="text-zinc-500 text-xs">&rarr;</span>
                         <Input value={filter.replace} onChange={(e) => updateFilter(stCode, idx, 'replace', e.target.value)} placeholder="Replace with" className="bg-zinc-50 border-zinc-200 text-zinc-900 text-xs flex-1" />
-                        <Button variant="ghost" size="sm" onClick={() => removeFilter(stCode, idx)} className="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-1 h-7 w-7">
+                        <Button variant="ghost" size="sm" onClick={() => removeFilter(stCode, idx)} className="text-[#7380b6] hover:text-[#7380b6] hover:bg-[#7380b6]/100/10 p-1 h-7 w-7">
                           <Trash2 className="w-3 h-3" />
                         </Button>
                       </div>

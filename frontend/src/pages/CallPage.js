@@ -271,7 +271,7 @@ function CallsTab({ token }) {
                     {isThisCallActive && (
                       <Button
                         onClick={() => handleEndCall(invite)}
-                        className="bg-red-600 hover:bg-red-700"
+                        className="bg-[#7380b6] hover:bg-[#5f6ca3]"
                         size="sm"
                         data-testid={`end-call-${invite.id}`}
                       >
@@ -280,7 +280,7 @@ function CallsTab({ token }) {
                     )}
                     <button
                       onClick={() => deleteInvite(invite.id)}
-                      className="p-2 rounded-lg hover:bg-zinc-100 text-zinc-500 hover:text-red-400"
+                      className="p-2 rounded-lg hover:bg-zinc-100 text-zinc-500 hover:text-[#7380b6]"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -511,7 +511,7 @@ function ProfilesTab({ token }) {
                   <button onClick={() => editProfile(p)} className="p-2 rounded-lg hover:bg-zinc-100 text-zinc-500 hover:text-zinc-600">
                     <Edit className="w-4 h-4" />
                   </button>
-                  <button onClick={() => deleteProfile(p.id)} className="p-2 rounded-lg hover:bg-zinc-100 text-zinc-500 hover:text-red-400">
+                  <button onClick={() => deleteProfile(p.id)} className="p-2 rounded-lg hover:bg-zinc-100 text-zinc-500 hover:text-[#7380b6]">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>

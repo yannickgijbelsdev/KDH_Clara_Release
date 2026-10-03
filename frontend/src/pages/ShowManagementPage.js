@@ -359,7 +359,7 @@ const ShowManagementPage = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-rose-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#7380b6]" />
       </div>
     );
   }
@@ -405,7 +405,7 @@ const ShowManagementPage = () => {
               <Button
                 data-testid="add-title-btn"
                 onClick={openCreateTitleDialog}
-                className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
+                className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white"
               >
                 <Plus className="w-4 h-4" />
                 Add Title
@@ -439,7 +439,7 @@ const ShowManagementPage = () => {
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <Radio className="w-8 h-8 text-rose-600" />
+                          <Radio className="w-8 h-8 text-[#7380b6]" />
                         )}
                       </div>
                       <div>
@@ -449,7 +449,7 @@ const ShowManagementPage = () => {
                             <span className="truncate max-w-[300px]">{title.description}</span>
                           )}
                           {title.default_start_time && title.default_end_time && (
-                            <span className="flex items-center gap-1 text-rose-500">
+                            <span className="flex items-center gap-1 text-[#7380b6]0">
                               <Clock className="w-3.5 h-3.5" />
                               {title.default_start_time} - {title.default_end_time}
                             </span>
@@ -472,7 +472,7 @@ const ShowManagementPage = () => {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="text-zinc-400 hover:text-rose-600 hover:bg-[#7380b6]/10"
+                            className="text-zinc-400 hover:text-[#7380b6] hover:bg-[#7380b6]/10"
                           >
                             <Image className="w-4 h-4" />
                           </Button>
@@ -491,7 +491,7 @@ const ShowManagementPage = () => {
                           {title.image && (
                             <DropdownMenuItem
                               onClick={() => handleRemoveImage(title.id)}
-                              className="text-rose-600"
+                              className="text-[#7380b6]"
                             >
                               <X className="w-4 h-4 mr-2" />
                               Remove Image
@@ -504,7 +504,7 @@ const ShowManagementPage = () => {
                         variant="ghost"
                         size="icon"
                         onClick={() => openEditTitleDialog(title)}
-                        className="text-zinc-400 hover:text-rose-600 hover:bg-[#7380b6]/10"
+                        className="text-zinc-400 hover:text-[#7380b6] hover:bg-[#7380b6]/10"
                       >
                         <Edit2 className="w-4 h-4" />
                       </Button>
@@ -515,7 +515,7 @@ const ShowManagementPage = () => {
                           setSelectedTitle(title);
                           setDeleteTitleDialogOpen(true);
                         }}
-                        className="text-zinc-400 hover:text-red-500 hover:bg-red-500/10"
+                        className="text-zinc-400 hover:text-[#7380b6]0 hover:bg-[#7380b6]/100/10"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -590,7 +590,7 @@ const ShowManagementPage = () => {
                           setSelectedStudio(studio);
                           setDeleteStudioDialogOpen(true);
                         }}
-                        className="text-zinc-400 hover:text-red-500 hover:bg-red-500/10"
+                        className="text-zinc-400 hover:text-[#7380b6]0 hover:bg-[#7380b6]/100/10"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -746,7 +746,7 @@ const ShowManagementPage = () => {
                 <ChevronLeft className="w-4 h-4" /> Cancel
               </Button>
               <Button type="submit" disabled={savingTitle}
-                className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white px-6 rounded-full">
+                className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white px-6 rounded-full">
                 {savingTitle ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : <><Zap className="w-4 h-4" /> {editingTitle ? 'Update Title' : 'Add Title'}</>}
               </Button>
             </div>
@@ -797,7 +797,7 @@ const ShowManagementPage = () => {
                 <ChevronLeft className="w-4 h-4" /> Cancel
               </Button>
               <Button type="submit" disabled={savingStudio}
-                className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white px-6 rounded-full">
+                className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white px-6 rounded-full">
                 {savingStudio ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : <><Zap className="w-4 h-4" /> {editingStudio ? 'Update Studio' : 'Add Studio'}</>}
               </Button>
             </div>
@@ -821,7 +821,7 @@ const ShowManagementPage = () => {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteTitle}
-              className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
+              className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white"
             >
               Delete
             </AlertDialogAction>
@@ -845,7 +845,7 @@ const ShowManagementPage = () => {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteStudio}
-              className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
+              className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white"
             >
               Delete
             </AlertDialogAction>

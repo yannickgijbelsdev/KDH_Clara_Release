@@ -27,10 +27,10 @@ const MODE_CONFIG = {
     label: 'Enterprise Support',
     description: 'Advanced technical troubleshooting, security settings, and site analytics.',
     icon: Sparkles,
-    color: 'from-rose-600 to-amber-600',
-    bgLight: 'bg-rose-50',
-    borderLight: 'border-rose-200',
-    textAccent: 'text-rose-700',
+    color: 'from-[#7380b6] to-amber-600',
+    bgLight: 'bg-[#7380b6]/10',
+    borderLight: 'border-[#7380b6]/30',
+    textAccent: 'text-[#5f6ca3]',
     btnBg: 'bg-[#7380b6] hover:bg-[#7380b6]',
     heroImage: 'https://static.prod-images.emergentagent.com/jobs/701f0662-a1b9-4b1a-b3cd-31d39c15bdb0/images/7730c25377f309a5e6dec1f0b79bac42bd0469f1f04fe0e6cdde623dc5aa754e.png',
   },
@@ -155,7 +155,7 @@ export default function EnterpriseAssistantPage() {
                     data-testid={`mode-select-${key}`}>
                     <div className="h-32 w-full overflow-hidden">
                       <img src={cfg.heroImage} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                      <div className={`absolute inset-0 h-32 bg-gradient-to-t ${key === 'code' ? 'from-violet-900/60' : 'from-rose-900/60'} to-transparent`} />
+                      <div className={`absolute inset-0 h-32 bg-gradient-to-t ${key === 'code' ? 'from-violet-900/60' : 'from-[#7380b6]/60'} to-transparent`} />
                     </div>
                     <div className="p-5">
                       <div className="flex items-center gap-2.5 mb-2">
@@ -177,7 +177,7 @@ export default function EnterpriseAssistantPage() {
                   {sessions.slice(0, 5).map(s => (
                     <button key={s.session_id} onClick={() => loadSession(s.session_id)}
                       className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-zinc-50 transition-colors text-left">
-                      <div className={`w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 ${s.mode === 'code' ? 'bg-violet-100 text-violet-500' : 'bg-rose-100 text-rose-600'}`}>
+                      <div className={`w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 ${s.mode === 'code' ? 'bg-violet-100 text-violet-500' : 'bg-[#7380b6]/15 text-[#7380b6]'}`}>
                         {s.mode === 'code' ? <Code2 className="w-3 h-3" /> : <Sparkles className="w-3 h-3" />}
                       </div>
                       <span className="text-sm text-zinc-600 truncate flex-1">{s.title}</span>
@@ -202,7 +202,7 @@ export default function EnterpriseAssistantPage() {
       {sidebarOpen && (
         <div className="w-56 border-r border-zinc-100 flex flex-col bg-zinc-50/50 flex-shrink-0">
           <div className="p-3">
-            <Button onClick={() => startNewChat(mode)} className="w-full justify-start gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white border-0 h-9 text-xs" data-testid="new-chat-btn">
+            <Button onClick={() => startNewChat(mode)} className="w-full justify-start gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white border-0 h-9 text-xs" data-testid="new-chat-btn">
               <Plus className="w-3.5 h-3.5" /> New chat
             </Button>
           </div>
@@ -213,7 +213,7 @@ export default function EnterpriseAssistantPage() {
                 onClick={() => loadSession(s.session_id)}>
                 <span className="text-xs text-zinc-600 truncate flex-1">{s.title}</span>
                 <button onClick={(e) => { e.stopPropagation(); deleteSession(s.session_id); }}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity text-zinc-400 hover:text-red-500">
+                  className="opacity-0 group-hover:opacity-100 transition-opacity text-zinc-400 hover:text-[#7380b6]0">
                   <Trash2 className="w-3 h-3" />
                 </button>
               </div>
@@ -391,7 +391,7 @@ export default function EnterpriseAssistantPage() {
                   <div className="h-full flex flex-col">
                     <div className="flex items-center gap-2 px-3 py-2 bg-zinc-50 border-b border-zinc-100">
                       <div className="flex gap-1">
-                        <div className="w-2 h-2 rounded-full bg-red-400" />
+                        <div className="w-2 h-2 rounded-full bg-[#7380b6]" />
                         <div className="w-2 h-2 rounded-full bg-yellow-400" />
                         <div className="w-2 h-2 rounded-full bg-green-400" />
                       </div>

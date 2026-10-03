@@ -233,7 +233,7 @@ export default function ClaraGuideOverlay() {
           }}
           transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
         >
-          <div className="absolute inset-0 rounded-xl border-2 border-rose-500/80" />
+          <div className="absolute inset-0 rounded-xl border-2 border-[#7380b6]/100/80" />
         </motion.div>
 
         {/* Tooltip */}
@@ -253,7 +253,7 @@ export default function ClaraGuideOverlay() {
               style={{ left: Math.min(Math.max(20, rect.left + rect.width / 2 - Math.max(16, Math.min(rect.left + rect.width / 2 - 140, window.innerWidth - 296))), 256) }}
             />
             <div className="flex items-start gap-2">
-              <Sparkles className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+              <Sparkles className="w-4 h-4 text-[#7380b6]0 shrink-0 mt-0.5" />
               <p className="text-sm leading-relaxed">{description}</p>
             </div>
             <button

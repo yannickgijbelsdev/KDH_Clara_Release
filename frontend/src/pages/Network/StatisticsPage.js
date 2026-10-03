@@ -118,7 +118,7 @@ export default function StatisticsPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F0F0F2] flex items-center justify-center">
-        <Loader2 className="w-6 h-6 animate-spin text-rose-600" />
+        <Loader2 className="w-6 h-6 animate-spin text-[#7380b6]" />
       </div>
     );
   }
@@ -182,7 +182,7 @@ export default function StatisticsPage() {
           <KPICard icon={FileText} label="Total Articles" value={overview?.total_content_items || 0} color="text-blue-400" />
           <KPICard icon={CheckCircle} label="Published" value={totalPublished} color="text-green-400" />
           <KPICard icon={Clock} label="Scheduled" value={totalScheduled} color="text-amber-400" />
-          <KPICard icon={AlertTriangle} label="Failed" value={totalFailed} color="text-red-400" />
+          <KPICard icon={AlertTriangle} label="Failed" value={totalFailed} color="text-[#7380b6]" />
         </div>
 
         {/* Per WordPress Site */}
@@ -387,7 +387,7 @@ export default function StatisticsPage() {
                           <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
                             i === 0 ? 'bg-amber-500/20 text-amber-400' :
                             i === 1 ? 'bg-zinc-400/20 text-zinc-600' :
-                            'bg-[#7380b6]/20 text-rose-500'
+                            'bg-[#7380b6]/20 text-[#7380b6]0'
                           }`}>{i + 1}</span>
                         ) : (
                           <span className="text-zinc-600 text-xs pl-1.5">{i + 1}</span>
@@ -436,7 +436,7 @@ function AuthorAvatar({ author }) {
     return <img src={avatarSrc} alt="" className="w-8 h-8 rounded-full object-cover" />;
   }
   return (
-    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-600 to-amber-600 flex items-center justify-center text-white text-xs font-bold">
+    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7380b6] to-amber-600 flex items-center justify-center text-white text-xs font-bold">
       {author.name?.charAt(0)?.toUpperCase() || '?'}
     </div>
   );

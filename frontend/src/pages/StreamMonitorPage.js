@@ -272,9 +272,9 @@ const StreamPlayer = ({ stream }) => {
 
   const colorClasses = {
     orange: {
-      border: 'border-rose-600/30',
+      border: 'border-[#7380b6]/30',
       bg: 'bg-[#7380b6]/10',
-      text: 'text-rose-500',
+      text: 'text-[#7380b6]0',
       button: 'bg-[#7380b6] hover:bg-[#5f6ca3]'
     },
     violet: {
@@ -327,7 +327,7 @@ const StreamPlayer = ({ stream }) => {
         </div>
         
         {error && (
-          <div className="flex items-center gap-1 text-xs text-red-400">
+          <div className="flex items-center gap-1 text-xs text-[#7380b6]">
             <AlertCircle className="w-3 h-3" />
             {error}
           </div>

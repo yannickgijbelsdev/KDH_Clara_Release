@@ -10,8 +10,8 @@ const API = process.env.REACT_APP_BACKEND_URL;
 const SEVERITY_STYLES = {
   info:        { bg: 'from-sky-500 to-blue-600',     icon: Info },
   success:     { bg: 'from-emerald-500 to-green-600', icon: CheckCircle2 },
-  warning:     { bg: 'from-amber-500 to-rose-700',  icon: AlertTriangle },
-  maintenance: { bg: 'from-red-500 to-rose-700',      icon: Wrench },
+  warning:     { bg: 'from-amber-500 to-[#5f6ca3]',  icon: AlertTriangle },
+  maintenance: { bg: 'from-[#7380b6]/0 to-500 to-[#5f6ca3]',      icon: Wrench },
 };
 
 /**

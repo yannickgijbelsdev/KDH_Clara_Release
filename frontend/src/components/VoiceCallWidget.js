@@ -211,7 +211,7 @@ export default function VoiceCallWidget({ open, onClose }) {
         <span className="text-xs font-medium">{formatDuration(duration)}</span>
         <button
           onClick={(e) => { e.stopPropagation(); hangUp(); }}
-          className="w-7 h-7 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center ml-1"
+          className="w-7 h-7 rounded-full bg-[#7380b6]/100 hover:bg-[#7380b6] flex items-center justify-center ml-1"
           data-testid="voice-hangup-mini"
         >
           <PhoneOff className="w-3 h-3" />
@@ -255,7 +255,7 @@ export default function VoiceCallWidget({ open, onClose }) {
                 <h3 className="text-white text-lg font-semibold mb-1">Clara Support</h3>
                 <p className="text-zinc-400 text-sm mb-8">Incoming call...</p>
                 <div className="flex items-center justify-center gap-6">
-                  <button onClick={declineCall} className="w-14 h-14 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center transition-colors shadow-lg shadow-red-500/30" data-testid="voice-decline-btn">
+                  <button onClick={declineCall} className="w-14 h-14 rounded-full bg-[#7380b6]/100 hover:bg-[#7380b6] flex items-center justify-center transition-colors shadow-lg shadow-[#7380b6]/30" data-testid="voice-decline-btn">
                     <PhoneOff className="w-6 h-6 text-white" />
                   </button>
                   <button onClick={acceptCall} className="w-14 h-14 rounded-full bg-green-500 hover:bg-green-600 flex items-center justify-center transition-colors shadow-lg shadow-green-500/30" data-testid="voice-accept-btn">
@@ -326,14 +326,14 @@ export default function VoiceCallWidget({ open, onClose }) {
                 <div className="px-5 py-4 flex items-center justify-center gap-4 border-t border-zinc-800">
                   <button
                     onClick={toggleMute}
-                    className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${localMuted ? 'bg-red-500/20 text-red-400' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'}`}
+                    className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${localMuted ? 'bg-[#7380b6]/100/20 text-[#7380b6]' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'}`}
                     data-testid="voice-mute-btn"
                   >
                     {localMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
                   </button>
                   <button
                     onClick={hangUp}
-                    className="w-14 h-14 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center transition-colors shadow-lg shadow-red-500/30"
+                    className="w-14 h-14 rounded-full bg-[#7380b6]/100 hover:bg-[#7380b6] flex items-center justify-center transition-colors shadow-lg shadow-[#7380b6]/30"
                     data-testid="voice-hangup-btn"
                   >
                     <PhoneOff className="w-6 h-6 text-white" />

@@ -24,7 +24,7 @@ const PRIORITY_CONFIG = {
   low: { label: 'Low', color: 'text-zinc-400', bg: 'bg-zinc-500/10' },
   normal: { label: 'Normal', color: 'text-blue-400', bg: 'bg-blue-500/10' },
   high: { label: 'High', color: 'text-amber-400', bg: 'bg-amber-500/10' },
-  urgent: { label: 'Urgent', color: 'text-red-400', bg: 'bg-red-500/10' },
+  urgent: { label: 'Urgent', color: 'text-[#7380b6]', bg: 'bg-[#7380b6]/100/10' },
 };
 
 export default function TicketsPage() {
@@ -79,7 +79,7 @@ function TicketList() {
             onClick={() => setFilter(s)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
               filter === s
-                ? 'bg-[#7380b6] text-white'
+                ? 'bg-[#7380b6] !text-white [&_svg]:!text-white'
                 : 'bg-zinc-100 text-zinc-600 border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-200'
             }`}
             data-testid={`filter-${s}`}
@@ -91,7 +91,7 @@ function TicketList() {
 
       {loading ? (
         <div className="flex justify-center py-16">
-          <Loader2 className="w-6 h-6 animate-spin text-rose-600" />
+          <Loader2 className="w-6 h-6 animate-spin text-[#7380b6]" />
         </div>
       ) : tickets.length === 0 ? (
         <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-16 text-center">
@@ -216,7 +216,7 @@ function TicketDetail({ ticketId }) {
   const isAdmin = user?.is_network_admin || false;
 
   if (loading) {
-    return <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-rose-600" /></div>;
+    return <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-[#7380b6]" /></div>;
   }
   if (!ticket) {
     return <div className="text-center py-20 text-zinc-500 text-base">Ticket not found</div>;
@@ -267,7 +267,7 @@ function TicketDetail({ ticketId }) {
           {/* Original Description */}
           <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-5">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-9 h-9 rounded-full bg-[#7380b6]/20 flex items-center justify-center text-rose-500 text-sm font-bold">
+              <div className="w-9 h-9 rounded-full bg-[#7380b6]/20 flex items-center justify-center text-[#7380b6]0 text-sm font-bold">
                 {ticket.creator_name?.charAt(0)?.toUpperCase() || '?'}
               </div>
               <div>
@@ -320,7 +320,7 @@ function TicketDetail({ ticketId }) {
                 onChange={e => setMessage(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
                 placeholder="Type a reply..."
-                className="flex-1 bg-zinc-50 border border-zinc-200 rounded-xl px-5 py-3 text-base text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-rose-600"
+                className="flex-1 bg-zinc-50 border border-zinc-200 rounded-xl px-5 py-3 text-base text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-[#7380b6]"
                 data-testid="reply-message-input"
               />
               <Button
@@ -380,7 +380,7 @@ function VisualJourney({ steps, errorPage }) {
 
   return (
     <div className="relative" data-testid="journey-timeline">
-      <div className="absolute left-[17px] top-5 bottom-5 w-[2px] bg-gradient-to-b from-green-500/30 via-blue-500/30 to-red-500/30" />
+      <div className="absolute left-[17px] top-5 bottom-5 w-[2px] bg-gradient-to-b from-green-500/30 via-blue-500/30 to-[#7380b6]/30" />
 
       <div className="space-y-1">
         {steps.map((step, i) => {
@@ -392,7 +392,7 @@ function VisualJourney({ steps, errorPage }) {
           const progress = steps.length > 1 ? i / (steps.length - 1) : 0;
           let dotColor, dotBg;
           if (isLast) {
-            dotColor = 'bg-red-500'; dotBg = 'bg-red-500/20';
+            dotColor = 'bg-[#7380b6]/100'; dotBg = 'bg-[#7380b6]/100/20';
           } else if (progress < 0.33) {
             dotColor = 'bg-green-500'; dotBg = 'bg-green-500/10';
           } else if (progress < 0.66) {
@@ -409,14 +409,14 @@ function VisualJourney({ steps, errorPage }) {
 
               <div className={`flex-1 rounded-lg p-3 border transition-all ${
                 isLast
-                  ? 'bg-red-500/5 border-red-500/20'
+                  ? 'bg-[#7380b6]/100/5 border-[#7380b6]/20'
                   : 'bg-zinc-100/70 border-zinc-200 hover:border-zinc-300'
               }`}>
                 <div className="flex items-center justify-between">
-                  <span className={`text-sm font-medium ${isLast ? 'text-red-400' : 'text-zinc-200'}`}>
+                  <span className={`text-sm font-medium ${isLast ? 'text-[#7380b6]' : 'text-zinc-200'}`}>
                     {step.name}
                     {isLast && (
-                      <span className="ml-2 text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full">
+                      <span className="ml-2 text-xs bg-[#7380b6]/100/20 text-[#7380b6] px-2 py-0.5 rounded-full">
                         Issue reported here
                       </span>
                     )}

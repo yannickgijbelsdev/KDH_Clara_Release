@@ -70,7 +70,7 @@ function statusPill(status) {
   if (!status) return null;
   const map = {
     success: 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30',
-    error: 'bg-red-500/15 text-red-600 border-red-500/30',
+    error: 'bg-[#7380b6]/100/15 text-[#7380b6] border-[#7380b6]/30',
     skipped: 'bg-zinc-200 text-zinc-600 border-zinc-300',
     pending: 'bg-amber-500/15 text-amber-600 border-amber-500/30',
   };
@@ -408,7 +408,7 @@ const FlowEditor = ({ flow, catalog, onChange, onDelete }) => {
             {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
             Save
           </Button>
-          <Button onClick={handleDelete} variant="ghost" className="text-red-500 hover:text-red-700 hover:bg-red-50" data-testid="delete-flow-btn">
+          <Button onClick={handleDelete} variant="ghost" className="text-[#7380b6]0 hover:text-[#5f6ca3] hover:bg-[#7380b6]/10" data-testid="delete-flow-btn">
             <Trash2 className="w-4 h-4" />
           </Button>
         </div>
@@ -576,7 +576,7 @@ const StepCard = ({ step, index, catalog, onChange, onConfigChange, onRemove }) 
             onCheckedChange={(v) => onChange({ enabled: v })}
             data-testid={`step-enabled-${index}`}
           />
-          <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-700 hover:bg-red-50 h-7 w-7 p-0" onClick={onRemove} data-testid={`step-remove-${index}`}>
+          <Button variant="ghost" size="sm" className="text-[#7380b6]0 hover:text-[#5f6ca3] hover:bg-[#7380b6]/10 h-7 w-7 p-0" onClick={onRemove} data-testid={`step-remove-${index}`}>
             <Trash2 className="w-3.5 h-3.5" />
           </Button>
         </div>
@@ -745,7 +745,7 @@ const RunRow = ({ run }) => {
         {run.status === 'success' ? (
           <Check className="w-4 h-4 text-emerald-500" />
         ) : (
-          <X className="w-4 h-4 text-red-500" />
+          <X className="w-4 h-4 text-[#7380b6]0" />
         )}
         <span className="text-sm text-zinc-700 flex-1">{dt}</span>
         <span className="text-xs text-zinc-500">{run.duration_ms}ms</span>
@@ -757,16 +757,16 @@ const RunRow = ({ run }) => {
           {(run.steps || []).map((s) => (
             <div key={s.id || s.label} className="flex items-start gap-2 text-xs">
               {s.status === 'success' && <Check className="w-3 h-3 mt-0.5 text-emerald-500" />}
-              {s.status === 'error' && <X className="w-3 h-3 mt-0.5 text-red-500" />}
+              {s.status === 'error' && <X className="w-3 h-3 mt-0.5 text-[#7380b6]0" />}
               {s.status === 'skipped' && <span className="w-3 h-3 mt-0.5 inline-block rounded-full bg-zinc-300" />}
               <span className="font-medium text-zinc-700">{s.label}</span>
               <span className="text-zinc-500">· {s.type}</span>
-              {s.error && <span className="text-red-600 break-all">— {s.error}</span>}
+              {s.error && <span className="text-[#7380b6] break-all">— {s.error}</span>}
               <span className="ml-auto text-zinc-400">{s.duration_ms}ms</span>
             </div>
           ))}
           {run.error && (
-            <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded p-2 mt-2">
+            <div className="text-xs text-[#7380b6] bg-[#7380b6]/10 border border-[#7380b6]/30 rounded p-2 mt-2">
               {run.error}
             </div>
           )}

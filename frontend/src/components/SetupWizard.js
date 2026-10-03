@@ -55,7 +55,7 @@ export default function SetupWizard({ open, onClose, siteType = 'radio', siteNam
         {/* Progress bar */}
         <div className="h-1.5 bg-zinc-100">
           <div
-            className="h-full bg-gradient-to-r from-rose-600 to-amber-400 transition-all duration-700 ease-out rounded-full"
+            className="h-full bg-gradient-to-r from-[#7380b6] to-amber-400 transition-all duration-700 ease-out rounded-full"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -65,10 +65,10 @@ export default function SetupWizard({ open, onClose, siteType = 'radio', siteNam
           <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 transition-all duration-500 ${
             completed
               ? 'bg-emerald-50 border border-emerald-200'
-              : 'bg-rose-50 border border-rose-200'
+              : 'bg-[#7380b6]/10 border border-[#7380b6]/30'
           }`}>
             <Icon className={`w-8 h-8 transition-all duration-500 ${
-              completed ? 'text-emerald-600' : 'text-rose-600'
+              completed ? 'text-emerald-600' : 'text-[#7380b6]'
             } ${!completed ? 'animate-pulse' : ''}`} />
           </div>
 
@@ -89,7 +89,7 @@ export default function SetupWizard({ open, onClose, siteType = 'radio', siteNam
                 key={i}
                 className={`h-1 rounded-full transition-all duration-300 ${
                   i <= currentStep
-                    ? completed ? 'w-4 bg-emerald-500' : 'w-4 bg-rose-600'
+                    ? completed ? 'w-4 bg-emerald-500' : 'w-4 bg-[#7380b6]'
                     : 'w-2 bg-zinc-200'
                 }`}
               />
@@ -100,7 +100,7 @@ export default function SetupWizard({ open, onClose, siteType = 'radio', siteNam
           {completed && (
             <button
               onClick={() => onClose?.()}
-              className="mt-6 px-6 py-2 rounded-full bg-[#7380b6] hover:bg-[#5f6ca3] text-white text-sm font-medium transition-colors"
+              className="mt-6 px-6 py-2 rounded-full bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white text-sm font-medium transition-colors"
               data-testid="setup-done-btn"
             >
               Get Started

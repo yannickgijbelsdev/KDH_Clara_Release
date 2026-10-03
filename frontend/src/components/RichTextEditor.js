@@ -159,7 +159,7 @@ const RichTextEditor = ({
               {uploadSuccess ? (
                 <CheckCircle className="w-6 h-6 text-green-500" />
               ) : (
-                <Loader2 className="w-6 h-6 text-rose-600 animate-spin" />
+                <Loader2 className="w-6 h-6 text-[#7380b6] animate-spin" />
               )}
               <div>
                 <p className="text-zinc-900 font-medium">
@@ -171,12 +171,12 @@ const RichTextEditor = ({
             <div className="w-full bg-zinc-100 rounded-full h-3 overflow-hidden">
               <div 
                 className={`h-full rounded-full transition-all duration-300 ease-out ${
-                  uploadSuccess ? 'bg-gradient-to-r from-green-500 to-green-400' : 'bg-gradient-to-r from-rose-600 to-rose-500'
+                  uploadSuccess ? 'bg-gradient-to-r from-green-500 to-green-400' : 'bg-gradient-to-r from-[#7380b6] to-[#7380b6]'
                 }`}
                 style={{ width: `${uploadProgress}%` }}
               />
             </div>
-            <p className={`text-center text-sm font-medium mt-2 ${uploadSuccess ? 'text-green-400' : 'text-rose-500'}`}>
+            <p className={`text-center text-sm font-medium mt-2 ${uploadSuccess ? 'text-green-400' : 'text-[#7380b6]0'}`}>
               {uploadSuccess ? 'Inserting...' : `${uploadProgress}%`}
             </p>
           </div>
@@ -185,16 +185,16 @@ const RichTextEditor = ({
       {/* Error notification */}
       {uploadError && (
         <div 
-          className="fixed top-4 right-4 bg-red-900/90 border border-red-700 rounded-lg p-4 shadow-2xl max-w-[400px] flex items-start gap-3 animate-in slide-in-from-top"
+          className="fixed top-4 right-4 bg-red-900/90 border border-[#5f6ca3] rounded-lg p-4 shadow-2xl max-w-[400px] flex items-start gap-3 animate-in slide-in-from-top"
           style={{ zIndex: 100001 }}
           data-testid="editor-upload-error"
         >
-          <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+          <AlertCircle className="w-5 h-5 text-[#7380b6] flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-red-200 text-sm font-medium">Upload Error</p>
-            <p className="text-red-300 text-xs mt-1">{uploadError}</p>
+            <p className="text-[#7380b6] text-sm font-medium">Upload Error</p>
+            <p className="text-[#7380b6] text-xs mt-1">{uploadError}</p>
           </div>
-          <button onClick={() => setUploadError(null)} className="text-red-400 hover:text-red-200 ml-2">
+          <button onClick={() => setUploadError(null)} className="text-[#7380b6] hover:text-[#7380b6] ml-2">
             &times;
           </button>
         </div>

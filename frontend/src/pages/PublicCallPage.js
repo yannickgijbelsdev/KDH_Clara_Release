@@ -6,7 +6,7 @@ import { Phone, PhoneOff, Mic, MicOff, Volume2, Signal, Loader2, CheckCircle, XC
 const API = process.env.REACT_APP_BACKEND_URL;
 const WS_URL = API.replace('https://', 'wss://').replace('http://', 'ws://');
 
-const qualityColors = { good: 'text-green-400', fair: 'text-amber-400', poor: 'text-red-400' };
+const qualityColors = { good: 'text-green-400', fair: 'text-amber-400', poor: 'text-[#7380b6]' };
 const qualityLabels = { good: 'Good connection', fair: 'Fair connection', poor: 'Poor connection' };
 
 function formatDuration(seconds) {
@@ -200,7 +200,7 @@ export default function PublicCallPage() {
     return (
       <div className="min-h-screen bg-[#F0F0F2] flex items-center justify-center">
         <div className="bg-white/80 backdrop-blur rounded-2xl border border-zinc-200 p-8 max-w-md text-center">
-          <XCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+          <XCircle className="w-12 h-12 text-[#7380b6] mx-auto mb-4" />
           <h1 className="text-xl font-bold mb-2">Cannot Join Call</h1>
           <p className="text-sm text-zinc-400">{error}</p>
         </div>
@@ -308,7 +308,7 @@ export default function PublicCallPage() {
           <button
             onClick={toggleMute}
             className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
-              isMuted ? 'bg-red-500/20 text-red-400' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+              isMuted ? 'bg-[#7380b6]/100/20 text-[#7380b6]' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
             }`}
             data-testid="caller-mute-btn"
           >
@@ -316,7 +316,7 @@ export default function PublicCallPage() {
           </button>
           <button
             onClick={endCall}
-            className="w-16 h-16 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center transition-all shadow-lg shadow-red-500/20"
+            className="w-16 h-16 rounded-full bg-[#7380b6] hover:bg-[#5f6ca3] text-white flex items-center justify-center transition-all shadow-lg shadow-[#7380b6]/20"
             data-testid="caller-hangup-btn"
           >
             <PhoneOff className="w-7 h-7" />

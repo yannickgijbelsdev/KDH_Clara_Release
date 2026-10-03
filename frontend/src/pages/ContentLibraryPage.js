@@ -432,7 +432,7 @@ const ContentLibraryPage = () => {
             <Button
               data-testid="create-content-btn"
               onClick={() => setIsCreateOpen(true)}
-              className="ml-1 bg-[#7380b6] hover:bg-[#5f6ca3] text-white rounded-full px-4 gap-1.5 text-sm shadow-lg shadow-[#7380b6]/20"
+              className="ml-1 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white rounded-full px-4 gap-1.5 text-sm shadow-lg shadow-[#7380b6]/20"
             >
               <Plus className="w-3.5 h-3.5" /> New Article
             </Button>
@@ -442,7 +442,7 @@ const ContentLibraryPage = () => {
               data-testid="unpublish-all-news-btn"
               onClick={unpublishAllNews}
               variant="outline"
-              className="ml-1 border-rose-200 text-rose-600 hover:bg-rose-50 rounded-full px-4 gap-1.5 text-sm"
+              className="ml-1 border-[#7380b6]/30 text-[#7380b6] hover:bg-[#7380b6]/10 rounded-full px-4 gap-1.5 text-sm"
               title="Admin-only: unpublish every News API article on this site"
             >
               <Trash2 className="w-3.5 h-3.5" /> /delete all-news
@@ -611,7 +611,7 @@ const ContentLibraryPage = () => {
                       type="button"
                       data-testid={`delete-category-${cat.slug}`}
                       onClick={(e) => { e.stopPropagation(); deleteCategoryInline(cat); }}
-                      className="ml-3 w-5 h-5 rounded text-zinc-400 hover:text-rose-500 hover:bg-rose-50 flex items-center justify-center"
+                      className="ml-3 w-5 h-5 rounded text-zinc-400 hover:text-[#7380b6]0 hover:bg-[#7380b6]/10 flex items-center justify-center"
                       aria-label={`Delete category ${cat.name}`}
                     >
                       <Trash2 className="w-3 h-3" />
@@ -623,7 +623,7 @@ const ContentLibraryPage = () => {
                 <DropdownMenuItem
                   data-testid="create-category-btn"
                   onSelect={(e) => { e.preventDefault(); createCategoryInline(); }}
-                  className="text-rose-700 focus:text-rose-800 focus:bg-rose-50 border-t border-zinc-100 mt-1 pt-2"
+                  className="text-[#5f6ca3] focus:text-[#4a5583] focus:bg-[#7380b6]/10 border-t border-zinc-100 mt-1 pt-2"
                 >
                   <Plus className="w-3.5 h-3.5 mr-1.5" />
                   New category
@@ -697,7 +697,7 @@ const ContentLibraryPage = () => {
                 disabled={bulkPublishing}
                 onClick={bulkDelete}
                 data-testid="bulk-delete-btn"
-                className="text-rose-100 border border-rose-300/40 hover:bg-rose-500/20 gap-1.5"
+                className="text-[#7380b6] border border-[#7380b6]/40/40 hover:bg-[#7380b6]/100/20 gap-1.5"
                 title="Soft-delete the selected articles"
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -761,7 +761,7 @@ const ContentLibraryPage = () => {
           {allContent.length === 0 && isEditor && (
             <Button
               onClick={() => setIsCreateOpen(true)}
-              className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
+              className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white"
             >
               <Plus className="w-4 h-4 mr-2" />
               Create Content
@@ -781,7 +781,7 @@ const ContentLibraryPage = () => {
                 data-testid={`content-item-${index}`}
                 onClick={() => navigate(buildPath(`/content/${item.id}`))}
                 className={`bg-white border rounded-xl p-5 cursor-pointer hover:bg-white/70 hover:border-white/80 transition-all duration-200 group ${
-                  selectedIds.has(item.id) ? 'border-rose-300 ring-2 ring-rose-200/60' : 'border-zinc-200'
+                  selectedIds.has(item.id) ? 'border-[#7380b6]/40 ring-2 ring-[#7380b6]/40/60' : 'border-zinc-200'
                 }`}
               >
                 <div className="flex items-start justify-between">
@@ -796,7 +796,7 @@ const ContentLibraryPage = () => {
                         aria-label="Select for bulk publish"
                       >
                         {selectedIds.has(item.id) ? (
-                          <CheckSquare className="w-4 h-4 text-rose-600" />
+                          <CheckSquare className="w-4 h-4 text-[#7380b6]" />
                         ) : (
                           <Square className="w-4 h-4" />
                         )}
@@ -822,16 +822,16 @@ const ContentLibraryPage = () => {
                     )}
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-lg font-semibold text-zinc-900 group-hover:text-rose-400 transition-colors">
+                        <h3 className="text-lg font-semibold text-zinc-900 group-hover:text-[#7380b6] transition-colors">
                           {item.title}
                         </h3>
                         {item.is_liveblog && (
                           <span
                             data-testid={`liveblog-live-${item.id}`}
                             title="This article is a live liveblog"
-                            className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-red-100 text-red-700 border border-red-200 font-bold"
+                            className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#7380b6]/15 text-[#5f6ca3] border border-[#7380b6]/30 font-bold"
                           >
-                            <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#7380b6]/100 animate-pulse" />
                             LIVE
                             {item.liveblog_entry_count > 0 && (
                               <span className="font-normal opacity-70">· {item.liveblog_entry_count}</span>
@@ -881,7 +881,7 @@ const ContentLibraryPage = () => {
                         </span>
                         
                         {item.category && (
-                          <span className="flex items-center gap-1 text-rose-500">
+                          <span className="flex items-center gap-1 text-[#7380b6]0">
                             <Folder className="w-3 h-3" />
                             {item.category.name}
                           </span>
@@ -942,7 +942,7 @@ const ContentLibraryPage = () => {
                                 key={i}
                                 className={`inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded-full border ${
                                   synced ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                                  : failed ? 'bg-red-50 border-red-200 text-red-700'
+                                  : failed ? 'bg-[#7380b6]/10 border-[#7380b6]/30 text-[#5f6ca3]'
                                   : 'bg-zinc-50 border-zinc-200 text-zinc-600'
                                 }`}
                               >
@@ -952,7 +952,7 @@ const ContentLibraryPage = () => {
                           })}
                       </div>
                     )}
-                    <ChevronRight className="w-5 h-5 text-zinc-600 group-hover:text-rose-400 transition-colors" />
+                    <ChevronRight className="w-5 h-5 text-zinc-600 group-hover:text-[#7380b6] transition-colors" />
                   </div>
                 </div>
               </div>

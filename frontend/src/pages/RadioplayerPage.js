@@ -21,7 +21,7 @@ function StepIndicator({ steps, current }) {
         <div key={i} className="flex items-center gap-1">
           <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
             i < current ? 'bg-emerald-500/20 text-emerald-400' :
-            i === current ? 'bg-[#7380b6]/20 text-rose-500 ring-1 ring-rose-600/40' :
+            i === current ? 'bg-[#7380b6]/20 text-[#7380b6]0 ring-1 ring-[#7380b6]/40' :
             'bg-zinc-100 text-zinc-500'
           }`}>
             {i < current ? <Check className="w-3 h-3" /> : <span className="w-3 text-center">{i + 1}</span>}
@@ -141,7 +141,7 @@ const RadioplayerPage = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-[#7380b6]/20 flex items-center justify-center">
-              <RadioplayerIcon size={24} className="text-rose-500" />
+              <RadioplayerIcon size={24} className="text-[#7380b6]0" />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-zinc-900" data-testid="radioplayer-title">Radioplayer Integration</h1>
@@ -182,11 +182,11 @@ const RadioplayerPage = () => {
         )}
 
         {/* Step 1: API Credentials */}
-        <div className={`bg-white border rounded-xl transition-all ${(setupStep === 0 || editStep === 0) ? 'border-rose-600/30 ring-1 ring-rose-600/20' : hasCredentials ? 'border-emerald-500/20' : 'border-zinc-200'}`}>
+        <div className={`bg-white border rounded-xl transition-all ${(setupStep === 0 || editStep === 0) ? 'border-[#7380b6]/30 ring-1 ring-[#7380b6]/20' : hasCredentials ? 'border-emerald-500/20' : 'border-zinc-200'}`}>
           <div className="flex items-center justify-between p-5 cursor-pointer" onClick={() => setEditStep(editStep === 0 ? null : 0)}>
             <div className="flex items-center gap-3">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center ${hasCredentials ? 'bg-emerald-500/20' : (setupStep === 0 || editStep === 0) ? 'bg-[#7380b6]/20' : 'bg-zinc-100'}`}>
-                {hasCredentials ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Settings className="w-4 h-4 text-rose-500" />}
+                {hasCredentials ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Settings className="w-4 h-4 text-[#7380b6]0" />}
               </div>
               <div>
                 <h3 className="text-zinc-900 font-medium text-sm">API Credentials</h3>
@@ -196,11 +196,11 @@ const RadioplayerPage = () => {
           </div>
           {(setupStep === 0 || editStep === 0) && (
             <div className="px-5 pb-5 space-y-4 border-t border-zinc-200 pt-4">
-              <div className="flex items-start gap-2 p-3 bg-[#7380b6]/5 rounded-full border border-rose-600/10">
-                <AlertCircle className="w-4 h-4 text-rose-500 mt-0.5 flex-shrink-0" />
+              <div className="flex items-start gap-2 p-3 bg-[#7380b6]/5 rounded-full border border-[#7380b6]/10">
+                <AlertCircle className="w-4 h-4 text-[#7380b6]0 mt-0.5 flex-shrink-0" />
                 <div className="text-xs text-zinc-400">
-                  <p className="text-rose-300 font-medium mb-1">How to get your credentials</p>
-                  <p>Log in to your <a href="https://radioplayer.org" target="_blank" rel="noreferrer" className="text-rose-500 underline hover:text-rose-300">radioplayer.org</a> account and navigate to your station settings. You'll find your API Key (Bearer Token) or username/password there. If you're unsure, contact your Radioplayer account manager.</p>
+                  <p className="text-[#7380b6] font-medium mb-1">How to get your credentials</p>
+                  <p>Log in to your <a href="https://radioplayer.org" target="_blank" rel="noreferrer" className="text-[#7380b6]0 underline hover:text-[#7380b6]">radioplayer.org</a> account and navigate to your station settings. You'll find your API Key (Bearer Token) or username/password there. If you're unsure, contact your Radioplayer account manager.</p>
                 </div>
               </div>
               <div>
@@ -235,7 +235,7 @@ const RadioplayerPage = () => {
                   <Input type="password" value={config?.password || ''} onChange={e => setConfig({...config, password: e.target.value})} className="bg-zinc-50 border-zinc-200 text-zinc-900" placeholder="••••••••" data-testid="rp-password-input" />
                 </div>
               </div>
-              <Button onClick={handleSave} disabled={saving} className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white" data-testid="rp-save-creds-btn">
+              <Button onClick={handleSave} disabled={saving} className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white" data-testid="rp-save-creds-btn">
                 <Save className="w-4 h-4 mr-1" /> {saving ? 'Saving...' : 'Save Credentials'}
               </Button>
             </div>
@@ -243,11 +243,11 @@ const RadioplayerPage = () => {
         </div>
 
         {/* Step 2: Station Info */}
-        <div className={`bg-white border rounded-xl transition-all ${(setupStep === 1 || editStep === 1) ? 'border-rose-600/30 ring-1 ring-rose-600/20' : hasStation ? 'border-emerald-500/20' : 'border-zinc-200'}`}>
+        <div className={`bg-white border rounded-xl transition-all ${(setupStep === 1 || editStep === 1) ? 'border-[#7380b6]/30 ring-1 ring-[#7380b6]/20' : hasStation ? 'border-emerald-500/20' : 'border-zinc-200'}`}>
           <div className="flex items-center justify-between p-5 cursor-pointer" onClick={() => setEditStep(editStep === 1 ? null : 1)}>
             <div className="flex items-center gap-3">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center ${hasStation ? 'bg-emerald-500/20' : (setupStep === 1 || editStep === 1) ? 'bg-[#7380b6]/20' : 'bg-zinc-100'}`}>
-                {hasStation ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Radio className="w-4 h-4 text-rose-500" />}
+                {hasStation ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Radio className="w-4 h-4 text-[#7380b6]0" />}
               </div>
               <div>
                 <h3 className="text-zinc-900 font-medium text-sm">Station Information</h3>
@@ -257,10 +257,10 @@ const RadioplayerPage = () => {
           </div>
           {(setupStep === 1 || editStep === 1) && (
             <div className="px-5 pb-5 space-y-4 border-t border-zinc-200 pt-4">
-              <div className="flex items-start gap-2 p-3 bg-[#7380b6]/5 rounded-full border border-rose-600/10">
-                <AlertCircle className="w-4 h-4 text-rose-500 mt-0.5 flex-shrink-0" />
+              <div className="flex items-start gap-2 p-3 bg-[#7380b6]/5 rounded-full border border-[#7380b6]/10">
+                <AlertCircle className="w-4 h-4 text-[#7380b6]0 mt-0.5 flex-shrink-0" />
                 <div className="text-xs text-zinc-400">
-                  <p className="text-rose-300 font-medium mb-1">Where to find your station details</p>
+                  <p className="text-[#7380b6] font-medium mb-1">Where to find your station details</p>
                   <p>Your RPUID (Radioplayer Unique ID) is assigned by Radioplayer and can be found in your station dashboard. The country code uses ISO 3166-1 numeric format — e.g. <code className="bg-zinc-200 px-1 rounded">056</code> for Belgium, <code className="bg-zinc-200 px-1 rounded">528</code> for Netherlands. The ingest URL is usually pre-filled correctly.</p>
                 </div>
               </div>
@@ -286,7 +286,7 @@ const RadioplayerPage = () => {
                   <Input value={config?.ingest_base_url || 'https://core-ingest.radioplayer.cloud'} onChange={e => setConfig({...config, ingest_base_url: e.target.value})} className="bg-zinc-50 border-zinc-200 text-zinc-900 font-mono text-sm" data-testid="rp-url-input" />
                 </div>
               </div>
-              <Button onClick={handleSave} disabled={saving} className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white" data-testid="rp-save-station-btn">
+              <Button onClick={handleSave} disabled={saving} className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white" data-testid="rp-save-station-btn">
                 <Save className="w-4 h-4 mr-1" /> {saving ? 'Saving...' : 'Save Station Info'}
               </Button>
             </div>
@@ -294,11 +294,11 @@ const RadioplayerPage = () => {
         </div>
 
         {/* Step 3: Enable & Configure */}
-        <div className={`bg-white border rounded-xl transition-all ${(setupStep === 2 || editStep === 2) ? 'border-rose-600/30 ring-1 ring-rose-600/20' : config?.enabled ? 'border-emerald-500/20' : 'border-zinc-200'}`}>
+        <div className={`bg-white border rounded-xl transition-all ${(setupStep === 2 || editStep === 2) ? 'border-[#7380b6]/30 ring-1 ring-[#7380b6]/20' : config?.enabled ? 'border-emerald-500/20' : 'border-zinc-200'}`}>
           <div className="flex items-center justify-between p-5 cursor-pointer" onClick={() => setEditStep(editStep === 2 ? null : 2)}>
             <div className="flex items-center gap-3">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center ${config?.enabled ? 'bg-emerald-500/20' : (setupStep === 2 || editStep === 2) ? 'bg-[#7380b6]/20' : 'bg-zinc-100'}`}>
-                {config?.enabled ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Settings className="w-4 h-4 text-rose-500" />}
+                {config?.enabled ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Settings className="w-4 h-4 text-[#7380b6]0" />}
               </div>
               <div>
                 <h3 className="text-zinc-900 font-medium text-sm">Enable & Configure</h3>
@@ -308,10 +308,10 @@ const RadioplayerPage = () => {
           </div>
           {(setupStep === 2 || editStep === 2) && (
             <div className="px-5 pb-5 space-y-4 border-t border-zinc-200 pt-4">
-              <div className="flex items-start gap-2 p-3 bg-[#7380b6]/5 rounded-full border border-rose-600/10">
-                <AlertCircle className="w-4 h-4 text-rose-500 mt-0.5 flex-shrink-0" />
+              <div className="flex items-start gap-2 p-3 bg-[#7380b6]/5 rounded-full border border-[#7380b6]/10">
+                <AlertCircle className="w-4 h-4 text-[#7380b6]0 mt-0.5 flex-shrink-0" />
                 <div className="text-xs text-zinc-400">
-                  <p className="text-rose-300 font-medium mb-1">What happens when you enable</p>
+                  <p className="text-[#7380b6] font-medium mb-1">What happens when you enable</p>
                   <p>Enabling the integration allows Clara to push data to Radioplayer automatically. <strong>Auto Now Playing</strong> sends track info when the current song changes. <strong>Auto Schedule</strong> pushes your show schedule whenever you create or update shows in the planning module.</p>
                 </div>
               </div>
@@ -348,7 +348,7 @@ const RadioplayerPage = () => {
                   </button>
                 </div>
               </div>
-              <Button onClick={handleSave} disabled={saving} className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white" data-testid="rp-save-btn">
+              <Button onClick={handleSave} disabled={saving} className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white" data-testid="rp-save-btn">
                 <Save className="w-4 h-4 mr-1" /> {saving ? 'Saving...' : 'Save & Enable'}
               </Button>
             </div>
@@ -368,11 +368,11 @@ const RadioplayerPage = () => {
         </div>
 
         {/* Step 4: Verify & Push */}
-        <div className={`bg-white border rounded-xl transition-all ${setupStep === 3 ? 'border-rose-600/30 ring-1 ring-rose-600/20' : 'border-zinc-200'}`}>
+        <div className={`bg-white border rounded-xl transition-all ${setupStep === 3 ? 'border-[#7380b6]/30 ring-1 ring-[#7380b6]/20' : 'border-zinc-200'}`}>
           <div className="flex items-center justify-between p-5">
             <div className="flex items-center gap-3">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center ${pushLog.length > 0 ? 'bg-emerald-500/20' : setupStep === 3 ? 'bg-[#7380b6]/20' : 'bg-zinc-100'}`}>
-                {pushLog.length > 0 ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Send className="w-4 h-4 text-rose-500" />}
+                {pushLog.length > 0 ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Send className="w-4 h-4 text-[#7380b6]0" />}
               </div>
               <div>
                 <h3 className="text-zinc-900 font-medium text-sm">Verify & Push</h3>
@@ -403,7 +403,7 @@ const RadioplayerPage = () => {
                   {pushLog.map((entry, i) => (
                     <div key={i} className="px-6 py-3 flex items-center gap-4 hover:bg-zinc-100/30">
                       <div className="flex-shrink-0">
-                        {entry.status === 'success' ? <CheckCircle className="w-5 h-5 text-green-400" /> : <XCircle className="w-5 h-5 text-red-400" />}
+                        {entry.status === 'success' ? <CheckCircle className="w-5 h-5 text-green-400" /> : <XCircle className="w-5 h-5 text-[#7380b6]" />}
                       </div>
                       <div className="flex-shrink-0">
                         {entry.type === 'now_playing' ? <Music className="w-4 h-4 text-blue-400" /> : <Calendar className="w-4 h-4 text-purple-400" />}

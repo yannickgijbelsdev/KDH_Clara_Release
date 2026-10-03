@@ -142,7 +142,7 @@ const TrashPage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 mb-1 sm:mb-2 flex items-center gap-3">
-            <Trash2 className="w-8 h-8 text-rose-500" />
+            <Trash2 className="w-8 h-8 text-[#7380b6]0" />
             Trash
           </h1>
           <p className="text-sm sm:text-base text-zinc-400">
@@ -216,7 +216,7 @@ const TrashPage = () => {
             return (
               <div
                 key={item.id}
-                className="bg-zinc-100 border border-red-500/20 rounded-xl p-4 sm:p-5 hover:border-red-500/40 transition-colors"
+                className="bg-zinc-100 border border-[#7380b6]/20 rounded-xl p-4 sm:p-5 hover:border-[#7380b6]/40 transition-colors"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-4 flex-1 min-w-0">
@@ -241,7 +241,7 @@ const TrashPage = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="text-white font-semibold truncate">{item.title}</h3>
-                        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-500/20 text-red-400">
+                        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-[#7380b6]/100/20 text-[#7380b6]">
                           Deleted
                         </span>
                       </div>
@@ -254,7 +254,7 @@ const TrashPage = () => {
 
                       <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-500">
                         {item.category && (
-                          <span className="flex items-center gap-1 text-rose-500/70">
+                          <span className="flex items-center gap-1 text-[#7380b6]0/70">
                             <Folder className="w-3 h-3" />
                             {item.category.name}
                           </span>
@@ -275,7 +275,7 @@ const TrashPage = () => {
                         )}
                       </div>
 
-                      <div className="flex items-center gap-2 mt-2 text-xs text-red-400">
+                      <div className="flex items-center gap-2 mt-2 text-xs text-[#7380b6]">
                         <Trash2 className="w-3 h-3" />
                         <span>
                           Deleted {item.deleted_at && format(parseISO(item.deleted_at), 'MMM d, yyyy HH:mm')}
@@ -315,7 +315,7 @@ const TrashPage = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => setPermanentDeleteItem(item)}
-                      className="bg-transparent border-red-500/50 text-red-400 hover:bg-red-500/10 gap-1"
+                      className="bg-transparent border-[#7380b6]/50 text-[#7380b6] hover:bg-[#7380b6]/100/10 gap-1"
                     >
                       <XCircle className="w-4 h-4" />
                       Delete Forever
@@ -333,15 +333,15 @@ const TrashPage = () => {
         <AlertDialogContent className="bg-white border-zinc-200">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-zinc-900 flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-red-500" />
+              <AlertTriangle className="w-5 h-5 text-[#7380b6]0" />
               Permanently Delete Content
             </AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
               <p className="mb-3">
                 Are you sure you want to permanently delete &quot;{permanentDeleteItem?.title}&quot;?
               </p>
-              <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-                <p className="text-sm text-red-400">
+              <div className="p-3 bg-[#7380b6]/100/10 border border-[#7380b6]/30 rounded-lg">
+                <p className="text-sm text-[#7380b6]">
                   <strong>Warning:</strong> This action cannot be undone. The content will be permanently removed from the database.
                 </p>
               </div>
@@ -354,7 +354,7 @@ const TrashPage = () => {
             <AlertDialogAction
               onClick={handlePermanentDelete}
               disabled={permanentDeleting}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
             >
               {permanentDeleting ? (
                 <>

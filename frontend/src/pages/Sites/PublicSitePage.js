@@ -483,7 +483,7 @@ export default function PublicSitePage() {
                   <div key={field.id}>
                     <label className="block text-sm font-medium text-zinc-600 mb-1">
                       {field.label}
-                      {field.required && <span className="text-red-400 ml-1">*</span>}
+                      {field.required && <span className="text-[#7380b6] ml-1">*</span>}
                     </label>
                     {field.type === 'textarea' ? (
                       <textarea
@@ -544,7 +544,7 @@ export default function PublicSitePage() {
                           <div className="flex items-center gap-2 p-2 bg-zinc-50 rounded-lg text-sm">
                             {(() => { const FileIcon = getFileIcon(fieldFiles[field.id].type); return <FileIcon className="h-4 w-4 text-zinc-400" />; })()}
                             <span className="flex-1 truncate text-zinc-600">{fieldFiles[field.id].name}</span>
-                            <button type="button" onClick={() => { setFieldFiles(prev => { const n = {...prev}; delete n[field.id]; return n; }); setFormData(prev => ({ ...prev, [field.id]: '' })); }} className="text-zinc-500 hover:text-red-400">
+                            <button type="button" onClick={() => { setFieldFiles(prev => { const n = {...prev}; delete n[field.id]; return n; }); setFormData(prev => ({ ...prev, [field.id]: '' })); }} className="text-zinc-500 hover:text-[#7380b6]">
                               <X className="h-4 w-4" />
                             </button>
                           </div>
@@ -596,7 +596,7 @@ export default function PublicSitePage() {
                                 <button
                                   type="button"
                                   onClick={() => removeFile(index)}
-                                  className="text-zinc-500 hover:text-red-400"
+                                  className="text-zinc-500 hover:text-[#7380b6]"
                                 >
                                   <X className="h-4 w-4" />
                                 </button>

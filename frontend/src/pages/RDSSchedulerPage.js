@@ -288,7 +288,7 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation, st
           <Button variant="outline" onClick={onClose} className="border-zinc-300 text-zinc-600">
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={saving} className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white">
+          <Button onClick={handleSave} disabled={saving} className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white">
             {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
             Save
           </Button>
@@ -335,7 +335,7 @@ const CalendarDay = ({ date, items, isCurrentMonth, onItemClick, onAddClick }) =
             if (item.station === 'both') {
               colorClass = 'bg-green-500/20 text-green-300';
             } else if (item.station === 'mfy') {
-              colorClass = 'bg-[#7380b6]/20 text-rose-300';
+              colorClass = 'bg-[#7380b6]/20 text-[#7380b6]';
             } else {
               colorClass = 'bg-violet-500/20 text-violet-300';
             }
@@ -495,7 +495,7 @@ const RDSSchedulerPage = () => {
     <div data-testid="rds-scheduler-page">
       {/* Toolbar */}
       <div className="flex items-center justify-end mb-6">
-        <Button onClick={() => handleAddClick(new Date())} className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white gap-2 h-10 sm:h-11 px-4 sm:px-5 btn-primary">
+        <Button onClick={() => handleAddClick(new Date())} className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white gap-2 h-10 sm:h-11 px-4 sm:px-5 btn-primary">
           <Plus className="w-5 h-5" />
           New Text
         </Button>
@@ -628,7 +628,7 @@ const RDSSchedulerPage = () => {
           <Button
             variant="outline"
             onClick={handleDeleteClick}
-            className="border-red-500/50 text-red-400 hover:bg-red-500/10"
+            className="border-[#7380b6]/50 text-[#7380b6] hover:bg-[#7380b6]/100/10"
           >
             <Trash2 className="w-4 h-4 mr-2" />
             Delete
@@ -651,7 +651,7 @@ const RDSSchedulerPage = () => {
             </AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDeleteConfirm}
-              className="bg-red-500 hover:bg-red-600 text-white"
+              className="bg-[#7380b6]/100 hover:bg-[#7380b6] text-white"
             >
               Delete
             </AlertDialogAction>

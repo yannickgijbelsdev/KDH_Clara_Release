@@ -21,7 +21,7 @@ function getAttachmentUrl(att, token) {
 }
 
 const STATUS_CONFIG = {
-  open: { label: 'Open', color: 'bg-red-500', textColor: 'text-red-600', bgColor: 'bg-red-50', icon: AlertCircle },
+  open: { label: 'Open', color: 'bg-[#7380b6]/100', textColor: 'text-[#7380b6]', bgColor: 'bg-[#7380b6]/10', icon: AlertCircle },
   searching: { label: 'Searching', color: 'bg-amber-500', textColor: 'text-amber-600', bgColor: 'bg-amber-50', icon: SearchIcon },
   solved: { label: 'Solved', color: 'bg-green-500', textColor: 'text-green-600', bgColor: 'bg-green-50', icon: CheckCircle2 },
   closed: { label: 'Closed', color: 'bg-zinc-400', textColor: 'text-zinc-500', bgColor: 'bg-zinc-100', icon: XCircle },
@@ -198,7 +198,7 @@ export default function SupportTicketsPage({ inline, onClose }) {
                 <button
                   key={t.id}
                   onClick={() => setSelectedTicket(t.id)}
-                  className={`w-full text-left p-4 border-b border-zinc-50 transition-all hover:bg-zinc-50 ${isSelected ? 'bg-rose-50/50' : ''}`}
+                  className={`w-full text-left p-4 border-b border-zinc-50 transition-all hover:bg-zinc-50 ${isSelected ? 'bg-[#7380b6]/10/50' : ''}`}
                   data-testid={`ticket-item-${t.id}`}
                 >
                   <div className="flex items-start gap-3">
@@ -213,7 +213,7 @@ export default function SupportTicketsPage({ inline, onClose }) {
                         <span className="text-[10px] text-zinc-300">{new Date(t.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                       </div>
                     </div>
-                    {hasUnread && <div className="w-2.5 h-2.5 rounded-full bg-rose-600 mt-2 flex-shrink-0" />}
+                    {hasUnread && <div className="w-2.5 h-2.5 rounded-full bg-[#7380b6] mt-2 flex-shrink-0" />}
                   </div>
                 </button>
               );
@@ -295,7 +295,7 @@ export default function SupportTicketsPage({ inline, onClose }) {
                   <div key={msg.id} className={`flex ${isAdmin ? 'justify-end' : 'justify-start'}`} data-testid={`msg-${msg.id}`}>
                     <div className="max-w-[70%]">
                       {!isAdmin && <p className="text-[10px] text-zinc-400 mb-1 ml-1">{msg.sender_name} <User className="w-3 h-3 inline text-zinc-300" /></p>}
-                      {isAdmin && <p className="text-[10px] text-zinc-400 mb-1 mr-1 text-right">{msg.sender_name} <Shield className="w-3 h-3 inline text-rose-500" /></p>}
+                      {isAdmin && <p className="text-[10px] text-zinc-400 mb-1 mr-1 text-right">{msg.sender_name} <Shield className="w-3 h-3 inline text-[#7380b6]0" /></p>}
                       <div className={`px-4 py-2.5 rounded-2xl text-sm shadow-sm ${isAdmin ? 'bg-zinc-900 text-white rounded-br-md' : 'bg-zinc-200/70 text-zinc-800 rounded-bl-md border border-zinc-300/60'}`}>
                         <p className="whitespace-pre-wrap break-words">{msg.text}</p>
                         {msg.attachments?.map(att => (
@@ -334,7 +334,7 @@ export default function SupportTicketsPage({ inline, onClose }) {
                     )}
                     <button
                       onClick={() => setPendingAttachments(prev => prev.filter((_, idx) => idx !== i))}
-                      className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#7380b6]/100 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -374,7 +374,7 @@ export default function SupportTicketsPage({ inline, onClose }) {
                       <Image className="w-4.5 h-4.5" />
                     </button>
                     {recording ? (
-                      <button onClick={handleStopRecording} className="text-red-500 animate-pulse" data-testid="stop-record-btn">
+                      <button onClick={handleStopRecording} className="text-[#7380b6]0 animate-pulse" data-testid="stop-record-btn">
                         <Circle className="w-4.5 h-4.5 fill-current" />
                       </button>
                     ) : (
@@ -387,7 +387,7 @@ export default function SupportTicketsPage({ inline, onClose }) {
                 <Button
                   onClick={handleSendMessage}
                   disabled={sending || (!msgInput.trim() && pendingAttachments.length === 0)}
-                  className="h-10 w-10 rounded-full bg-[#7380b6] hover:bg-[#5f6ca3] text-white p-0 flex-shrink-0"
+                  className="h-10 w-10 rounded-full bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white p-0 flex-shrink-0"
                   data-testid="send-msg-btn"
                 >
                   {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}

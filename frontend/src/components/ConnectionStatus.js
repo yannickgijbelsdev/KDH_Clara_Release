@@ -42,18 +42,18 @@ export function ConnectionStatus({ testUrl, headers, autoCheck = true, label, cl
   const icon = loading ? <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-400" /> :
     status?.status === 'ok' ? <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> :
     status?.status === 'warning' ? <AlertTriangle className="w-3.5 h-3.5 text-amber-400" /> :
-    status?.status === 'error' ? <XCircle className="w-3.5 h-3.5 text-red-400" /> :
+    status?.status === 'error' ? <XCircle className="w-3.5 h-3.5 text-[#7380b6]" /> :
     <Wifi className="w-3.5 h-3.5 text-zinc-500" />;
 
   const bgColor = loading ? 'bg-zinc-50 border-zinc-200' :
     status?.status === 'ok' ? 'bg-emerald-500/5 border-emerald-500/20' :
     status?.status === 'warning' ? 'bg-amber-500/5 border-amber-500/20' :
-    status?.status === 'error' ? 'bg-red-500/5 border-red-500/20' :
+    status?.status === 'error' ? 'bg-[#7380b6]/100/5 border-[#7380b6]/20' :
     'bg-zinc-50 border-zinc-200';
 
   const statusColor = status?.status === 'ok' ? 'text-emerald-400' :
     status?.status === 'warning' ? 'text-amber-400' :
-    status?.status === 'error' ? 'text-red-400' : 'text-zinc-400';
+    status?.status === 'error' ? 'text-[#7380b6]' : 'text-zinc-400';
 
   // Determine if we have structured steps or a legacy suggestion string
   const hasSteps = Array.isArray(status?.steps) && status.steps.length > 0;
@@ -84,7 +84,7 @@ export function ConnectionStatus({ testUrl, headers, autoCheck = true, label, cl
                 </ol>
                 {status.link && (
                   <a href={status.link} target="_blank" rel="noopener noreferrer"
-                    className="mt-2 inline-flex items-center gap-1 text-xs text-rose-500 hover:text-rose-300 transition-colors">
+                    className="mt-2 inline-flex items-center gap-1 text-xs text-[#7380b6]0 hover:text-[#7380b6] transition-colors">
                     <ExternalLink className="w-3 h-3" />
                     {status.link_label || 'Open link'}
                   </a>

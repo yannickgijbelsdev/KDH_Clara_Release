@@ -76,7 +76,7 @@ export const WorkspaceTopBar = ({
               type="text"
               placeholder="Search..."
               data-testid="topbar-search"
-              className="w-full h-9 pl-10 pr-4 rounded-full bg-black/[0.04] border border-black/[0.06] text-sm text-zinc-700 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-rose-600/20 focus:border-rose-600/30 transition-all"
+              className="w-full h-9 pl-10 pr-4 rounded-full bg-black/[0.04] border border-black/[0.06] text-sm text-zinc-700 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#7380b6]/20 focus:border-[#7380b6]/30 transition-all"
             />
           </div>
         )}

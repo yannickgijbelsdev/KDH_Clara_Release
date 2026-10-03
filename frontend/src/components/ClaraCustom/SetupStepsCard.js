@@ -23,17 +23,17 @@ const HealthFailureCard = ({ diagnosis, fix, attempts }) => {
       initial={{ opacity: 0, height: 0 }}
       animate={{ opacity: 1, height: 'auto' }}
       transition={{ duration: 0.25 }}
-      className="mt-2 rounded-lg border border-rose-200 bg-rose-50 overflow-hidden"
+      className="mt-2 rounded-lg border border-[#7380b6]/30 bg-[#7380b6]/10 overflow-hidden"
       data-testid="health-failure-card"
     >
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-rose-200 bg-rose-100/60">
-        <Wrench className="w-4 h-4 text-rose-600" />
-        <p className="text-[11px] uppercase tracking-wide font-bold text-rose-700">Health check failed — action required</p>
+      <div className="flex items-center gap-2 px-3 py-2 border-b border-[#7380b6]/30 bg-[#7380b6]/15/60">
+        <Wrench className="w-4 h-4 text-[#7380b6]" />
+        <p className="text-[11px] uppercase tracking-wide font-bold text-[#5f6ca3]">Health check failed — action required</p>
       </div>
       <div className="px-3 py-2 space-y-2">
-        <p className="text-[11.5px] text-rose-900 leading-relaxed">{diagnosis}</p>
+        <p className="text-[11.5px] text-[#4a5583] leading-relaxed">{diagnosis}</p>
         {attempts && attempts.length > 0 && (
-          <div className="text-[10px] font-mono text-rose-700 bg-white/60 rounded px-2 py-1 border border-rose-200">
+          <div className="text-[10px] font-mono text-[#5f6ca3] bg-white/60 rounded px-2 py-1 border border-[#7380b6]/30">
             {attempts.map((a, i) => (
               <div key={i}>
                 attempt {a.attempt}: {a.error || `HTTP ${a.http_status}`} ({a.elapsed_ms}ms, timeout {a.timeout_s}s)
@@ -42,10 +42,10 @@ const HealthFailureCard = ({ diagnosis, fix, attempts }) => {
           </div>
         )}
         {fix && (
-          <div className="rounded-md bg-white border border-rose-200 overflow-hidden">
-            <div className="flex items-center justify-between px-2.5 py-1.5 bg-rose-50/80 border-b border-rose-200">
-              <p className="text-[10px] font-bold text-rose-800 uppercase tracking-wide">Required fix for external project</p>
-              <Button size="sm" variant="ghost" onClick={copyFix} className="h-6 px-2 gap-1 text-rose-700 hover:bg-rose-100" data-testid="copy-fix-btn">
+          <div className="rounded-md bg-white border border-[#7380b6]/30 overflow-hidden">
+            <div className="flex items-center justify-between px-2.5 py-1.5 bg-[#7380b6]/10/80 border-b border-[#7380b6]/30">
+              <p className="text-[10px] font-bold text-[#4a5583] uppercase tracking-wide">Required fix for external project</p>
+              <Button size="sm" variant="ghost" onClick={copyFix} className="h-6 px-2 gap-1 text-[#5f6ca3] hover:bg-[#7380b6]/15" data-testid="copy-fix-btn">
                 <Copy className="w-3 h-3" /> Copy
               </Button>
             </div>
@@ -62,7 +62,7 @@ const LEVEL_META = {
   info:    { color: 'text-violet-600',  bg: 'bg-violet-50',  border: 'border-violet-200',  Icon: Activity },
   success: { color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200', Icon: CheckCircle2 },
   warn:    { color: 'text-amber-600',   bg: 'bg-amber-50',   border: 'border-amber-200',   Icon: AlertTriangle },
-  error:   { color: 'text-rose-600',    bg: 'bg-rose-50',    border: 'border-rose-200',    Icon: XCircle },
+  error:   { color: 'text-[#7380b6]',    bg: 'bg-[#7380b6]/10',    border: 'border-[#7380b6]/30',    Icon: XCircle },
 };
 
 function _fmtTs(iso) {

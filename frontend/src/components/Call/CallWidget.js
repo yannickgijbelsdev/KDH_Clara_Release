@@ -6,7 +6,7 @@ import { useState } from 'react';
 const qualityColors = {
   good: 'text-green-400',
   fair: 'text-amber-400',
-  poor: 'text-red-400',
+  poor: 'text-[#7380b6]',
 };
 
 const qualityLabels = {
@@ -78,7 +78,7 @@ export default function CallWidget() {
                 step="0.05"
                 value={callerVolume}
                 onChange={(e) => setVolume(parseFloat(e.target.value))}
-                className="w-full h-2 bg-zinc-700 rounded-full appearance-none cursor-pointer accent-rose-600"
+                className="w-full h-2 bg-zinc-700 rounded-full appearance-none cursor-pointer accent-[#7380b6]"
                 data-testid="call-volume-slider"
               />
               <span className="text-xs text-zinc-500 w-8 text-right">{Math.round(callerVolume * 100)}%</span>
@@ -90,7 +90,7 @@ export default function CallWidget() {
             <button
               onClick={toggleMute}
               className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
-                isMuted ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                isMuted ? 'bg-[#7380b6]/100/20 text-[#7380b6] hover:bg-[#7380b6]/100/30' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
               }`}
               data-testid="call-mute-btn"
               title={isMuted ? 'Unmute' : 'Mute'}
@@ -99,7 +99,7 @@ export default function CallWidget() {
             </button>
             <button
               onClick={endCall}
-              className="w-14 h-14 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center transition-all shadow-lg shadow-red-500/20"
+              className="w-14 h-14 rounded-full bg-[#7380b6] hover:bg-[#5f6ca3] text-white flex items-center justify-center transition-all shadow-lg shadow-[#7380b6]/20"
               data-testid="call-hangup-btn"
               title="End Call"
             >

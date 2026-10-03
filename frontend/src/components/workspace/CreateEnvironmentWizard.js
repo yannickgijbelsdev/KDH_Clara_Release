@@ -39,7 +39,7 @@ const DeployStep = ({ label, status, delay }) => (
       ) : status === 'failed' ? (
         <motion.div
           initial={{ scale: 0 }} animate={{ scale: 1 }}
-          className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center"
+          className="w-10 h-10 bg-[#7380b6]/100 rounded-full flex items-center justify-center"
           data-testid="deploy-step-failed-icon"
         >
           <X className="w-5 h-5 text-white" />
@@ -51,7 +51,7 @@ const DeployStep = ({ label, status, delay }) => (
       )}
     </div>
     <span className={`text-sm font-medium transition-colors ${
-      status === 'done' ? 'text-emerald-700' : status === 'failed' ? 'text-red-600' : status === 'loading' ? 'text-zinc-900' : 'text-zinc-400'
+      status === 'done' ? 'text-emerald-700' : status === 'failed' ? 'text-[#7380b6]' : status === 'loading' ? 'text-zinc-900' : 'text-zinc-400'
     }`}>{label}</span>
   </motion.div>
 );
@@ -286,10 +286,10 @@ function StepDeploying({ envName, color, maxRacks, deployStatus, deployError }) 
       {deployError && (
         <motion.div
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-          className="mt-6 p-4 bg-red-50 rounded-xl border border-red-200"
+          className="mt-6 p-4 bg-[#7380b6]/10 rounded-xl border border-[#7380b6]/30"
           data-testid="deploy-error-banner"
         >
-          <div className="flex items-center justify-center gap-2 text-red-600 font-semibold text-sm mb-2">
+          <div className="flex items-center justify-center gap-2 text-[#7380b6] font-semibold text-sm mb-2">
             <X className="w-4 h-4" />
             {deployError}
           </div>
@@ -461,7 +461,7 @@ export default function CreateEnvironmentWizard({ open, onClose, onCreated, toke
             <Button
               onClick={handleNext}
               disabled={!canNext()}
-              className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white px-6 rounded-full"
+              className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white px-6 rounded-full"
               data-testid="env-wizard-next-btn"
             >
               {step === 2 ? (

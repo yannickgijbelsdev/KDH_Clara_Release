@@ -43,7 +43,7 @@ export default function LicenseBlockedOverlay({ siteName }) {
         {/* Card */}
         <div className="bg-white rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.08)] border border-zinc-200/60 overflow-hidden">
           {/* Header accent */}
-          <div className="h-1.5 bg-gradient-to-r from-amber-400 via-rose-600 to-red-400" />
+          <div className="h-1.5 bg-gradient-to-r from-amber-400 via-[#7380b6] to-[#7380b6]" />
 
           <div className="p-6 sm:p-8 space-y-6">
             {/* Icon + Title */}
@@ -96,7 +96,7 @@ export default function LicenseBlockedOverlay({ siteName }) {
             <div className="space-y-2.5">
               <Button
                 onClick={handleAskClara}
-                className="w-full bg-[#7380b6] hover:bg-[#5f6ca3] text-white rounded-full gap-2 h-11 text-sm font-medium"
+                className="w-full bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white rounded-full gap-2 h-11 text-sm font-medium"
                 data-testid="license-ask-clara-btn"
               >
                 <Sparkles className="w-4 h-4" />

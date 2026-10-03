@@ -51,7 +51,7 @@ export const WorkspaceSidebar = ({
           <img src={brandLogoUrl} alt={branding.platform_name || 'Clara'} className="h-7 object-contain" />
         </div>
       ) : (
-        <div className="mb-6 w-11 h-11 rounded-2xl bg-gradient-to-br from-rose-600 to-rose-700 flex items-center justify-center shadow-lg shadow-[#7380b6]/20">
+        <div className="mb-6 w-11 h-11 rounded-2xl bg-gradient-to-br from-[#7380b6] to-[#5f6ca3] flex items-center justify-center shadow-lg shadow-[#7380b6]/20">
           <span className="text-zinc-700 font-black text-base tracking-tight">C</span>
         </div>
       )}
@@ -96,18 +96,18 @@ export const WorkspaceSidebar = ({
                   className={cn(
                     'w-11 h-11 flex items-center justify-center rounded-2xl transition-all duration-200 relative',
                     isActive
-                      ? 'bg-[#7380b6]/15 text-rose-500 shadow-[0_0_20px_rgba(221,12,81,0.15)]'
+                      ? 'bg-[#7380b6]/15 text-[#7380b6]0 shadow-[0_0_20px_rgba(221,12,81,0.15)]'
                       : 'text-zinc-500 hover:text-white hover:bg-white/[0.06]'
                   )}
                 >
                   <Icon className="w-5 h-5" />
                   {badgeCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded-full bg-[#7380b6] text-white ring-2 ring-[#0A0A0A]">
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded-full bg-[#7380b6] !text-white [&_svg]:!text-white ring-2 ring-[#0A0A0A]">
                       {badgeCount > 99 ? '99+' : badgeCount}
                     </span>
                   )}
                   {isActive && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[3px] w-[3px] h-5 rounded-r-full bg-rose-500" />
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[3px] w-[3px] h-5 rounded-r-full bg-[#7380b6]/100" />
                   )}
                 </NavLink>
               </TooltipTrigger>
@@ -154,7 +154,7 @@ export const WorkspaceSidebar = ({
           <DropdownMenuTrigger asChild>
             <button
               data-testid="user-menu-trigger"
-              className="w-11 h-11 rounded-2xl overflow-hidden hover:ring-2 hover:ring-rose-600/30 transition-all duration-200 flex-shrink-0"
+              className="w-11 h-11 rounded-2xl overflow-hidden hover:ring-2 hover:ring-[#7380b6]/30 transition-all duration-200 flex-shrink-0"
             >
               {getAvatarUrl(user) ? (
                 <img
@@ -163,7 +163,7 @@ export const WorkspaceSidebar = ({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-rose-600 to-amber-600 flex items-center justify-center text-white font-semibold text-sm">
+                <div className="w-full h-full bg-gradient-to-br from-[#7380b6] to-amber-600 flex items-center justify-center text-white font-semibold text-sm">
                   {user?.name?.charAt(0).toUpperCase()}
                 </div>
               )}
@@ -182,7 +182,7 @@ export const WorkspaceSidebar = ({
                   className="w-10 h-10 rounded-xl object-cover"
                 />
               ) : (
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-600 to-amber-600 flex items-center justify-center text-white font-semibold">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7380b6] to-amber-600 flex items-center justify-center text-white font-semibold">
                   {user?.name?.charAt(0).toUpperCase()}
                 </div>
               )}
@@ -202,7 +202,7 @@ export const WorkspaceSidebar = ({
             <DropdownMenuItem
               onClick={onLogout}
               data-testid="logout-btn"
-              className="text-rose-600 focus:text-rose-600 focus:bg-[#7380b6]/10"
+              className="text-[#7380b6] focus:text-[#7380b6] focus:bg-[#7380b6]/10"
             >
               <LogOut className="w-4 h-4 mr-2" />
               Sign out

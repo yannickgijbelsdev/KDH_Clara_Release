@@ -103,8 +103,8 @@ const statusLabels = {
 const syncStatusConfig = {
   not_synced: { icon: Clock, color: 'text-zinc-500', bgColor: 'bg-zinc-200', label: 'Not synced' },
   synced: { icon: CheckCircle, color: 'text-green-500', bgColor: 'bg-green-500/10', label: 'Synced' },
-  scheduled: { icon: Calendar, color: 'text-rose-600', bgColor: 'bg-[#7380b6]/10', label: 'Scheduled' },
-  failed: { icon: AlertCircle, color: 'text-red-500', bgColor: 'bg-red-500/10', label: 'Failed' },
+  scheduled: { icon: Calendar, color: 'text-[#7380b6]', bgColor: 'bg-[#7380b6]/10', label: 'Scheduled' },
+  failed: { icon: AlertCircle, color: 'text-[#7380b6]0', bgColor: 'bg-[#7380b6]/100/10', label: 'Failed' },
 };
 
 const ContentDetailPage = () => {
@@ -775,7 +775,7 @@ const ContentDetailPage = () => {
               <label
                 className={`inline-flex items-center gap-1.5 cursor-pointer select-none px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider transition border ${
                   content.is_liveblog
-                    ? 'bg-red-100 text-red-700 border-red-200'
+                    ? 'bg-[#7380b6]/15 text-[#5f6ca3] border-[#7380b6]/30'
                     : 'bg-white text-zinc-500 border-zinc-300 hover:bg-zinc-50'
                 }`}
                 data-testid="liveblog-toggle"
@@ -796,10 +796,10 @@ const ContentDetailPage = () => {
                       setContent((prev) => ({ ...prev, is_liveblog: !checked }));
                     }
                   }}
-                  className="w-3 h-3 rounded border-zinc-300 text-red-500 focus:ring-red-500"
+                  className="w-3 h-3 rounded border-zinc-300 text-[#7380b6]0 focus:ring-[#7380b6]"
                   data-testid="liveblog-toggle-checkbox"
                 />
-                {content.is_liveblog && <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />}
+                {content.is_liveblog && <span className="w-1.5 h-1.5 rounded-full bg-[#7380b6]/100 animate-pulse" />}
                 Liveblog
               </label>
             )}
@@ -844,7 +844,7 @@ const ContentDetailPage = () => {
               </span>
             )}
             {content.status === 'ready' && isRejected && (
-              <span title="Rejected" style={{ color: '#ffffff' }} className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0">
+              <span title="Rejected" style={{ color: '#ffffff' }} className="w-6 h-6 rounded-full bg-[#7380b6]/100 flex items-center justify-center flex-shrink-0">
                 <X className="w-3.5 h-3.5" strokeWidth={2.5} />
               </span>
             )}
@@ -939,7 +939,7 @@ const ContentDetailPage = () => {
               data-testid="publish-wp-btn"
               onClick={() => !isPublishBlocked && openPublishDialog()}
               disabled={isPublishBlocked}
-              className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white rounded-full px-5"
+              className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white rounded-full px-5"
             >
               <Upload className="w-4 h-4" />
               {hasPublishedSites ? 'Sync to WordPress' : 'Publish to WordPress'}
@@ -973,7 +973,7 @@ const ContentDetailPage = () => {
               <button
                 onClick={() => unpublishViaClara()}
                 disabled={claraPublishBusy}
-                className="text-[11px] text-zinc-500 hover:text-rose-500 underline"
+                className="text-[11px] text-zinc-500 hover:text-[#7380b6]0 underline"
                 data-testid="unpublish-clara-btn"
               >
                 Unpublish from News API
@@ -1004,11 +1004,11 @@ const ContentDetailPage = () => {
 
       {/* Rejection Notice */}
       {isRejected && content.approval_notes && (
-        <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
+        <div className="mb-6 p-4 bg-[#7380b6]/100/10 border border-[#7380b6]/30 rounded-xl">
           <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-[#7380b6] flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-red-400 font-medium">Content Rejected</p>
+              <p className="text-[#7380b6] font-medium">Content Rejected</p>
               <p className="text-sm text-zinc-400 mt-1">{content.approval_notes}</p>
               {content.approved_by_name && (
                 <p className="text-xs text-zinc-500 mt-2">By {content.approved_by_name}</p>
@@ -1034,9 +1034,9 @@ const ContentDetailPage = () => {
                   ps.sync_status === 'synced' 
                     ? 'bg-green-500/10 border-green-500/30' 
                     : ps.sync_status === 'scheduled'
-                    ? 'bg-[#7380b6]/10 border-rose-600/30'
+                    ? 'bg-[#7380b6]/10 border-[#7380b6]/30'
                     : ps.sync_status === 'failed'
-                    ? 'bg-red-500/10 border-red-500/30'
+                    ? 'bg-[#7380b6]/100/10 border-[#7380b6]/30'
                     : 'bg-zinc-100/70 border-zinc-300'
                 }`}
               >
@@ -1060,7 +1060,7 @@ const ContentDetailPage = () => {
                       <p className="text-sm text-zinc-400">
                         {ps.wp_post_type} / {ps.wp_status}
                         {ps.wp_scheduled_date && (
-                          <span className="ml-2 text-rose-500">
+                          <span className="ml-2 text-[#7380b6]0">
                             • Scheduled: {format(parseISO(ps.wp_scheduled_date), 'MMM d, yyyy HH:mm')}
                           </span>
                         )}
@@ -1073,7 +1073,7 @@ const ContentDetailPage = () => {
                           <> • Synced {format(parseISO(ps.last_synced_at), 'MMM d, yyyy HH:mm')}</>
                         )}
                         {ps.sync_status === 'failed' && ps.sync_error_message && (
-                          <span className="text-rose-400 block mt-1">{ps.sync_error_message}
+                          <span className="text-[#7380b6] block mt-1">{ps.sync_error_message}
                             <span className="inline-block ml-2"><ClaraErrorButton errorMessage={ps.sync_error_message} errorContext="WordPress sync failed" /></span>
                           </span>
                         )}
@@ -1097,7 +1097,7 @@ const ContentDetailPage = () => {
                     <Button
                       size="sm"
                       onClick={openPublishDialog}
-                      className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
+                      className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white"
                     >
                       <RefreshCw className="w-4 h-4" />
                       Retry
@@ -1133,7 +1133,7 @@ const ContentDetailPage = () => {
                   size="sm"
                   data-testid="delete-content-btn"
                   onClick={() => setDeleteDialogOpen(true)}
-                  className="gap-2 bg-transparent border-zinc-300 text-rose-600 hover:bg-[#7380b6]/10 hover:text-rose-400"
+                  className="gap-2 bg-transparent border-zinc-300 text-[#7380b6] hover:bg-[#7380b6]/10 hover:text-[#7380b6]"
                 >
                   <Trash2 className="w-4 h-4" />
                   Delete
@@ -1146,7 +1146,7 @@ const ContentDetailPage = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => openClara('seo')}
-                className="gap-2 bg-transparent border-rose-200 text-rose-700 hover:bg-rose-50"
+                className="gap-2 bg-transparent border-[#7380b6]/30 text-[#5f6ca3] hover:bg-[#7380b6]/10"
                 data-testid="clara-seo-btn"
               >
                 <Sparkles className="w-4 h-4" />
@@ -1169,7 +1169,7 @@ const ContentDetailPage = () => {
                 data-testid="save-content-btn"
                 onClick={handleSave}
                 disabled={saving}
-                className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
+                className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white"
               >
                 <Save className="w-4 h-4" />
                 {saving ? 'Saving...' : 'Save'}
@@ -1268,7 +1268,7 @@ const ContentDetailPage = () => {
                       className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
                     >
                       <div className="flex items-center gap-2">
-                        <Folder className="w-4 h-4 text-rose-500" />
+                        <Folder className="w-4 h-4 text-[#7380b6]0" />
                         <span>{cat.name}</span>
                       </div>
                     </SelectItem>
@@ -1316,7 +1316,7 @@ const ContentDetailPage = () => {
                       type="button"
                       onClick={removeArticleFeaturedImage}
                       data-testid="remove-featured-image-btn"
-                      className="text-xs font-medium text-rose-500 hover:text-rose-600 underline decoration-rose-300 hover:decoration-rose-500"
+                      className="text-xs font-medium text-[#7380b6]0 hover:text-[#7380b6] underline decoration-[#7380b6] hover:decoration-[#7380b6]"
                     >
                       Remove
                     </button>
@@ -1473,7 +1473,7 @@ const ContentDetailPage = () => {
             <DialogHeader className="p-5 border-b border-zinc-200">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <History className="w-5 h-5 text-rose-600" />
+                  <History className="w-5 h-5 text-[#7380b6]" />
                   <DialogTitle>Edit History</DialogTitle>
                   {auditLogs.length > 0 && (
                     <span className="px-2 py-0.5 bg-zinc-100 rounded-full text-xs text-zinc-600">{auditLogs.length} {auditLogs.length === 1 ? 'entry' : 'entries'}</span>
@@ -1498,7 +1498,7 @@ const ContentDetailPage = () => {
             <div className="flex-1 overflow-y-auto min-h-0">
               {loadingAuditLogs ? (
                 <div className="p-10 text-center">
-                  <Loader2 className="w-6 h-6 animate-spin text-rose-500 mx-auto" />
+                  <Loader2 className="w-6 h-6 animate-spin text-[#7380b6]0 mx-auto" />
                   <p className="text-zinc-500 mt-3 text-sm">Loading history...</p>
                 </div>
               ) : auditLogs.length === 0 ? (
@@ -1524,7 +1524,7 @@ const ContentDetailPage = () => {
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                             log.action === 'updated' ? 'bg-blue-100 text-blue-700' :
-                            log.action === 'deleted' ? 'bg-red-100 text-red-700' :
+                            log.action === 'deleted' ? 'bg-[#7380b6]/15 text-[#5f6ca3]' :
                             log.action === 'created' ? 'bg-green-100 text-green-700' :
                             'bg-zinc-100 text-zinc-700'
                           }`}>
@@ -1680,7 +1680,7 @@ const ContentDetailPage = () => {
                                   </span>
                                 )}
                                 {publishStatus?.sync_status === 'failed' && (
-                                  <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600" title={publishStatus?.sync_error_message}>
+                                  <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-[#7380b6]/15 text-[#7380b6]" title={publishStatus?.sync_error_message}>
                                     <AlertCircle className="w-3 h-3" /> Failed
                                   </span>
                                 )}
@@ -1758,7 +1758,7 @@ const ContentDetailPage = () => {
                                             </Button>
                                             <Button type="button" variant="outline" size="sm"
                                               onClick={() => handleRemoveImage(site.id)}
-                                              className="border-zinc-200 text-red-500 hover:bg-red-50 text-xs h-7 rounded-lg">Remove</Button>
+                                              className="border-zinc-200 text-[#7380b6]0 hover:bg-[#7380b6]/10 text-xs h-7 rounded-lg">Remove</Button>
                                           </div>
                                           {(image.photo_credit || image.photo_copyright) && (
                                             <p className="text-[11px] text-zinc-400 mt-1.5">
@@ -1805,7 +1805,7 @@ const ContentDetailPage = () => {
                 <Button variant="ghost" onClick={() => setPublishDialogOpen(false)} className="text-zinc-500">Cancel</Button>
                 <Button data-testid="confirm-publish-btn" onClick={handlePublish}
                   disabled={Object.values(selectedSites).filter(Boolean).length === 0}
-                  className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white px-6 rounded-full">
+                  className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white px-6 rounded-full">
                   <Upload className="w-4 h-4" />
                   Publish to {Object.values(selectedSites).filter(Boolean).length} Site(s)
                 </Button>
@@ -1852,12 +1852,12 @@ const ContentDetailPage = () => {
                           </motion.div>
                         ) : status === 'failed' ? (
                           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}
-                            className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center">
+                            className="w-10 h-10 bg-[#7380b6]/100 rounded-full flex items-center justify-center">
                             <X className="w-5 h-5 text-white" />
                           </motion.div>
                         ) : status === 'skipped' ? (
-                          <div className="w-10 h-10 rounded-full border-2 border-red-200 bg-red-50 flex items-center justify-center">
-                            <X className="w-4 h-4 text-red-300" />
+                          <div className="w-10 h-10 rounded-full border-2 border-[#7380b6]/30 bg-[#7380b6]/10 flex items-center justify-center">
+                            <X className="w-4 h-4 text-[#7380b6]" />
                           </div>
                         ) : status === 'loading' ? (
                           <div className="w-10 h-10 rounded-full border-[3px] border-zinc-200 border-t-zinc-900 animate-spin" />
@@ -1866,7 +1866,7 @@ const ContentDetailPage = () => {
                         )}
                       </div>
                       <span className={`text-sm font-medium transition-colors ${
-                        status === 'done' ? 'text-emerald-700' : status === 'failed' ? 'text-red-600' : status === 'skipped' ? 'text-red-300' : status === 'loading' ? 'text-zinc-900' : 'text-zinc-400'
+                        status === 'done' ? 'text-emerald-700' : status === 'failed' ? 'text-[#7380b6]' : status === 'skipped' ? 'text-[#7380b6]' : status === 'loading' ? 'text-zinc-900' : 'text-zinc-400'
                       }`}>{step.label}</span>
                     </motion.div>
                   );
@@ -1875,12 +1875,12 @@ const ContentDetailPage = () => {
 
               {deployFailed && deployErrorMsg && (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                  className="mt-6 max-w-md mx-auto bg-red-50 border border-red-200 rounded-xl p-4">
-                  <p className="text-sm text-red-600 font-medium mb-1">Error Details</p>
-                  <p className="text-xs text-red-500 mb-3">{deployErrorMsg}</p>
+                  className="mt-6 max-w-md mx-auto bg-[#7380b6]/10 border border-[#7380b6]/30 rounded-xl p-4">
+                  <p className="text-sm text-[#7380b6] font-medium mb-1">Error Details</p>
+                  <p className="text-xs text-[#7380b6]0 mb-3">{deployErrorMsg}</p>
                   <button
                     onClick={() => openClara('error', { errorMessage: `WordPress publish failed: ${deployErrorMsg}`, errorContext: 'WordPress publishing' })}
-                    className="group relative inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-white border border-red-200 text-red-600 hover:bg-red-100 transition-colors"
+                    className="group relative inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-white border border-[#7380b6]/30 text-[#7380b6] hover:bg-[#7380b6]/15 transition-colors"
                     data-testid="clara-error-help-btn"
                   >
                     <Sparkles className="w-3.5 h-3.5" />
@@ -1896,7 +1896,7 @@ const ContentDetailPage = () => {
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                   className="mt-8 flex justify-center">
                   <Button onClick={() => setPublishDialogOpen(false)}
-                    className={`${deployFailed ? 'bg-red-500 hover:bg-red-600' : 'bg-[#7380b6] hover:bg-[#5f6ca3]'} text-white px-8 rounded-full`}>
+                    className={`${deployFailed ? 'bg-[#7380b6]/100 hover:bg-[#7380b6]' : 'bg-[#7380b6] hover:bg-[#5f6ca3]'} !text-white [&_svg]:!text-white px-8 rounded-full`}>
                     {deployFailed ? 'Close' : 'Done'}
                   </Button>
                 </motion.div>
@@ -1918,7 +1918,7 @@ const ContentDetailPage = () => {
                 <ul className="list-disc list-inside space-y-1 text-zinc-400">
                   <li>Move the content to Trash</li>
                   {hasPublishedSites && (
-                    <li className="text-rose-500">Delete the post from all linked WordPress sites</li>
+                    <li className="text-[#7380b6]0">Delete the post from all linked WordPress sites</li>
                   )}
                 </ul>
                 <p className="text-zinc-500 text-xs mt-2 pt-2 border-t border-zinc-300">
@@ -1933,7 +1933,7 @@ const ContentDetailPage = () => {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
+              className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white"
             >
               Delete
             </AlertDialogAction>
@@ -2006,7 +2006,7 @@ const ContentDetailPage = () => {
         <DialogContent className="bg-white text-zinc-900 max-w-md" data-testid="end-liveblog-dialog">
           <DialogHeader>
             <DialogTitle className="text-zinc-900 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-red-500" />
+              <span className="w-2 h-2 rounded-full bg-[#7380b6]/100" />
               End liveblog
             </DialogTitle>
             <DialogDescription className="text-zinc-500 text-sm">
@@ -2032,10 +2032,10 @@ const ContentDetailPage = () => {
               data-testid="end-liveblog-delete"
               disabled={endingLiveblog}
               onClick={() => endLiveblog(true)}
-              className="w-full text-left border border-red-200 hover:border-red-400 bg-red-50/40 rounded-lg p-3 transition disabled:opacity-50"
+              className="w-full text-left border border-[#7380b6]/30 hover:border-[#7380b6] bg-[#7380b6]/10/40 rounded-lg p-3 transition disabled:opacity-50"
             >
-              <div className="text-sm font-semibold text-red-700">Delete all entries</div>
-              <div className="text-xs text-red-600/80 mt-0.5">
+              <div className="text-sm font-semibold text-[#5f6ca3]">Delete all entries</div>
+              <div className="text-xs text-[#7380b6]/80 mt-0.5">
                 Permanently wipes every timeline entry on this article. Cannot be undone.
               </div>
             </button>

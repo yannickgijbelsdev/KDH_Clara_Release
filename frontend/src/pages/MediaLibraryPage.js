@@ -752,7 +752,7 @@ const MediaLibraryPage = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin text-rose-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#7380b6]" />
       </div>
     );
   }
@@ -879,7 +879,7 @@ const MediaLibraryPage = () => {
                   All Files
                 </button>
                 <ChevronRight className="w-4 h-4 text-zinc-600" />
-                <span className="text-rose-500">
+                <span className="text-[#7380b6]0">
                   {folders.find(f => f.id === currentFolder)?.name || 'Folder'}
                 </span>
               </div>
@@ -914,7 +914,7 @@ const MediaLibraryPage = () => {
                 <div
                   data-testid={`media-asset-${asset.id}`}
                   className={cn(
-                    "glass-card rounded-xl p-4 hover:border-rose-600/30 transition-all group",
+                    "glass-card rounded-xl p-4 hover:border-[#7380b6]/30 transition-all group",
                     canPreview(asset) && "cursor-pointer"
                   )}
                   onClick={() => canPreview(asset) && setPreviewAsset(asset)}
@@ -1012,7 +1012,7 @@ const MediaLibraryPage = () => {
                                 e.stopPropagation();
                                 handleDeleteAsset(asset);
                               }}
-                              className="text-rose-600 focus:text-rose-600"
+                              className="text-[#7380b6] focus:text-[#7380b6]"
                             >
                               <Trash2 className="w-4 h-4 mr-2" />
                               Delete
@@ -1071,7 +1071,7 @@ const MediaLibraryPage = () => {
         {/* Drag Overlay */}
         <DragOverlay>
           {activeAsset && (
-            <div className="glass-card rounded-xl p-4 opacity-90 shadow-2xl border-rose-600/50">
+            <div className="glass-card rounded-xl p-4 opacity-90 shadow-2xl border-[#7380b6]/50">
               <div className="flex items-center gap-3">
                 <div className={cn(
                   'p-2 rounded-lg',
@@ -1079,7 +1079,7 @@ const MediaLibraryPage = () => {
                   activeAsset.mime_type?.startsWith('image/') ? 'bg-green-500/20' :
                   'bg-blue-500/20'
                 )}>
-                  <File className="w-5 h-5 text-rose-500" />
+                  <File className="w-5 h-5 text-[#7380b6]0" />
                 </div>
                 <span className="text-sm text-zinc-700 font-medium truncate max-w-[200px]">
                   {activeAsset.title}
@@ -1095,7 +1095,7 @@ const MediaLibraryPage = () => {
         <DialogContent className="bg-white border-zinc-200">
           <DialogHeader>
             <DialogTitle className="text-zinc-900 flex items-center gap-2">
-              <FolderPlus className="w-5 h-5 text-rose-600" />
+              <FolderPlus className="w-5 h-5 text-[#7380b6]" />
               New Folder
             </DialogTitle>
           </DialogHeader>
@@ -1109,7 +1109,7 @@ const MediaLibraryPage = () => {
           />
           {newFolderParent && (
             <p className="text-sm text-zinc-400">
-              Creating inside: <span className="text-rose-500">{folders.find(f => f.id === newFolderParent)?.name}</span>
+              Creating inside: <span className="text-[#7380b6]0">{folders.find(f => f.id === newFolderParent)?.name}</span>
             </p>
           )}
           <DialogFooter>
@@ -1167,7 +1167,7 @@ const MediaLibraryPage = () => {
         <DialogContent className="bg-white border-zinc-200 sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-zinc-900 flex items-center gap-2">
-              <Trash2 className="w-5 h-5 text-red-500" />
+              <Trash2 className="w-5 h-5 text-[#7380b6]0" />
               Delete Folder
             </DialogTitle>
           </DialogHeader>
@@ -1192,7 +1192,7 @@ const MediaLibraryPage = () => {
             <Button
               data-testid="confirm-delete-folder-btn"
               onClick={() => handleDeleteFolder(deletingFolder?.id)}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
             >
               <Trash2 className="w-4 h-4 mr-2" />
               Delete Folder
@@ -1213,14 +1213,14 @@ const MediaLibraryPage = () => {
         <DialogContent className="bg-white border-zinc-200 sm:max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="text-zinc-900 flex items-center gap-2">
-              <Share2 className="w-5 h-5 text-rose-600" />
+              <Share2 className="w-5 h-5 text-[#7380b6]" />
               Share &ldquo;{sharingFolder?.name}&rdquo;
             </DialogTitle>
           </DialogHeader>
           
           {sharingLoading ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin text-rose-600" />
+              <Loader2 className="w-6 h-6 animate-spin text-[#7380b6]" />
             </div>
           ) : (
             <div className="flex-1 overflow-y-auto space-y-6 py-2">
@@ -1255,7 +1255,7 @@ const MediaLibraryPage = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleRemoveFolderShare(share.id)}
-                          className="h-7 w-7 p-0 text-zinc-500 hover:text-red-400"
+                          className="h-7 w-7 p-0 text-zinc-500 hover:text-[#7380b6]"
                         >
                           <X className="w-4 h-4" />
                         </Button>
@@ -1283,7 +1283,7 @@ const MediaLibraryPage = () => {
                           type="checkbox"
                           checked={selectedUsersToShare.includes(user.id)}
                           onChange={() => toggleUserSelection(user.id)}
-                          className="rounded border-zinc-300 bg-zinc-100 text-rose-600 focus:ring-rose-600"
+                          className="rounded border-zinc-300 bg-zinc-100 text-[#7380b6] focus:ring-[#7380b6]"
                         />
                         <span className="text-sm text-zinc-600">{user.name}</span>
                         <span className="text-xs text-zinc-500">{user.role}</span>
@@ -1324,7 +1324,7 @@ const MediaLibraryPage = () => {
                             type="checkbox"
                             checked={selectedSeriesToShare.includes(series.id)}
                             onChange={() => toggleSeriesSelection(series.id)}
-                            className="rounded border-zinc-300 bg-zinc-100 text-rose-600 focus:ring-rose-600"
+                            className="rounded border-zinc-300 bg-zinc-100 text-[#7380b6] focus:ring-[#7380b6]"
                           />
                           <span className="text-sm text-zinc-600">{series.title}</span>
                         </label>
@@ -1365,7 +1365,7 @@ const MediaLibraryPage = () => {
                             type="checkbox"
                             checked={selectedShowsToShare.includes(show.id)}
                             onChange={() => toggleShowSelection(show.id)}
-                            className="rounded border-zinc-300 bg-zinc-100 text-rose-600 focus:ring-rose-600"
+                            className="rounded border-zinc-300 bg-zinc-100 text-[#7380b6] focus:ring-[#7380b6]"
                           />
                           <span className="text-sm text-zinc-600">{show.title}</span>
                           {show.scheduled_date && (
@@ -1449,7 +1449,7 @@ const MediaLibraryPage = () => {
                 <>
                   {(() => {
                     const FileIcon = getFileIcon(previewAsset.kind, previewAsset.mime_type);
-                    return <FileIcon className="w-5 h-5 text-rose-600" />;
+                    return <FileIcon className="w-5 h-5 text-[#7380b6]" />;
                   })()}
                   <span className="truncate">{previewAsset?.title}</span>
                 </>
@@ -1562,7 +1562,7 @@ const MediaLibraryPage = () => {
         <DialogContent className="bg-white border-zinc-200 sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-zinc-900 flex items-center gap-2">
-              <Share2 className="w-5 h-5 text-rose-600" />
+              <Share2 className="w-5 h-5 text-[#7380b6]" />
               Share &ldquo;{shareAsset?.title}&rdquo;
             </DialogTitle>
           </DialogHeader>
@@ -1570,7 +1570,7 @@ const MediaLibraryPage = () => {
           <div className="space-y-4">
             {shareLoading ? (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin text-rose-600" />
+                <Loader2 className="w-6 h-6 animate-spin text-[#7380b6]" />
               </div>
             ) : shareInfo?.has_share_link ? (
               <>
@@ -1621,7 +1621,7 @@ const MediaLibraryPage = () => {
                       variant="ghost"
                       onClick={handleRevokeShareLink}
                       disabled={shareLoading}
-                      className="text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                      className="text-[#7380b6]0 hover:text-[#7380b6] hover:bg-[#7380b6]/100/10"
                     >
                       <X className="w-4 h-4 mr-2" />
                       Revoke Share Link
@@ -1695,7 +1695,7 @@ const MediaLibraryPage = () => {
         >
           <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-2xl min-w-[320px]">
             <div className="flex items-center gap-3 mb-4">
-              <Loader2 className="w-6 h-6 text-rose-600 animate-spin" />
+              <Loader2 className="w-6 h-6 text-[#7380b6] animate-spin" />
               <div>
                 <p className="text-zinc-700 font-medium">Uploading file...</p>
                 <p className="text-zinc-400 text-sm truncate max-w-[220px]">{uploadFileName}</p>
@@ -1703,11 +1703,11 @@ const MediaLibraryPage = () => {
             </div>
             <div className="w-full bg-zinc-100 rounded-full h-3 overflow-hidden">
               <div
-                className="bg-gradient-to-r from-rose-600 to-rose-500 h-full rounded-full transition-all duration-300 ease-out"
+                className="bg-gradient-to-r from-[#7380b6] to-[#7380b6] h-full rounded-full transition-all duration-300 ease-out"
                 style={{ width: `${uploadProgress}%` }}
               />
             </div>
-            <p className="text-center text-rose-500 text-sm font-medium mt-2">{uploadProgress}%</p>
+            <p className="text-center text-[#7380b6]0 text-sm font-medium mt-2">{uploadProgress}%</p>
           </div>
         </div>
       )}
@@ -1726,8 +1726,8 @@ const DroppableAllFiles = ({ isSelected, assetCount, onSelect }) => {
       ref={setNodeRef}
       className={cn(
         "flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer transition-colors mb-1",
-        isSelected ? "bg-[#7380b6]/20 text-rose-500" : "hover:bg-white/5 text-zinc-400",
-        isOver && "bg-[#7380b6]/30 ring-2 ring-rose-600/50"
+        isSelected ? "bg-[#7380b6]/20 text-[#7380b6]0" : "hover:bg-white/5 text-zinc-400",
+        isOver && "bg-[#7380b6]/30 ring-2 ring-[#7380b6]/50"
       )}
       onClick={onSelect}
     >
@@ -1763,8 +1763,8 @@ const DroppableFolderItem = ({
       <div
         className={cn(
           "flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer transition-colors group",
-          isSelected ? "bg-[#7380b6]/20 text-rose-500" : "hover:bg-white/5 text-zinc-400",
-          isOver && "bg-[#7380b6]/30 ring-2 ring-rose-600/50",
+          isSelected ? "bg-[#7380b6]/20 text-[#7380b6]0" : "hover:bg-white/5 text-zinc-400",
+          isOver && "bg-[#7380b6]/30 ring-2 ring-[#7380b6]/50",
           depth > 0 && "ml-4"
         )}
         onClick={onSelect}
@@ -1817,7 +1817,7 @@ const DroppableFolderItem = ({
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={(e) => { e.stopPropagation(); onDelete(); }}
-                className="text-red-400"
+                className="text-[#7380b6]"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete
@@ -1888,7 +1888,7 @@ const TextFilePreview = ({ url }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8 bg-white/80 backdrop-blur rounded-lg">
-        <Loader2 className="w-8 h-8 animate-spin text-rose-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#7380b6]" />
       </div>
     );
   }

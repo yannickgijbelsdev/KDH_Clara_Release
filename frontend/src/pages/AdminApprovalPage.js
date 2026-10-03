@@ -53,7 +53,7 @@ const typeIcons = {
 const approvalStatusConfig = {
   pending: { icon: Clock, color: 'text-yellow-500', bgColor: 'bg-yellow-500/10', label: 'Pending Review' },
   approved: { icon: CheckCircle, color: 'text-green-500', bgColor: 'bg-green-500/10', label: 'Approved' },
-  rejected: { icon: XCircle, color: 'text-red-500', bgColor: 'bg-red-500/10', label: 'Rejected' },
+  rejected: { icon: XCircle, color: 'text-[#7380b6]0', bgColor: 'bg-[#7380b6]/100/10', label: 'Rejected' },
 };
 
 // Helper to get featured image URL (S3 or local)
@@ -308,7 +308,7 @@ const AdminApprovalPage = () => {
               onClick={() => setStatusFilter('rejected')}
               className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
             >
-              <XCircle className="w-4 h-4 mr-2 text-red-500" />
+              <XCircle className="w-4 h-4 mr-2 text-[#7380b6]0" />
               Rejected
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -395,7 +395,7 @@ const AdminApprovalPage = () => {
 
                       <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-500">
                         {item.category && (
-                          <span className="flex items-center gap-1 text-rose-500">
+                          <span className="flex items-center gap-1 text-[#7380b6]0">
                             <Folder className="w-3 h-3" />
                             {item.category.name}
                           </span>
@@ -461,7 +461,7 @@ const AdminApprovalPage = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => openApprovalDialog(item, 'rejected')}
-                          className="bg-transparent border-red-500/50 text-red-400 hover:bg-red-500/10 gap-1"
+                          className="bg-transparent border-[#7380b6]/50 text-[#7380b6] hover:bg-[#7380b6]/100/10 gap-1"
                         >
                           <X className="w-4 h-4" />
                           Reject
@@ -511,7 +511,7 @@ const AdminApprovalPage = () => {
               )}
               {approvalAction === 'rejected' && (
                 <>
-                  <XCircle className="w-5 h-5 text-red-500" />
+                  <XCircle className="w-5 h-5 text-[#7380b6]0" />
                   Reject Content
                 </>
               )}
@@ -537,8 +537,8 @@ const AdminApprovalPage = () => {
             )}
 
             {approvalAction === 'rejected' && (
-              <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-                <p className="text-sm text-red-400">
+              <div className="p-3 bg-[#7380b6]/100/10 border border-[#7380b6]/30 rounded-lg">
+                <p className="text-sm text-[#7380b6]">
                   This content will be rejected. The editor will see your notes and can make corrections.
                 </p>
               </div>
@@ -576,7 +576,7 @@ const AdminApprovalPage = () => {
                   approvalAction === 'approved'
                     ? 'bg-green-600 hover:bg-green-700'
                     : approvalAction === 'rejected'
-                    ? 'bg-red-600 hover:bg-red-700'
+                    ? 'bg-[#7380b6] hover:bg-[#5f6ca3]'
                     : 'bg-yellow-600 hover:bg-yellow-700'
                 } text-white`}
               >

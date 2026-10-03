@@ -227,7 +227,7 @@ export default function ClaraCLI({ triggerRef }) {
 
   const typeColor = (type) => {
     switch (type) {
-      case 'error': return 'text-red-400';
+      case 'error': return 'text-[#7380b6]';
       case 'warning': return 'text-amber-400';
       case 'success': return 'text-emerald-400';
       case 'input': return 'text-cyan-400';

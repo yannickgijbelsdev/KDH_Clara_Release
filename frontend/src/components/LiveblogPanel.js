@@ -240,7 +240,7 @@ const LiveblogPanel = ({ contentId, mainSiteId, token, canEdit, ended = false, e
             {ended ? (
               <span className="w-2 h-2 rounded-full bg-zinc-400" />
             ) : (
-              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-[#7380b6]/100 animate-pulse" />
             )}
             {ended ? 'Liveblog timeline (ended)' : 'Liveblog timeline'}
             <span className="text-xs font-normal text-zinc-400">({entries.length})</span>
@@ -270,7 +270,7 @@ const LiveblogPanel = ({ contentId, mainSiteId, token, canEdit, ended = false, e
                 <Send className="w-4 h-4 mr-1.5" /> Publish all drafts
               </Button>
             )}
-            <Button onClick={startNew} className="bg-red-500 hover:bg-red-600 text-white" data-testid="liveblog-new-entry-btn">
+            <Button onClick={startNew} className="bg-[#7380b6]/100 hover:bg-[#7380b6] text-white" data-testid="liveblog-new-entry-btn">
               <Plus className="w-4 h-4 mr-1.5" /> Add timeline entry
             </Button>
           </div>
@@ -330,7 +330,7 @@ const EntryCard = ({ entry, canEdit, onEdit, onDelete, onTogglePublish }) => {
   const missingRights = (entry.images || []).some((i) => !(i.credit || '').trim());
   return (
     <div
-      className={`border-l-4 ${entry.published ? 'border-red-500' : 'border-zinc-300'} bg-zinc-50/60 rounded-r-lg p-4`}
+      className={`border-l-4 ${entry.published ? 'border-[#7380b6]' : 'border-zinc-300'} bg-zinc-50/60 rounded-r-lg p-4`}
       data-testid={`liveblog-entry-${entry.id}`}
     >
       <div className="flex items-start justify-between gap-3 mb-2 flex-wrap">
@@ -339,7 +339,7 @@ const EntryCard = ({ entry, canEdit, onEdit, onDelete, onTogglePublish }) => {
           <span className="text-xs font-mono text-zinc-500" data-testid={`liveblog-timestamp-${entry.id}`}>{t}</span>
           <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full ${
             entry.published
-              ? 'bg-red-100 text-red-700 border border-red-200'
+              ? 'bg-[#7380b6]/15 text-[#5f6ca3] border border-[#7380b6]/30'
               : 'bg-zinc-200 text-zinc-600'
           }`}>
             {entry.published ? 'LIVE' : 'DRAFT'}
@@ -355,11 +355,11 @@ const EntryCard = ({ entry, canEdit, onEdit, onDelete, onTogglePublish }) => {
         </div>
         {canEdit && (
           <div className="flex items-center gap-1">
-            <button onClick={onTogglePublish} title={entry.published ? 'Unpublish' : 'Publish'} data-testid={`liveblog-publish-${entry.id}`} className={`p-1.5 rounded transition ${entry.published ? 'text-zinc-500 hover:text-zinc-800' : 'text-red-500 hover:text-red-700'}`}>
+            <button onClick={onTogglePublish} title={entry.published ? 'Unpublish' : 'Publish'} data-testid={`liveblog-publish-${entry.id}`} className={`p-1.5 rounded transition ${entry.published ? 'text-zinc-500 hover:text-zinc-800' : 'text-[#7380b6]0 hover:text-[#5f6ca3]'}`}>
               {entry.published ? <EyeOff className="w-4 h-4" /> : <Send className="w-4 h-4" />}
             </button>
             <button onClick={onEdit} className="p-1.5 text-zinc-400 hover:text-zinc-800" data-testid={`liveblog-edit-${entry.id}`} title="Edit"><Pencil className="w-4 h-4" /></button>
-            <button onClick={onDelete} className="p-1.5 text-zinc-400 hover:text-red-600" data-testid={`liveblog-delete-${entry.id}`} title="Delete"><Trash2 className="w-4 h-4" /></button>
+            <button onClick={onDelete} className="p-1.5 text-zinc-400 hover:text-[#7380b6]" data-testid={`liveblog-delete-${entry.id}`} title="Delete"><Trash2 className="w-4 h-4" /></button>
           </div>
         )}
       </div>
@@ -447,7 +447,7 @@ const EntryEditor = ({ draft, setDraft, onSave, onCancel, contentId, headers, sa
   };
 
   return (
-    <div className="border-2 border-red-200 rounded-lg p-4 bg-red-50/30" data-testid="liveblog-entry-editor">
+    <div className="border-2 border-[#7380b6]/30 rounded-lg p-4 bg-[#7380b6]/10/30" data-testid="liveblog-entry-editor">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
         <div className="md:col-span-2">
           <Label className="text-xs">Title</Label>
@@ -497,7 +497,7 @@ const EntryEditor = ({ draft, setDraft, onSave, onCancel, contentId, headers, sa
             <div key={i} className="border border-zinc-200 rounded-md p-2 flex flex-col sm:flex-row gap-3 bg-white" data-testid={`liveblog-img-row-${i}`}>
               <div className="flex items-start gap-2">
                 <img src={img.url} alt="" className="w-20 h-20 object-cover rounded flex-shrink-0" />
-                <button onClick={() => removeImage(i)} className="sm:hidden text-zinc-400 hover:text-red-600 p-1" aria-label="Remove image"><X className="w-4 h-4" /></button>
+                <button onClick={() => removeImage(i)} className="sm:hidden text-zinc-400 hover:text-[#7380b6] p-1" aria-label="Remove image"><X className="w-4 h-4" /></button>
               </div>
               <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2 min-w-0">
                 <Input placeholder="Source / agency *" value={img.credit} onChange={(e) => updateImage(i, { credit: e.target.value })} className="text-xs" data-testid={`liveblog-img-credit-${i}`} />
@@ -505,7 +505,7 @@ const EntryEditor = ({ draft, setDraft, onSave, onCancel, contentId, headers, sa
                 <Input placeholder="License" value={img.license} onChange={(e) => updateImage(i, { license: e.target.value })} className="text-xs" data-testid={`liveblog-img-license-${i}`} />
                 <Input placeholder="Source URL" value={img.source_url} onChange={(e) => updateImage(i, { source_url: e.target.value })} className="text-xs" data-testid={`liveblog-img-source-${i}`} />
               </div>
-              <button onClick={() => removeImage(i)} className="hidden sm:block text-zinc-400 hover:text-red-600 p-1 self-start"><X className="w-4 h-4" /></button>
+              <button onClick={() => removeImage(i)} className="hidden sm:block text-zinc-400 hover:text-[#7380b6] p-1 self-start"><X className="w-4 h-4" /></button>
             </div>
           ))}
         </div>
@@ -521,7 +521,7 @@ const EntryEditor = ({ draft, setDraft, onSave, onCancel, contentId, headers, sa
               <span className="flex-1 truncate font-mono text-zinc-500">
                 {v.url || v.embed_code}
               </span>
-              <button onClick={() => removeVideo(i)} className="text-zinc-400 hover:text-red-600 p-1"><X className="w-4 h-4" /></button>
+              <button onClick={() => removeVideo(i)} className="text-zinc-400 hover:text-[#7380b6] p-1"><X className="w-4 h-4" /></button>
             </div>
           ))}
         </div>
@@ -542,7 +542,7 @@ const EntryEditor = ({ draft, setDraft, onSave, onCancel, contentId, headers, sa
 
         <div className="ml-auto flex items-center gap-2">
           <Button variant="ghost" onClick={onCancel} disabled={saving} className="text-zinc-500" data-testid="liveblog-cancel-btn">Cancel</Button>
-          <Button onClick={() => onSave(draft)} disabled={saving} className="bg-red-500 text-white hover:bg-red-600" data-testid="liveblog-save-btn">
+          <Button onClick={() => onSave(draft)} disabled={saving} className="bg-[#7380b6]/100 text-white hover:bg-[#7380b6]" data-testid="liveblog-save-btn">
             {saving ? 'Saving…' : ((draft.images || []).some((i) => !(i.credit || '').trim()) ? 'Save as draft' : 'Save & publish')}
           </Button>
         </div>

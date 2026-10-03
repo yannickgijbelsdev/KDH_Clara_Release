@@ -74,7 +74,7 @@ export default function XmlUpload() {
         onDrop={handleDrop}
         className={`relative border-2 border-dashed rounded-xl p-12 text-center transition-all cursor-pointer ${
           isDragging
-            ? 'border-rose-600 bg-rose-600/5'
+            ? 'border-[#7380b6] bg-[#7380b6]/5'
             : 'border-zinc-300 bg-white/60 hover:border-zinc-600 hover:bg-zinc-100/30'
         }`}
         data-testid="xml-dropzone"
@@ -88,10 +88,10 @@ export default function XmlUpload() {
         />
         <div className="flex flex-col items-center gap-4">
           {uploading ? (
-            <Loader2 className="w-12 h-12 text-rose-600 animate-spin" />
+            <Loader2 className="w-12 h-12 text-[#7380b6] animate-spin" />
           ) : (
             <div className="p-4 rounded-full bg-zinc-200 border border-zinc-300">
-              <Upload className={`w-8 h-8 ${isDragging ? 'text-rose-600' : 'text-zinc-500'}`} />
+              <Upload className={`w-8 h-8 ${isDragging ? 'text-[#7380b6]' : 'text-zinc-500'}`} />
             </div>
           )}
           <div>
@@ -110,16 +110,16 @@ export default function XmlUpload() {
         <div className={`rounded-xl border p-6 ${
           result.success
             ? 'border-emerald-500/20 bg-emerald-500/5'
-            : 'border-red-500/20 bg-red-500/5'
+            : 'border-[#7380b6]/20 bg-[#7380b6]/100/5'
         }`} data-testid="upload-result">
           <div className="flex items-start gap-3">
             {result.success ? (
               <CheckCircle2 className="w-6 h-6 text-emerald-400 flex-shrink-0 mt-0.5" />
             ) : (
-              <XCircle className="w-6 h-6 text-red-400 flex-shrink-0 mt-0.5" />
+              <XCircle className="w-6 h-6 text-[#7380b6] flex-shrink-0 mt-0.5" />
             )}
             <div>
-              <p className={`font-medium ${result.success ? 'text-emerald-300' : 'text-red-300'}`}>
+              <p className={`font-medium ${result.success ? 'text-emerald-300' : 'text-[#7380b6]'}`}>
                 {result.success ? 'Upload successful' : 'Upload failed'}
               </p>
               {result.success ? (
@@ -143,7 +143,7 @@ export default function XmlUpload() {
                   </Button>
                 </div>
               ) : (
-                <p className="text-sm text-red-400/80 mt-1">{result.error}</p>
+                <p className="text-sm text-[#7380b6]/80 mt-1">{result.error}</p>
               )}
             </div>
           </div>

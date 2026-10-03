@@ -214,7 +214,7 @@ export default function NotificationBroadcast() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F0F0F2] flex items-center justify-center">
-        <Loader2 className="w-6 h-6 animate-spin text-rose-600" />
+        <Loader2 className="w-6 h-6 animate-spin text-[#7380b6]" />
       </div>
     );
   }
@@ -340,7 +340,7 @@ export default function NotificationBroadcast() {
                       onClick={() => setAudience(a.id)}
                       data-testid={`audience-${a.id}-btn`}
                       className={`w-full text-left px-3 py-2.5 rounded-lg border transition-all ${
-                        active ? 'border-rose-500 bg-rose-50/50' : 'border-zinc-200 hover:border-zinc-300 bg-white'
+                        active ? 'border-[#7380b6]/100 bg-[#7380b6]/10/50' : 'border-zinc-200 hover:border-zinc-300 bg-white'
                       }`}
                     >
                       <p className="text-sm font-medium text-zinc-900">{a.label}</p>
@@ -531,7 +531,7 @@ export default function NotificationBroadcast() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
-              <Send className="w-5 h-5 text-rose-600" /> Confirm broadcast
+              <Send className="w-5 h-5 text-[#7380b6]" /> Confirm broadcast
             </AlertDialogTitle>
             <AlertDialogDescription>
               You are about to send <strong>"{title}"</strong> as <strong>{severityDef.label}</strong> to {' '}
@@ -552,7 +552,7 @@ export default function NotificationBroadcast() {
             <AlertDialogAction
               onClick={sendBroadcast}
               disabled={sending || !audienceCount?.count}
-              className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
+              className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white"
               data-testid="broadcast-confirm-btn"
             >
               {sending ? <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Sending...</> : 'Confirm & send'}

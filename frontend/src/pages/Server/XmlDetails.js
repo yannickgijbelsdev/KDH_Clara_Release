@@ -14,7 +14,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const STATUS_CONFIG = {
   processing: { icon: Clock, label: 'Processing', cls: 'text-yellow-400 bg-yellow-400/10 border-yellow-500/20' },
   success: { icon: CheckCircle2, label: 'Success', cls: 'text-emerald-400 bg-emerald-400/10 border-emerald-500/20' },
-  failed: { icon: XCircle, label: 'Failed', cls: 'text-red-400 bg-red-400/10 border-red-500/20' },
+  failed: { icon: XCircle, label: 'Failed', cls: 'text-[#7380b6] bg-[#7380b6]/10 border-[#7380b6]/20' },
 };
 
 export default function XmlDetails() {
@@ -97,7 +97,7 @@ export default function XmlDetails() {
           <Button variant="outline" size="sm" onClick={() => window.open(`${API}/xml-imports/${importId}/download`, '_blank')} className="border-zinc-300 text-zinc-600">
             <Download className="w-4 h-4 mr-1.5" />Download
           </Button>
-          <Button variant="outline" size="sm" onClick={handleDelete} className="border-red-500/30 text-red-400 hover:bg-red-500/10" data-testid="delete-import-btn">
+          <Button variant="outline" size="sm" onClick={handleDelete} className="border-[#7380b6]/30 text-[#7380b6] hover:bg-[#7380b6]/100/10" data-testid="delete-import-btn">
             <Trash2 className="w-4 h-4 mr-1.5" />Delete
           </Button>
         </div>
@@ -111,11 +111,11 @@ export default function XmlDetails() {
 
       {/* Error message */}
       {imp.error_message && (
-        <div className="bg-red-500/5 border border-red-500/20 rounded-xl p-4 flex items-start gap-3" data-testid="error-message">
-          <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+        <div className="bg-[#7380b6]/100/5 border border-[#7380b6]/20 rounded-xl p-4 flex items-start gap-3" data-testid="error-message">
+          <AlertTriangle className="w-5 h-5 text-[#7380b6] flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-medium text-red-300">Error</p>
-            <p className="text-sm text-red-400/80 mt-1">{imp.error_message}</p>
+            <p className="text-sm font-medium text-[#7380b6]">Error</p>
+            <p className="text-sm text-[#7380b6]/80 mt-1">{imp.error_message}</p>
           </div>
         </div>
       )}

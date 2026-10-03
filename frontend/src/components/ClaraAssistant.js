@@ -264,7 +264,7 @@ export default function ClaraAssistant() {
               {/* Header */}
               <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100 rounded-t-3xl">
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${mode === 'seo' ? 'from-rose-600 to-amber-500' : mode === 'license' ? 'from-amber-500 to-rose-600' : 'from-red-500 to-rose-500'} flex items-center justify-center shadow-lg`}>
+                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${mode === 'seo' ? 'from-[#7380b6] to-amber-500' : mode === 'license' ? 'from-amber-500 to-[#7380b6]' : 'from-[#7380b6]/0 to-500 to-[#7380b6]'} flex items-center justify-center shadow-lg`}>
                     <span className="text-white font-black text-lg leading-none">&lt;</span>
                   </div>
                   <div>
@@ -373,14 +373,14 @@ export default function ClaraAssistant() {
                       onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
                       placeholder={mode === 'seo' ? 'Ask a question about your content...' : 'Describe the issue...'}
                       disabled={loading}
-                      className="flex-1 bg-zinc-50 border border-zinc-200 rounded-full px-4 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-rose-600/20 disabled:opacity-50"
+                      className="flex-1 bg-zinc-50 border border-zinc-200 rounded-full px-4 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-[#7380b6]/20 disabled:opacity-50"
                       data-testid="clara-chat-input"
                     />
                     <Button
                       onClick={sendMessage}
                       disabled={!input.trim() || loading}
                       size="icon"
-                      className="rounded-full bg-[#7380b6] hover:bg-[#5f6ca3] text-white w-10 h-10 shrink-0"
+                      className="rounded-full bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white w-10 h-10 shrink-0"
                       data-testid="clara-send-btn"
                     >
                       {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
@@ -406,7 +406,7 @@ function MessageBubble({ msg, index, copied, onCopy, onInsert, insertContentFn }
       <div className={`max-w-[85%] ${isUser
         ? 'bg-zinc-900 text-white rounded-2xl rounded-br-md'
         : msg.error
-          ? 'bg-red-50 text-red-700 border border-red-100 rounded-2xl rounded-bl-md'
+          ? 'bg-[#7380b6]/10 text-[#5f6ca3] border border-[#7380b6]/20 rounded-2xl rounded-bl-md'
           : msg.isSuccess
             ? 'bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-2xl rounded-bl-md'
             : 'bg-zinc-50 text-zinc-700 border border-zinc-100 rounded-2xl rounded-bl-md'
@@ -435,7 +435,7 @@ function MessageBubble({ msg, index, copied, onCopy, onInsert, insertContentFn }
                 {(msg.generated || msg.improved) && insertContentFn && (
                   <button
                     onClick={() => onInsert(msg)}
-                    className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-rose-700 hover:bg-rose-50 transition-colors"
+                    className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-[#5f6ca3] hover:bg-[#7380b6]/10 transition-colors"
                     data-testid={`clara-insert-${index}`}
                   >
                     <FileText className="w-3 h-3" /> Invoegen in editor
@@ -459,8 +459,8 @@ function EmptyState({ mode, editorContent, onGenerate, onImprove, onSetInput }) 
           className="w-full p-4 bg-zinc-50 hover:bg-zinc-100 rounded-2xl text-left transition-colors border border-zinc-100"
           data-testid="clara-action-generate">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center">
-              <Wand2 className="w-5 h-5 text-rose-600" />
+            <div className="w-10 h-10 rounded-xl bg-[#7380b6]/10 flex items-center justify-center">
+              <Wand2 className="w-5 h-5 text-[#7380b6]" />
             </div>
             <div>
               <p className="font-medium text-zinc-900 text-sm">Generate new article</p>
@@ -514,14 +514,14 @@ function GenerateForm({ topic, keywords, length, loading, onTopicChange, onKeywo
         <label className="text-xs font-medium text-zinc-500 mb-1.5 block">Topic *</label>
         <input value={topic} onChange={e => onTopicChange(e.target.value)}
           placeholder="e.g. The future of DAB+ radio in Belgium"
-          className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-rose-600/20"
+          className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-[#7380b6]/20"
           data-testid="clara-topic-input" />
       </div>
       <div>
         <label className="text-xs font-medium text-zinc-500 mb-1.5 block">Keywords (optional)</label>
         <input value={keywords} onChange={e => onKeywordsChange(e.target.value)}
           placeholder="e.g. DAB+, digital radio, FM"
-          className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-rose-600/20"
+          className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-[#7380b6]/20"
           data-testid="clara-keywords-input" />
       </div>
       <div>
@@ -536,7 +536,7 @@ function GenerateForm({ topic, keywords, length, loading, onTopicChange, onKeywo
         </div>
       </div>
       <Button onClick={onGenerate} disabled={!topic.trim() || loading}
-        className="w-full bg-gradient-to-r from-rose-600 to-amber-500 hover:from-rose-700 hover:to-amber-600 text-white rounded-xl gap-2"
+        className="w-full bg-gradient-to-r from-[#7380b6] to-amber-500 hover:from-[#5f6ca3] hover:to-amber-600 text-white rounded-xl gap-2"
         data-testid="clara-generate-btn">
         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
         Generate Article
@@ -554,7 +554,7 @@ function SupportForm({ form, onChange, onSubmit, submitting, onCancel }) {
       data-testid="clara-support-form"
     >
       <div className="flex items-center gap-2 mb-2">
-        <LifeBuoy className="w-4 h-4 text-rose-600" />
+        <LifeBuoy className="w-4 h-4 text-[#7380b6]" />
         <span className="text-sm font-semibold text-zinc-800">Create Support Ticket</span>
       </div>
       <div>
@@ -563,7 +563,7 @@ function SupportForm({ form, onChange, onSubmit, submitting, onCancel }) {
           value={form.subject}
           onChange={e => onChange({ ...form, subject: e.target.value })}
           placeholder="Brief description of the issue"
-          className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-rose-600/20"
+          className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-[#7380b6]/20"
           data-testid="support-subject-input"
         />
       </div>
@@ -574,7 +574,7 @@ function SupportForm({ form, onChange, onSubmit, submitting, onCancel }) {
           onChange={e => onChange({ ...form, description: e.target.value })}
           placeholder="What exactly went wrong? What were you trying to do?"
           rows={3}
-          className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-rose-600/20 resize-none"
+          className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-[#7380b6]/20 resize-none"
           data-testid="support-description-input"
         />
       </div>
@@ -585,7 +585,7 @@ function SupportForm({ form, onChange, onSubmit, submitting, onCancel }) {
           onChange={e => onChange({ ...form, steps_tried: e.target.value })}
           placeholder="e.g. Refreshed the page, logged in again..."
           rows={2}
-          className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-rose-600/20 resize-none"
+          className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-[#7380b6]/20 resize-none"
           data-testid="support-steps-input"
         />
       </div>
@@ -596,7 +596,7 @@ function SupportForm({ form, onChange, onSubmit, submitting, onCancel }) {
         <Button
           onClick={onSubmit}
           disabled={!form.subject.trim() || !form.description.trim() || submitting}
-          className="flex-1 rounded-full bg-[#7380b6] hover:bg-[#5f6ca3] text-white text-sm gap-1.5"
+          className="flex-1 rounded-full bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white text-sm gap-1.5"
           data-testid="support-submit-btn"
         >
           {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}

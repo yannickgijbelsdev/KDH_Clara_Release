@@ -124,7 +124,7 @@ const PresenceAvatars = ({ users, maxDisplay = 5 }) => {
                       className="w-full h-full rounded-full object-cover"
                     />
                   ) : (
-                    <span className="text-xs font-semibold text-rose-600">
+                    <span className="text-xs font-semibold text-[#7380b6]">
                       {user.initials || getInitials(user.name)}
                     </span>
                   )}
@@ -585,7 +585,7 @@ const ShowDetailPage = () => {
                   size="sm"
                   data-testid="delete-show-btn"
                   onClick={handleDeleteClick}
-                  className="gap-2 bg-transparent border-zinc-300 text-rose-600 hover:bg-[#7380b6]/10 hover:text-rose-400 hover:border-rose-600/50"
+                  className="gap-2 bg-transparent border-zinc-300 text-[#7380b6] hover:bg-[#7380b6]/10 hover:text-[#7380b6] hover:border-[#7380b6]/50"
                 >
                   <Trash2 className="w-4 h-4" />
                   Delete
@@ -611,7 +611,7 @@ const ShowDetailPage = () => {
                 data-testid="save-show-btn"
                 onClick={handleSaveClick}
                 disabled={saving}
-                className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
+                className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white"
               >
                 <Save className="w-4 h-4" />
                 {saving ? 'Saving...' : 'Save'}
@@ -786,7 +786,7 @@ const ShowDetailPage = () => {
                       type="checkbox"
                       checked={editData.blocks_room !== false}
                       onChange={(e) => setEditData({ ...editData, blocks_room: e.target.checked })}
-                      className="mt-1 accent-rose-500"
+                      className="mt-1 accent-[#7380b6]"
                       data-testid="edit-blocks-room-checkbox"
                     />
                     <div className="text-xs">
@@ -842,7 +842,7 @@ const ShowDetailPage = () => {
         <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <Settings className="w-5 h-5 text-rose-500" />
+              <Settings className="w-5 h-5 text-[#7380b6]0" />
               <h2 className="text-lg font-semibold text-zinc-900">Show Settings</h2>
             </div>
           </div>
@@ -896,7 +896,7 @@ const ShowDetailPage = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => setStopRecurrenceDialogOpen(true)}
-                    className="gap-2 bg-transparent border-zinc-300 text-rose-600 hover:bg-[#7380b6]/10 hover:text-rose-500 hover:border-rose-600/50"
+                    className="gap-2 bg-transparent border-zinc-300 text-[#7380b6] hover:bg-[#7380b6]/10 hover:text-[#7380b6]0 hover:border-[#7380b6]/50"
                   >
                     <CalendarOff className="w-4 h-4" />
                     Stop Recurring
@@ -1033,7 +1033,7 @@ const ShowDetailPage = () => {
       {linkedFolders.length > 0 && (
         <div className="bg-white/5 rounded-xl p-4 sm:p-6 border border-white/10 mb-6">
           <h3 className="text-lg font-semibold text-zinc-900 mb-4 flex items-center gap-2">
-            <Folder className="w-5 h-5 text-rose-600" />
+            <Folder className="w-5 h-5 text-[#7380b6]" />
             Linked Media Folders
           </h3>
           <div className="space-y-2">
@@ -1045,7 +1045,7 @@ const ShowDetailPage = () => {
                 >
                   <div className="flex items-center gap-3">
                     {expandedFolders.has(folder.id) ? (
-                      <FolderOpen className="w-5 h-5 text-rose-500" />
+                      <FolderOpen className="w-5 h-5 text-[#7380b6]0" />
                     ) : (
                       <Folder className="w-5 h-5 text-zinc-400" />
                     )}
@@ -1126,7 +1126,7 @@ const ShowDetailPage = () => {
             <AlertDialogAction
               data-testid="confirm-delete-btn"
               onClick={() => handleDelete(false)}
-              className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
+              className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white"
             >
               Delete
             </AlertDialogAction>
@@ -1188,13 +1188,13 @@ const ShowDetailPage = () => {
             <Button
               variant="outline"
               onClick={() => handleDelete(false)}
-              className="border-rose-600/50 text-rose-400 hover:bg-[#7380b6]/10"
+              className="border-[#7380b6]/50 text-[#7380b6] hover:bg-[#7380b6]/10"
             >
               Only This One
             </Button>
             <Button
               onClick={() => handleDelete(true)}
-              className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
+              className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white"
             >
               All Occurrences
             </Button>
@@ -1207,7 +1207,7 @@ const ShowDetailPage = () => {
         <AlertDialogContent className="bg-white border-zinc-200">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-zinc-900 flex items-center gap-2">
-              <CalendarOff className="w-5 h-5 text-rose-500" />
+              <CalendarOff className="w-5 h-5 text-[#7380b6]0" />
               Stop Recurring Show
             </AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
@@ -1255,7 +1255,7 @@ const ShowDetailPage = () => {
                   toast.error('Failed to stop recurrence');
                 }
               }}
-              className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
+              className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white"
             >
               Delete Future Shows
             </Button>
@@ -1482,7 +1482,7 @@ const VideoEndpointInline = ({ show, setShow, isEditor }) => {
         data-testid="send-to-video-endpoint-btn"
         className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wider transition ${
           hasVideo
-            ? 'bg-rose-100 text-rose-700 border border-rose-200 hover:bg-rose-200'
+            ? 'bg-[#7380b6]/15 text-[#5f6ca3] border border-[#7380b6]/30 hover:bg-[#7380b6]/25'
             : 'bg-white text-zinc-500 border border-zinc-300 hover:bg-zinc-50'
         } disabled:opacity-60 disabled:cursor-not-allowed`}
         title="Send to Video Endpoint"
@@ -1507,7 +1507,7 @@ const VideoEndpointInline = ({ show, setShow, isEditor }) => {
               checked={hasVideo}
               disabled={!isEditor}
               onChange={(e) => toggle(e.target.checked)}
-              className="w-4 h-4 rounded border-zinc-300 text-rose-500 focus:ring-rose-500"
+              className="w-4 h-4 rounded border-zinc-300 text-[#7380b6]0 focus:ring-[#7380b6]"
               data-testid="send-to-video-endpoint-checkbox"
             />
             <span className="text-sm font-medium text-zinc-800">Send to Video Endpoint</span>
@@ -1521,7 +1521,7 @@ const VideoEndpointInline = ({ show, setShow, isEditor }) => {
                   onClick={() => pick('')}
                   data-testid="pick-endpoint-none"
                   className={`w-full text-left px-2 py-1.5 rounded-md text-sm transition ${
-                    !veId ? 'bg-rose-50 text-rose-700' : 'hover:bg-zinc-50 text-zinc-600'
+                    !veId ? 'bg-[#7380b6]/10 text-[#5f6ca3]' : 'hover:bg-zinc-50 text-zinc-600'
                   }`}
                 >
                   — No endpoint linked —
@@ -1537,7 +1537,7 @@ const VideoEndpointInline = ({ show, setShow, isEditor }) => {
                     onClick={() => pick(v.id)}
                     data-testid={`pick-endpoint-${v.id}`}
                     className={`w-full text-left px-2 py-1.5 rounded-md text-sm transition flex items-center gap-2 ${
-                      veId === v.id ? 'bg-rose-50 text-rose-700' : 'hover:bg-zinc-50 text-zinc-700'
+                      veId === v.id ? 'bg-[#7380b6]/10 text-[#5f6ca3]' : 'hover:bg-zinc-50 text-zinc-700'
                     }`}
                   >
                     {v.thumbnail_url ? (

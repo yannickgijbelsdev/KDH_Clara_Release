@@ -60,7 +60,7 @@ export default function ZeroTierAlertHistory({ mainSiteId, token }) {
                   s.last_known_status === 'online'
                     ? 'bg-emerald-500/15 text-emerald-400'
                     : s.last_known_status === 'offline'
-                    ? 'bg-red-500/15 text-red-400'
+                    ? 'bg-[#7380b6]/100/15 text-[#7380b6]'
                     : 'bg-zinc-200 text-zinc-400'
                 }`}>
                   {s.last_known_status === 'online' ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
@@ -69,7 +69,7 @@ export default function ZeroTierAlertHistory({ mainSiteId, token }) {
               </div>
               <div className="grid grid-cols-3 gap-2 mt-3">
                 <div className="text-center">
-                  <div className="text-lg font-bold text-red-400">{s.offline_events}</div>
+                  <div className="text-lg font-bold text-[#7380b6]">{s.offline_events}</div>
                   <div className="text-[10px] text-zinc-500 uppercase">Offline</div>
                 </div>
                 <div className="text-center">
@@ -132,13 +132,13 @@ export default function ZeroTierAlertHistory({ mainSiteId, token }) {
                 {/* Dot */}
                 <div className={`absolute left-[-14px] top-3 w-3 h-3 rounded-full border-2 ${
                   isOffline
-                    ? 'bg-red-500 border-red-400'
+                    ? 'bg-[#7380b6]/100 border-[#7380b6]'
                     : 'bg-emerald-500 border-emerald-400'
                 }`} />
 
                 <div className="flex-1 flex items-center gap-3">
                   <div className={`flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium ${
-                    isOffline ? 'bg-red-500/10 text-red-400' : 'bg-emerald-500/10 text-emerald-400'
+                    isOffline ? 'bg-[#7380b6]/100/10 text-[#7380b6]' : 'bg-emerald-500/10 text-emerald-400'
                   }`}>
                     {isOffline ? <WifiOff className="w-3 h-3" /> : <Wifi className="w-3 h-3" />}
                     {isOffline ? 'OFFLINE' : 'ONLINE'}

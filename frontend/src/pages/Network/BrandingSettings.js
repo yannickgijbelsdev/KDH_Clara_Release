@@ -172,7 +172,7 @@ export default function BrandingSettings() {
                         onClick={() => saveBranding({ logo_type: 'text' })}
                         className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg border text-[10px] font-medium transition-colors ${
                           branding.logo_type === 'text'
-                            ? 'bg-rose-600/15 border-rose-600/40 text-rose-600'
+                            ? 'bg-[#7380b6]/15 border-[#7380b6]/40 text-[#7380b6]'
                             : 'bg-zinc-50 border-zinc-200 text-zinc-500 hover:border-zinc-300'
                         }`}
                       >
@@ -183,7 +183,7 @@ export default function BrandingSettings() {
                         onClick={() => branding.logo_url ? saveBranding({ logo_type: 'image' }) : logoInputRef.current?.click()}
                         className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg border text-[10px] font-medium transition-colors ${
                           branding.logo_type === 'image'
-                            ? 'bg-rose-600/15 border-rose-600/40 text-rose-600'
+                            ? 'bg-[#7380b6]/15 border-[#7380b6]/40 text-[#7380b6]'
                             : 'bg-zinc-50 border-zinc-200 text-zinc-500 hover:border-zinc-300'
                         }`}
                       >

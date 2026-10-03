@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 const API = process.env.REACT_APP_BACKEND_URL;
 
 const SEVERITY_CONFIG = {
-  critical: { icon: ShieldOff, color: 'text-red-500', bg: 'bg-red-50', border: 'border-red-200', badge: 'bg-red-500' },
+  critical: { icon: ShieldOff, color: 'text-[#7380b6]0', bg: 'bg-[#7380b6]/10', border: 'border-[#7380b6]/30', badge: 'bg-[#7380b6]/100' },
   warning: { icon: AlertTriangle, color: 'text-amber-500', bg: 'bg-amber-50', border: 'border-amber-200', badge: 'bg-amber-500' },
   info: { icon: Info, color: 'text-blue-500', bg: 'bg-blue-50', border: 'border-blue-200', badge: 'bg-blue-500' },
 };
@@ -113,7 +113,7 @@ export default function ClaraRackScan() {
           {/* Header */}
           <div className="px-6 py-4 border-b border-zinc-100 flex items-center justify-between flex-shrink-0">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-600 to-amber-500 flex items-center justify-center shadow-lg shadow-[#7380b6]/20">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7380b6] to-amber-500 flex items-center justify-center shadow-lg shadow-[#7380b6]/20">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -134,7 +134,7 @@ export default function ClaraRackScan() {
           <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0">
             {scanning ? (
               <div className="flex flex-col items-center py-12 gap-4">
-                <Loader2 className="w-8 h-8 text-rose-500 animate-spin" />
+                <Loader2 className="w-8 h-8 text-[#7380b6]0 animate-spin" />
                 <div className="text-center">
                   <p className="text-sm text-zinc-600 font-medium">Scanning racks and sites...</p>
                   <p className="text-xs text-zinc-400 mt-1">Checking firewalls, configurations, and security</p>
@@ -145,9 +145,9 @@ export default function ClaraRackScan() {
                 {/* Summary bar */}
                 <div className="flex gap-2 mb-4">
                   {result?.summary?.critical > 0 && (
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-50 border border-red-200">
-                      <span className="w-2 h-2 rounded-full bg-red-500" />
-                      <span className="text-[11px] font-semibold text-red-600">{result.summary.critical} Critical</span>
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#7380b6]/10 border border-[#7380b6]/30">
+                      <span className="w-2 h-2 rounded-full bg-[#7380b6]/100" />
+                      <span className="text-[11px] font-semibold text-[#7380b6]">{result.summary.critical} Critical</span>
                     </div>
                   )}
                   {result?.summary?.warnings > 0 && (

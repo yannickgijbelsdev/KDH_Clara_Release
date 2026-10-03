@@ -251,7 +251,7 @@ export default function DevToolsInspector() {
                         method === 'GET' ? 'text-green-400' :
                         method === 'POST' ? 'text-blue-400' :
                         method === 'PUT' ? 'text-amber-400' :
-                        'text-red-400'
+                        'text-[#7380b6]'
                       }`}>{method}</span>
                       <span className="text-[10px] font-mono text-zinc-600">{path}</span>
                     </div>

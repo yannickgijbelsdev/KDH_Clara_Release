@@ -344,7 +344,7 @@ export default function SiteDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7380b6]"></div>
       </div>
     );
   }
@@ -382,7 +382,7 @@ export default function SiteDashboard() {
               href={publicUrl} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-sm text-rose-500 hover:text-rose-300 flex items-center gap-1"
+              className="text-sm text-[#7380b6]0 hover:text-[#7380b6] flex items-center gap-1"
             >
               {publicUrl}
               <ExternalLink className="h-3 w-3" />
@@ -531,7 +531,7 @@ export default function SiteDashboard() {
           {/* Header Image Section */}
           <div className="bg-white/60 rounded-xl p-6">
             <div className="flex items-center gap-3 mb-4">
-              <ImageIcon className="h-5 w-5 text-rose-500" />
+              <ImageIcon className="h-5 w-5 text-[#7380b6]0" />
               <div>
                 <h2 className="text-lg font-semibold text-zinc-900">Header Image</h2>
                 <p className="text-sm text-zinc-400">Displayed above the audio player (if no video)</p>
@@ -575,7 +575,7 @@ export default function SiteDashboard() {
           <div className="bg-white/60 rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <Music className="h-5 w-5 text-rose-500" />
+                <Music className="h-5 w-5 text-[#7380b6]0" />
                 <h2 className="text-lg font-semibold text-zinc-900">Audio Player</h2>
               </div>
               <Switch
@@ -587,7 +587,7 @@ export default function SiteDashboard() {
             {site.audio_enabled && (
               <div className="space-y-4">
                 <div className="flex gap-4">
-                  <label className={`flex-1 p-4 rounded-full border-2 cursor-pointer transition ${site.audio_type === 'stream' ? 'border-rose-600 bg-[#7380b6]/10' : 'border-zinc-300 hover:border-zinc-600'}`}>
+                  <label className={`flex-1 p-4 rounded-full border-2 cursor-pointer transition ${site.audio_type === 'stream' ? 'border-[#7380b6] bg-[#7380b6]/10' : 'border-zinc-300 hover:border-zinc-600'}`}>
                     <input
                       type="radio"
                       name="audio_type"
@@ -600,7 +600,7 @@ export default function SiteDashboard() {
                       <span>Livestream URL</span>
                     </div>
                   </label>
-                  <label className={`flex-1 p-4 rounded-full border-2 cursor-pointer transition ${site.audio_type === 'file' ? 'border-rose-600 bg-[#7380b6]/10' : 'border-zinc-300 hover:border-zinc-600'}`}>
+                  <label className={`flex-1 p-4 rounded-full border-2 cursor-pointer transition ${site.audio_type === 'file' ? 'border-[#7380b6] bg-[#7380b6]/10' : 'border-zinc-300 hover:border-zinc-600'}`}>
                     <input
                       type="radio"
                       name="audio_type"
@@ -677,7 +677,7 @@ export default function SiteDashboard() {
           <div className="bg-white/60 rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <Video className="h-5 w-5 text-rose-500" />
+                <Video className="h-5 w-5 text-[#7380b6]0" />
                 <h2 className="text-lg font-semibold text-zinc-900">Video Player</h2>
               </div>
               <Switch
@@ -694,7 +694,7 @@ export default function SiteDashboard() {
                     {['youtube', 'vimeo', 'twitch', 'hls'].map(type => (
                       <label
                         key={type}
-                        className={`p-3 rounded-full border-2 cursor-pointer transition text-center capitalize ${site.video_type === type ? 'border-rose-600 bg-[#7380b6]/10' : 'border-zinc-300 hover:border-zinc-600'}`}
+                        className={`p-3 rounded-full border-2 cursor-pointer transition text-center capitalize ${site.video_type === type ? 'border-[#7380b6] bg-[#7380b6]/10' : 'border-zinc-300 hover:border-zinc-600'}`}
                       >
                         <input
                           type="radio"
@@ -742,7 +742,7 @@ export default function SiteDashboard() {
           <div className="bg-white/60 rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <MessageSquare className="h-5 w-5 text-rose-500" />
+                <MessageSquare className="h-5 w-5 text-[#7380b6]0" />
                 <h2 className="text-lg font-semibold text-zinc-900">Contact Form</h2>
               </div>
               <Switch
@@ -800,7 +800,7 @@ export default function SiteDashboard() {
                           size="sm"
                           onClick={() => removeFormField(field.id)}
                           disabled={['name', 'phone', 'message'].includes(field.id)}
-                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                          className="text-[#7380b6] hover:text-[#7380b6] hover:bg-[#7380b6]/100/10"
                         >
                           <X className="h-4 w-4" />
                         </Button>
@@ -820,7 +820,7 @@ export default function SiteDashboard() {
                             <button
                               key={opt}
                               onClick={() => updateFormField(field.id, { file_accept: opt })}
-                              className={`px-2 py-1 rounded text-xs capitalize ${(field.file_accept || 'all') === opt ? 'bg-[#7380b6] text-white' : 'bg-zinc-200 text-zinc-400 hover:bg-zinc-200'}`}
+                              className={`px-2 py-1 rounded text-xs capitalize ${(field.file_accept || 'all') === opt ? 'bg-[#7380b6] !text-white [&_svg]:!text-white' : 'bg-zinc-200 text-zinc-400 hover:bg-zinc-200'}`}
                             >
                               {opt}
                             </button>
@@ -885,7 +885,7 @@ export default function SiteDashboard() {
         <div className="space-y-6">
           <div className="bg-white/60 rounded-xl p-6">
             <div className="flex items-center gap-3 mb-6">
-              <Palette className="h-5 w-5 text-rose-500" />
+              <Palette className="h-5 w-5 text-[#7380b6]0" />
               <h2 className="text-lg font-semibold text-zinc-900">Page Styling</h2>
             </div>
 
@@ -1021,7 +1021,7 @@ export default function SiteDashboard() {
                           variant="ghost"
                           size="sm"
                           onClick={() => deleteSubmission(sub.id)}
-                          className="text-red-400 hover:text-red-300"
+                          className="text-[#7380b6] hover:text-[#7380b6]"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -1078,7 +1078,7 @@ export default function SiteDashboard() {
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-2 px-3 py-2 bg-zinc-700/50 rounded-lg hover:bg-zinc-200 transition text-sm"
                               >
-                                {isAudio && <FileAudio className="h-4 w-4 text-rose-500" />}
+                                {isAudio && <FileAudio className="h-4 w-4 text-[#7380b6]0" />}
                                 {isVideo && <FileVideo className="h-4 w-4 text-blue-400" />}
                                 {!isAudio && !isVideo && <FileImage className="h-4 w-4 text-green-400" />}
                                 <span className="text-zinc-600 max-w-32 truncate">{filename}</span>
@@ -1120,7 +1120,7 @@ export default function SiteDashboard() {
                         variant="ghost"
                         size="sm"
                         onClick={() => removeUserFromSite(user.user_id)}
-                        className="text-red-400 hover:text-red-300"
+                        className="text-[#7380b6] hover:text-[#7380b6]"
                       >
                         <X className="h-4 w-4" />
                       </Button>

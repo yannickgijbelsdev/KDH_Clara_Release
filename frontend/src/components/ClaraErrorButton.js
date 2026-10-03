@@ -12,7 +12,7 @@ export default function ClaraErrorButton({ errorMessage, errorContext = '', clas
   return (
     <button
       onClick={() => openClara('error', { errorMessage, errorContext })}
-      className={`group relative inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 transition-colors ${className}`}
+      className={`group relative inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-[#7380b6]/10 border border-[#7380b6]/30 text-[#5f6ca3] hover:bg-[#7380b6]/15 transition-colors ${className}`}
       data-testid="clara-error-btn"
     >
       <Sparkles className="w-3 h-3" />

@@ -138,7 +138,7 @@ function DebugContent({ data }) {
       </div>
 
       {/* Today's Shows */}
-      <Section id="shows" title="Shows Today" icon={Tv} color="text-rose-500" count={data.todays_shows?.length || 0}>
+      <Section id="shows" title="Shows Today" icon={Tv} color="text-[#7380b6]0" count={data.todays_shows?.length || 0}>
         {data.todays_shows?.length > 0 ? (
           <div className="space-y-1">
             {data.todays_shows.map((show, i) => (
@@ -177,9 +177,9 @@ function DebugContent({ data }) {
         {data.rds_cache_logs?.length > 0 ? (
           <div className="space-y-1 max-h-48 overflow-y-auto">
             {data.rds_cache_logs.map((log, i) => (
-              <div key={i} className={`text-xs p-2 rounded ${log.status === 'success' ? 'bg-emerald-500/10' : log.status === 'no_show' ? 'bg-zinc-100/50' : 'bg-red-500/10'}`}>
+              <div key={i} className={`text-xs p-2 rounded ${log.status === 'success' ? 'bg-emerald-500/10' : log.status === 'no_show' ? 'bg-zinc-100/50' : 'bg-[#7380b6]/100/10'}`}>
                 <div className="flex justify-between">
-                  <span className={`font-medium ${log.status === 'success' ? 'text-emerald-400' : log.status === 'no_show' ? 'text-amber-400' : 'text-red-400'}`}>
+                  <span className={`font-medium ${log.status === 'success' ? 'text-emerald-400' : log.status === 'no_show' ? 'text-amber-400' : 'text-[#7380b6]'}`}>
                     {log.status}
                   </span>
                   <span className="text-zinc-500">{log.timestamp?.slice(11, 19)}</span>
@@ -218,7 +218,7 @@ function DebugContent({ data }) {
             {data.shoutcast_logs.map((log, i) => (
               <div key={i} className="text-xs p-1.5 flex items-center gap-2">
                 <span className="text-zinc-500">{log.timestamp?.slice(11, 19)}</span>
-                <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${log.station === 'grk' ? 'bg-violet-500/20 text-violet-300' : 'bg-rose-600/20 text-rose-300'}`}>
+                <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${log.station === 'grk' ? 'bg-violet-500/20 text-violet-300' : 'bg-[#7380b6]/20 text-[#7380b6]'}`}>
                   {log.station?.toUpperCase()}
                 </span>
                 <span className="text-zinc-600 truncate">{log.title || log.current_song}</span>
@@ -337,7 +337,7 @@ function UserAccessSection({ token, API }) {
                           <span className="text-zinc-700 font-medium min-w-[150px]">{access.user_name}</span>
                           <span className="text-zinc-500 min-w-[200px]">{access.user_email}</span>
                           <span className={`text-xs px-2 py-0.5 rounded ${
-                            access.site_role === 'admin' ? 'bg-rose-600/20 text-rose-500' :
+                            access.site_role === 'admin' ? 'bg-[#7380b6]/20 text-[#7380b6]0' :
                             access.site_role === 'news_admin' ? 'bg-emerald-500/20 text-emerald-400' :
                             access.site_role === 'editor' ? 'bg-violet-500/20 text-violet-400' :
                             'bg-zinc-200 text-zinc-400'
@@ -482,10 +482,10 @@ export default function NetworkDashboard() {
     { type: 'wp_security', name: 'WP Security', icon: Shield, color: 'red', desc: 'WordPress firewall, WAF & brute force protection',
       features: ['wp_security_dashboard', 'wp_waf_rules', 'wp_ip_blocklist', 'wp_login_protection', 'team_settings', 'firewall', 'activity_logs'] },
   ];
-  const PACKAGE_COLORS = { orange: 'bg-rose-600/20 border-rose-600/50 text-rose-500', violet: 'bg-violet-500/20 border-violet-500/50 text-violet-400', blue: 'bg-blue-500/20 border-blue-500/50 text-blue-400', emerald: 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400', cyan: 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400', red: 'bg-red-500/20 border-red-500/50 text-red-400' };
-  const PACKAGE_ICON_COLORS = { orange: 'text-rose-500', violet: 'text-violet-400', blue: 'text-blue-400', emerald: 'text-emerald-400', cyan: 'text-cyan-400', red: 'text-red-400' };
+  const PACKAGE_COLORS = { orange: 'bg-[#7380b6]/20 border-[#7380b6]/50 text-[#7380b6]0', violet: 'bg-violet-500/20 border-violet-500/50 text-violet-400', blue: 'bg-blue-500/20 border-blue-500/50 text-blue-400', emerald: 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400', cyan: 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400', red: 'bg-[#7380b6]/100/20 border-[#7380b6]/50 text-[#7380b6]' };
+  const PACKAGE_ICON_COLORS = { orange: 'text-[#7380b6]0', violet: 'text-violet-400', blue: 'text-blue-400', emerald: 'text-emerald-400', cyan: 'text-cyan-400', red: 'text-[#7380b6]' };
   const SITE_TYPE_LABELS = { radio: 'Radio', task_scheduler: 'Tasks', server: 'Virtual Datacenter', technical: 'Data Connection', external_host: 'External Host', wp_security: 'WP Security' };
-  const SITE_TYPE_BADGE = { radio: 'bg-rose-600/10 text-rose-500 border-rose-600/20', task_scheduler: 'bg-violet-500/10 text-violet-400 border-violet-500/20', server: 'bg-blue-500/10 text-blue-400 border-blue-500/20', technical: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', external_host: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20', wp_security: 'bg-red-500/10 text-red-400 border-red-500/20' };
+  const SITE_TYPE_BADGE = { radio: 'bg-[#7380b6]/10 text-[#7380b6]0 border-[#7380b6]/20', task_scheduler: 'bg-violet-500/10 text-violet-400 border-violet-500/20', server: 'bg-blue-500/10 text-blue-400 border-blue-500/20', technical: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', external_host: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20', wp_security: 'bg-[#7380b6]/100/10 text-[#7380b6] border-[#7380b6]/20' };
 
   const autoSlug = (name) => name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').slice(0, 50);
   const slugExists = (slug) => mainSites.some(s => s.slug === slug);
@@ -847,7 +847,7 @@ export default function NetworkDashboard() {
             <div className="flex flex-col h-full gap-4">
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
                 className="bg-white rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
-                <Crown className="w-5 h-5 text-rose-600" />
+                <Crown className="w-5 h-5 text-[#7380b6]" />
                 <div>
                   <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">Network Admins</div>
                   <div className="text-sm font-semibold text-zinc-700">Manage network administrator access and permissions</div>
@@ -864,7 +864,7 @@ export default function NetworkDashboard() {
             <div className="flex flex-col h-full gap-4">
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
                 className="bg-white rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
-                <Bell className="w-5 h-5 text-rose-600" />
+                <Bell className="w-5 h-5 text-[#7380b6]" />
                 <div>
                   <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">Notifications</div>
                   <div className="text-sm font-semibold text-zinc-700">Configure email notifications per site and role</div>
@@ -881,7 +881,7 @@ export default function NetworkDashboard() {
             <div className="flex flex-col h-full gap-4">
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
                 className="bg-white rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
-                <Paintbrush className="w-5 h-5 text-rose-600" />
+                <Paintbrush className="w-5 h-5 text-[#7380b6]" />
                 <div>
                   <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">Branding</div>
                   <div className="text-sm font-semibold text-zinc-700">Customize platform name, logo, favicon, and login page</div>
@@ -915,7 +915,7 @@ export default function NetworkDashboard() {
             <div className="flex flex-col h-full gap-4">
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
                 className="bg-white rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
-                <Shield className="w-5 h-5 text-rose-600" />
+                <Shield className="w-5 h-5 text-[#7380b6]" />
                 <div>
                   <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">License Manager</div>
                   <div className="text-sm font-semibold text-zinc-700">Manage license packages and site assignments</div>
@@ -932,7 +932,7 @@ export default function NetworkDashboard() {
             <div className="flex flex-col h-full gap-4">
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
                 className="bg-white rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
-                <Globe className="w-5 h-5 text-rose-600" />
+                <Globe className="w-5 h-5 text-[#7380b6]" />
                 <div>
                   <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">Domain Manager</div>
                   <div className="text-sm font-semibold text-zinc-700">Manage domains, subdomain routing, and Cloudflare integration</div>
@@ -949,7 +949,7 @@ export default function NetworkDashboard() {
             <div className="flex flex-col h-full gap-4">
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
                 className="bg-white rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
-                <Server className="w-5 h-5 text-rose-600" />
+                <Server className="w-5 h-5 text-[#7380b6]" />
                 <div>
                   <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">Environments</div>
                   <div className="text-sm font-semibold text-zinc-700">Manage Clara environments, admins, and site assignments</div>
@@ -970,7 +970,7 @@ export default function NetworkDashboard() {
             <div className="flex flex-col h-full gap-4">
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
                 className="bg-white rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
-                <ShieldAlert className="w-5 h-5 text-rose-600" />
+                <ShieldAlert className="w-5 h-5 text-[#7380b6]" />
                 <div>
                   <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">Permission Audit</div>
                   <div className="text-sm font-semibold text-zinc-700">Audit and verify role permissions across all sites</div>
@@ -987,7 +987,7 @@ export default function NetworkDashboard() {
             <div className="flex flex-col h-full gap-4">
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
                 className="bg-white rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
-                <UserCog className="w-5 h-5 text-rose-600" />
+                <UserCog className="w-5 h-5 text-[#7380b6]" />
                 <div>
                   <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">User Access</div>
                   <div className="text-sm font-semibold text-zinc-700">Debug and manage user access across all sites</div>
@@ -1010,7 +1010,7 @@ export default function NetworkDashboard() {
               <div className="flex items-start justify-between flex-shrink-0">
                 <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
                   className="bg-white rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4">
-                  <Shield className="w-5 h-5 text-rose-600" />
+                  <Shield className="w-5 h-5 text-[#7380b6]" />
                   <div>
                     <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">Account Security</div>
                     <div className="text-sm font-semibold text-zinc-700">Manage your two-factor authentication settings</div>
@@ -1159,7 +1159,7 @@ export default function NetworkDashboard() {
                   <div key={i} className="flex items-center gap-1">
                     <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
                       i < createStep ? 'bg-emerald-500/20 text-emerald-400' :
-                      i === createStep ? 'bg-rose-600/20 text-rose-500 ring-1 ring-rose-600/40' :
+                      i === createStep ? 'bg-[#7380b6]/20 text-[#7380b6]0 ring-1 ring-[#7380b6]/40' :
                       'bg-zinc-100 text-zinc-500'
                     }`}>
                       {i < createStep ? <Check className="w-3 h-3" /> : <span className="w-3 text-center">{i + 1}</span>}
@@ -1187,7 +1187,7 @@ export default function NetworkDashboard() {
                         className="bg-zinc-50 border-zinc-200 font-mono" data-testid="create-site-slug-input" />
                     </div>
                     {formData.slug && slugExists(formData.slug) && (
-                      <p className="text-xs text-red-400">This slug is already in use</p>
+                      <p className="text-xs text-[#7380b6]">This slug is already in use</p>
                     )}
                   </div>
                   <Button onClick={() => setCreateStep(1)} disabled={!formData.name || !formData.slug || slugExists(formData.slug)} className="w-full" data-testid="create-step-next">
@@ -1295,7 +1295,7 @@ export default function NetworkDashboard() {
             </AlertDialogCancel>
             <AlertDialogAction 
               onClick={() => handleDeleteSite(deleteDialog.siteId)}
-              className="bg-red-500 hover:bg-red-600 text-white"
+              className="bg-[#7380b6]/100 hover:bg-[#7380b6] text-white"
             >
               Delete
             </AlertDialogAction>
@@ -1308,14 +1308,14 @@ export default function NetworkDashboard() {
         <DialogContent className="bg-white border-zinc-200 max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Activity className="w-5 h-5 text-rose-600" />
+              <Activity className="w-5 h-5 text-[#7380b6]" />
               Health Check — {healthCheck.siteName}
             </DialogTitle>
           </DialogHeader>
           
           {healthCheck.loading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-rose-600" />
+              <Loader2 className="w-8 h-8 animate-spin text-[#7380b6]" />
               <span className="ml-3 text-zinc-400">Running tests...</span>
             </div>
           ) : healthCheck.result ? (
@@ -1323,12 +1323,12 @@ export default function NetworkDashboard() {
               {/* Overall Status */}
               <div className={`flex items-center gap-3 p-4 rounded-lg ${
                 healthCheck.result.overall_status === 'ok' ? 'bg-emerald-500/10' :
-                healthCheck.result.overall_status === 'error' ? 'bg-red-500/10' : 'bg-amber-500/10'
+                healthCheck.result.overall_status === 'error' ? 'bg-[#7380b6]/100/10' : 'bg-amber-500/10'
               }`}>
                 {healthCheck.result.overall_status === 'ok' ? (
                   <CheckCircle className="w-6 h-6 text-emerald-500" />
                 ) : healthCheck.result.overall_status === 'error' ? (
-                  <X className="w-6 h-6 text-red-500" />
+                  <X className="w-6 h-6 text-[#7380b6]0" />
                 ) : (
                   <AlertTriangle className="w-6 h-6 text-amber-500" />
                 )}
@@ -1348,7 +1348,7 @@ export default function NetworkDashboard() {
                     {check.status === 'ok' ? (
                       <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                     ) : check.status === 'error' ? (
-                      <X className="w-4 h-4 text-red-500 flex-shrink-0" />
+                      <X className="w-4 h-4 text-[#7380b6]0 flex-shrink-0" />
                     ) : check.status === 'warning' ? (
                       <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
                     ) : (

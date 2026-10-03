@@ -145,7 +145,7 @@ export default function DashboardHome() {
   // Feature → nav-item mapping (kept in sync with MainSiteDashboardLayout sidebar).
   // We pick the most-used/top-level features to avoid a huge list.
   const QUICK_NAV_MAP = {
-    shows:             { label: 'Shows',          icon: Radio,      to: 'shows',          color: 'text-rose-600 bg-rose-50' },
+    shows:             { label: 'Shows',          icon: Radio,      to: 'shows',          color: 'text-[#7380b6] bg-[#7380b6]/10' },
     calendar:          { label: 'Calendar',       icon: Calendar,   to: 'calendar',       color: 'text-blue-500 bg-blue-50' },
     content_library:   { label: 'Content',        icon: FileText,   to: 'content',        color: 'text-violet-500 bg-violet-50' },
     content_approval:  { label: 'Approvals',      icon: CheckCircle,to: 'approvals',      color: 'text-amber-500 bg-amber-50' },
@@ -158,8 +158,8 @@ export default function DashboardHome() {
     sites:             { label: 'Sites',          icon: Layers,     to: 'sites',          color: 'text-blue-500 bg-blue-50' },
     wordpress:         { label: 'WordPress',      icon: Server,     to: 'wordpress',      color: 'text-blue-500 bg-blue-50' },
     xml_imports:       { label: 'XML Imports',    icon: Server,     to: 'xml-imports',    color: 'text-blue-500 bg-blue-50' },
-    wp_security_dashboard: { label: 'Security',   icon: Shield,     to: 'wp-security',    color: 'text-red-500 bg-red-50' },
-    rds:               { label: 'RDS',            icon: Radio,      to: 'rds',            color: 'text-rose-600 bg-rose-50' },
+    wp_security_dashboard: { label: 'Security',   icon: Shield,     to: 'wp-security',    color: 'text-[#7380b6]0 bg-[#7380b6]/10' },
+    rds:               { label: 'RDS',            icon: Radio,      to: 'rds',            color: 'text-[#7380b6] bg-[#7380b6]/10' },
     activity_logs:     { label: 'Activity Logs',  icon: FileText,   to: 'logs',           color: 'text-zinc-500 bg-zinc-100' },
   };
 
@@ -273,7 +273,7 @@ function OnAirPanel({ activeShows, shows, navigate, mainSiteSlug }) {
   const presenter = live?.presenters?.[0]?.name || (Array.isArray(live?.presenters) && live.presenters.length ? live.presenters.map(p => p?.name).filter(Boolean).join(' & ') : '');
   return (
     <Panel testId="panel-live-show" className="overflow-hidden" delay={0.12}>
-      <div className="bg-gradient-to-br from-rose-600 to-amber-500 px-5 py-4 text-white">
+      <div className="bg-gradient-to-br from-[#7380b6] to-amber-500 px-5 py-4 text-white">
         <div className="flex items-center gap-2 mb-1"><Mic className="w-4 h-4" /><span className="text-xs font-semibold uppercase tracking-wide">On Air</span></div>
         <p className="text-base font-bold leading-tight" data-testid="on-air-show-title">
           {live ? (live.title || live.name) : 'No live show'}
@@ -342,7 +342,7 @@ function MetricsPanel({ shows, contentCount, teamMembers }) {
         <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Station Metrics</span>
         <div className="mt-3 space-y-3">
           {[
-            { label: 'Shows', value: shows.length, unit: 'total', color: 'bg-rose-600', pct: Math.min(shows.length * 10, 100) },
+            { label: 'Shows', value: shows.length, unit: 'total', color: 'bg-[#7380b6]', pct: Math.min(shows.length * 10, 100) },
             { label: 'Content', value: contentCount, unit: 'items', color: 'bg-violet-500', pct: Math.min(contentCount * 5, 100) },
             { label: 'Team', value: teamMembers.length, unit: 'members', color: 'bg-emerald-500', pct: Math.min(teamMembers.length * 15, 100) },
           ].map(stat => (
@@ -422,7 +422,7 @@ function TeamPanel({ teamMembers, loading, navigate, mainSiteSlug }) {
               {getAvatarUrl(member) ? (
                 <img src={getAvatarUrl(member)} alt={member.name} className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" />
               ) : (
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-rose-500 to-amber-500 flex items-center justify-center text-white font-semibold text-xs border-2 border-white shadow-sm">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#7380b6] to-amber-500 flex items-center justify-center text-white font-semibold text-xs border-2 border-white shadow-sm">
                   {member.name?.charAt(0).toUpperCase()}
                 </div>
               )}

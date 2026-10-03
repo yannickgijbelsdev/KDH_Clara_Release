@@ -121,7 +121,7 @@ export default function SitesListPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7380b6]"></div>
       </div>
     );
   }
@@ -131,7 +131,7 @@ export default function SitesListPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Globe className="h-8 w-8 text-rose-600" />
+          <Globe className="h-8 w-8 text-[#7380b6]" />
           <div>
             <h1 className="text-2xl font-bold text-zinc-900">Sites</h1>
             <p className="text-sm text-zinc-400">Manage your public landing pages</p>
@@ -192,7 +192,7 @@ export default function SitesListPage() {
                         }
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-rose-500 hover:text-rose-300 flex items-center gap-1"
+                        className="text-sm text-[#7380b6]0 hover:text-[#7380b6] flex items-center gap-1"
                       >
                         {mainSiteSlug ? `/${mainSiteSlug}/${site.slug}` : `/${site.slug}`}
                         <ExternalLink className="h-3 w-3" />
@@ -239,7 +239,7 @@ export default function SitesListPage() {
                   variant="ghost"
                   size="sm"
                   onClick={() => handleDeleteClick(site.id, site.name)}
-                  className="text-red-400 hover:text-red-300"
+                  className="text-[#7380b6] hover:text-[#7380b6]"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -316,7 +316,7 @@ export default function SitesListPage() {
             </AlertDialogCancel>
             <AlertDialogAction 
               onClick={() => deleteSite(deleteDialog.siteId)}
-              className="bg-red-500 hover:bg-red-600 text-white"
+              className="bg-[#7380b6]/100 hover:bg-[#7380b6] text-white"
             >
               Delete
             </AlertDialogAction>

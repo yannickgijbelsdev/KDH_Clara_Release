@@ -104,7 +104,7 @@ const MediaCompressDialog = ({ file, open, onClose, onCompressed, onSkip }) => {
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-zinc-400">Current size</span>
-              <span className="text-red-400 font-medium">{formatFileSize(file.size)}</span>
+              <span className="text-[#7380b6] font-medium">{formatFileSize(file.size)}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-zinc-400">Recommended max</span>
@@ -138,7 +138,7 @@ const MediaCompressDialog = ({ file, open, onClose, onCompressed, onSkip }) => {
                   {result ? (
                     <CheckCircle className="w-4 h-4 text-emerald-400" />
                   ) : (
-                    <Loader2 className="w-4 h-4 animate-spin text-rose-500" />
+                    <Loader2 className="w-4 h-4 animate-spin text-[#7380b6]0" />
                   )}
                   {result
                     ? 'Done!'
@@ -166,7 +166,7 @@ const MediaCompressDialog = ({ file, open, onClose, onCompressed, onSkip }) => {
 
           {/* Error */}
           {error && (
-            <div className="flex items-center gap-2 text-red-400 text-sm bg-red-500/10 rounded-lg p-3" data-testid="compress-error">
+            <div className="flex items-center gap-2 text-[#7380b6] text-sm bg-[#7380b6]/100/10 rounded-lg p-3" data-testid="compress-error">
               <XCircle className="w-4 h-4 shrink-0" />
               {error}
             </div>
@@ -186,7 +186,7 @@ const MediaCompressDialog = ({ file, open, onClose, onCompressed, onSkip }) => {
               </Button>
               <Button
                 onClick={handleCompress}
-                className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white gap-2"
+                className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white gap-2"
                 data-testid="compress-confirm-btn"
               >
                 <Icon className="w-4 h-4" />

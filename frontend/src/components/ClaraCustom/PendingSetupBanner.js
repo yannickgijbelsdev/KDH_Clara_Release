@@ -91,7 +91,7 @@ export default function PendingSetupBanner({ mainSite, token, apis, onRefresh })
   };
 
   return (
-    <div className="mb-6 rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-rose-50 overflow-hidden" data-testid="pending-setup-banner">
+    <div className="mb-6 rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-[#7380b6]/10 overflow-hidden" data-testid="pending-setup-banner">
       <div className="px-5 py-4 border-b border-amber-200 flex items-start gap-3">
         <div className="w-10 h-10 rounded-lg bg-amber-500/15 flex items-center justify-center flex-shrink-0">
           <AlertTriangle className="w-5 h-5 text-amber-600" />

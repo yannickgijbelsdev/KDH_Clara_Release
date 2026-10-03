@@ -48,9 +48,9 @@ const ScheduledTextsManager = ({ station, stationName, color, navTo }) => {
 
   const colorClasses = {
     orange: {
-      border: 'border-rose-600/30',
+      border: 'border-[#7380b6]/30',
       bg: 'bg-[#7380b6]/10',
-      text: 'text-rose-500',
+      text: 'text-[#7380b6]0',
     },
     violet: {
       border: 'border-violet-500/30',
@@ -330,7 +330,7 @@ const SequenceItem = ({ item, index, onUpdate, onDelete, onMoveUp, onMoveDown, i
               }
             }}
             placeholder="Enter text..."
-            className="bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-zinc-900 flex-1 focus:outline-none focus:ring-2 focus:ring-rose-600"
+            className="bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-zinc-900 flex-1 focus:outline-none focus:ring-2 focus:ring-[#7380b6]"
             data-testid={`custom-text-input-${index}`}
           />
         )}
@@ -359,7 +359,7 @@ const SequenceItem = ({ item, index, onUpdate, onDelete, onMoveUp, onMoveDown, i
           variant="ghost"
           size="sm"
           onClick={onDelete}
-          className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+          className="text-[#7380b6] hover:text-[#7380b6] hover:bg-[#7380b6]/100/10"
         >
           <Trash2 className="w-4 h-4" />
         </Button>
@@ -378,9 +378,9 @@ const StationBuilder = ({ station, stationName, color }) => {
 
   const colorClasses = {
     orange: {
-      border: 'border-rose-600/30',
+      border: 'border-[#7380b6]/30',
       bg: 'bg-[#7380b6]/10',
-      text: 'text-rose-500',
+      text: 'text-[#7380b6]0',
       button: 'bg-[#7380b6] hover:bg-[#5f6ca3]'
     },
     violet: {
@@ -688,7 +688,7 @@ const RDSBuilderPage = () => {
               onClick={() => setActiveTab('outputs')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === 'outputs'
-                  ? 'bg-[#7380b6]/20 text-rose-500 border border-rose-600/30'
+                  ? 'bg-[#7380b6]/20 text-[#7380b6]0 border border-[#7380b6]/30'
                   : 'bg-zinc-100 text-zinc-500 border border-zinc-200 hover:text-zinc-900'
               }`}
             >
@@ -698,7 +698,7 @@ const RDSBuilderPage = () => {
               onClick={() => setActiveTab('legacy')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === 'legacy'
-                  ? 'bg-[#7380b6]/20 text-rose-500 border border-rose-600/30'
+                  ? 'bg-[#7380b6]/20 text-[#7380b6]0 border border-[#7380b6]/30'
                   : 'bg-zinc-100 text-zinc-500 border border-zinc-200 hover:text-zinc-900'
               }`}
             >

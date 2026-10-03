@@ -36,7 +36,7 @@ export default function FirewallPage() {
   return (
     <div className="p-6" data-testid="firewall-page">
       <div className="flex items-center gap-3 mb-8">
-        <Shield className="w-7 h-7 text-red-500" />
+        <Shield className="w-7 h-7 text-[#7380b6]0" />
         <div>
           <h1 className="text-2xl font-bold">Firewall</h1>
           <p className="text-sm text-zinc-500">{mainSite?.name} — Security & Access Control</p>
@@ -51,7 +51,7 @@ export default function FirewallPage() {
               key={t.id}
               onClick={() => setTab(t.id)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-                tab === t.id ? 'bg-red-600 text-white' : 'bg-zinc-100 text-zinc-600 border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-200'
+                tab === t.id ? 'bg-[#7380b6] text-white' : 'bg-zinc-100 text-zinc-600 border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-200'
               }`}
               data-testid={`tab-${t.id}`}
             >
@@ -93,10 +93,10 @@ function OverviewTab({ token, mainSiteId }) {
   if (loading) return <Spinner />;
 
   const cards = [
-    { label: 'Active Blocks', value: stats?.active_blocks || 0, icon: Ban, color: 'text-red-400', bg: 'bg-red-500/10' },
+    { label: 'Active Blocks', value: stats?.active_blocks || 0, icon: Ban, color: 'text-[#7380b6]', bg: 'bg-[#7380b6]/100/10' },
     { label: 'Events (24h)', value: stats?.recent_events_24h || 0, icon: Activity, color: 'text-blue-400', bg: 'bg-blue-500/10' },
     { label: 'Failed Logins', value: stats?.event_counts?.failed_login || 0, icon: ShieldAlert, color: 'text-amber-400', bg: 'bg-amber-500/10' },
-    { label: 'Rate Limited', value: stats?.event_counts?.rate_limit_exceeded || 0, icon: AlertTriangle, color: 'text-rose-500', bg: 'bg-rose-600/10' },
+    { label: 'Rate Limited', value: stats?.event_counts?.rate_limit_exceeded || 0, icon: AlertTriangle, color: 'text-[#7380b6]0', bg: 'bg-[#7380b6]/10' },
     { label: 'Geo Blocked', value: stats?.event_counts?.geo_blocked || 0, icon: Globe, color: 'text-purple-400', bg: 'bg-purple-500/10' },
     { label: 'Successful Logins', value: stats?.event_counts?.successful_login || 0, icon: CheckCircle, color: 'text-green-400', bg: 'bg-green-500/10' },
   ];
@@ -121,14 +121,14 @@ function OverviewTab({ token, mainSiteId }) {
       </div>
       {stats?.top_blocked_ips?.length > 0 && (
         <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-5">
-          <h3 className="text-base font-semibold mb-4 flex items-center gap-2"><Ban className="w-4 h-4 text-red-400" />Top Blocked IPs</h3>
+          <h3 className="text-base font-semibold mb-4 flex items-center gap-2"><Ban className="w-4 h-4 text-[#7380b6]" />Top Blocked IPs</h3>
           <div className="space-y-2">
             {stats.top_blocked_ips.map((item, i) => (
               <div key={i} className="flex items-center justify-between py-2 border-b border-zinc-200 last:border-0">
                 <span className="text-sm font-mono text-zinc-600">{item.ip}</span>
                 <div className="flex items-center gap-3">
                   <span className="text-xs text-zinc-500 truncate max-w-[200px]">{item.reason}</span>
-                  <span className="text-xs bg-red-500/10 text-red-400 px-2 py-0.5 rounded-full">{item.count}x</span>
+                  <span className="text-xs bg-[#7380b6]/100/10 text-[#7380b6] px-2 py-0.5 rounded-full">{item.count}x</span>
                 </div>
               </div>
             ))}
@@ -181,12 +181,12 @@ function AuditTab({ token, mainSiteId }) {
   if (loading) return <Spinner />;
   if (!audit) return <div className="text-zinc-500">Could not load audit</div>;
 
-  const scoreColor = audit.score >= 80 ? 'text-green-400' : audit.score >= 50 ? 'text-amber-400' : 'text-red-400';
-  const scoreBg = audit.score >= 80 ? 'bg-green-500/10' : audit.score >= 50 ? 'bg-amber-500/10' : 'bg-red-500/10';
+  const scoreColor = audit.score >= 80 ? 'text-green-400' : audit.score >= 50 ? 'text-amber-400' : 'text-[#7380b6]';
+  const scoreBg = audit.score >= 80 ? 'bg-green-500/10' : audit.score >= 50 ? 'bg-amber-500/10' : 'bg-[#7380b6]/100/10';
   const gradeLabel = audit.grade === 'good' ? 'Good' : audit.grade === 'moderate' ? 'Moderate' : 'Poor';
 
   const severityIcon = { critical: AlertCircle, warning: AlertTriangle, info: Info };
-  const severityColor = { critical: 'text-red-400 bg-red-500/10', warning: 'text-amber-400 bg-amber-500/10', info: 'text-blue-400 bg-blue-500/10' };
+  const severityColor = { critical: 'text-[#7380b6] bg-[#7380b6]/100/10', warning: 'text-amber-400 bg-amber-500/10', info: 'text-blue-400 bg-blue-500/10' };
 
   return (
     <div className="space-y-6" data-testid="audit-tab">
@@ -256,7 +256,7 @@ function AuditTab({ token, mainSiteId }) {
                       Force Change
                     </Button>
                   )}
-                  <Button size="sm" variant="outline" className="text-red-400 border-red-500/20 hover:bg-red-500/10" onClick={() => blockUser(u.id)} disabled={actionLoading[`block_${u.id}`]} data-testid={`block-user-${u.id}`}>
+                  <Button size="sm" variant="outline" className="text-[#7380b6] border-[#7380b6]/20 hover:bg-[#7380b6]/100/10" onClick={() => blockUser(u.id)} disabled={actionLoading[`block_${u.id}`]} data-testid={`block-user-${u.id}`}>
                     {actionLoading[`block_${u.id}`] ? <Loader2 className="w-3 h-3 animate-spin" /> : <UserX className="w-3 h-3 mr-1" />}
                     Block
                   </Button>
@@ -271,7 +271,7 @@ function AuditTab({ token, mainSiteId }) {
       {audit.users_without_2fa_list?.length > 0 && (
         <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-5">
           <h3 className="text-base font-semibold mb-4 flex items-center gap-2">
-            <ShieldOff className="w-4 h-4 text-red-400" /> Users without 2FA
+            <ShieldOff className="w-4 h-4 text-[#7380b6]" /> Users without 2FA
           </h3>
           <div className="space-y-2">
             {audit.users_without_2fa_list.map(u => (
@@ -384,7 +384,7 @@ function SessionsTab({ token, mainSiteId }) {
                     </div>
                     <span className="text-xs text-zinc-600">since {new Date(session.started_at).toLocaleTimeString('en-GB')}</span>
                   </div>
-                  <Button size="sm" variant="outline" className="text-red-400 border-red-500/20 hover:bg-red-500/10" onClick={() => terminateSession(session.id)} data-testid={`terminate-${session.id}`}>
+                  <Button size="sm" variant="outline" className="text-[#7380b6] border-[#7380b6]/20 hover:bg-[#7380b6]/100/10" onClick={() => terminateSession(session.id)} data-testid={`terminate-${session.id}`}>
                     <LogOut className="w-4 h-4 mr-1" /> Terminate
                   </Button>
                 </div>
@@ -640,7 +640,7 @@ function RulesTab({ token, mainSiteId }) {
     <div className="space-y-6" data-testid="rules-tab">
       <div className="flex items-center justify-between">
         <p className="text-sm text-zinc-500">{rules.length} rules configured</p>
-        <Button onClick={() => setShowForm(!showForm)} className="bg-red-600 hover:bg-red-700" data-testid="add-rule-btn">
+        <Button onClick={() => setShowForm(!showForm)} className="bg-[#7380b6] hover:bg-[#5f6ca3]" data-testid="add-rule-btn">
           <Plus className="w-4 h-4 mr-2" /> Add Rule
         </Button>
       </div>
@@ -669,7 +669,7 @@ function RulesTab({ token, mainSiteId }) {
           </div>
           <div className="flex gap-2 justify-end">
             <Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
-            <Button onClick={createRule} disabled={saving} className="bg-red-600 hover:bg-red-700" data-testid="save-rule-btn">
+            <Button onClick={createRule} disabled={saving} className="bg-[#7380b6] hover:bg-[#5f6ca3]" data-testid="save-rule-btn">
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Create Rule'}
             </Button>
           </div>
@@ -682,13 +682,13 @@ function RulesTab({ token, mainSiteId }) {
           <div key={rule.id} className={`bg-white/80 backdrop-blur rounded-xl border p-5 ${rule.active ? 'border-zinc-200' : 'border-zinc-200/50 opacity-60'}`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${rule.type === 'whitelist' ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
-                  {rule.type === 'whitelist' ? <CheckCircle className="w-4 h-4 text-green-400" /> : <Ban className="w-4 h-4 text-red-400" />}
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${rule.type === 'whitelist' ? 'bg-green-500/10' : 'bg-[#7380b6]/100/10'}`}>
+                  {rule.type === 'whitelist' ? <CheckCircle className="w-4 h-4 text-green-400" /> : <Ban className="w-4 h-4 text-[#7380b6]" />}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">{rule.name}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${rule.type === 'whitelist' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>{rule.type}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${rule.type === 'whitelist' ? 'bg-green-500/10 text-green-400' : 'bg-[#7380b6]/100/10 text-[#7380b6]'}`}>{rule.type}</span>
                     {!rule.active && <span className="text-xs text-zinc-500">(disabled)</span>}
                   </div>
                   <p className="text-xs text-zinc-500 mt-1">{rule.ip_patterns?.length} pattern(s): {rule.ip_patterns?.slice(0, 3).join(', ')}{rule.ip_patterns?.length > 3 && ` +${rule.ip_patterns.length - 3} more`}</p>
@@ -698,7 +698,7 @@ function RulesTab({ token, mainSiteId }) {
                 <button onClick={() => toggleRule(rule)} className="p-2 rounded-lg hover:bg-zinc-100 transition-colors" title={rule.active ? 'Disable' : 'Enable'}>
                   {rule.active ? <ShieldCheck className="w-4 h-4 text-green-400" /> : <ShieldOff className="w-4 h-4 text-zinc-500" />}
                 </button>
-                <button onClick={() => deleteRule(rule.id)} className="p-2 rounded-lg hover:bg-zinc-100 transition-colors text-zinc-500 hover:text-red-400">
+                <button onClick={() => deleteRule(rule.id)} className="p-2 rounded-lg hover:bg-zinc-100 transition-colors text-zinc-500 hover:text-[#7380b6]">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
@@ -751,7 +751,7 @@ function BlocksTab({ token, mainSiteId }) {
     <div className="space-y-6" data-testid="blocks-tab">
       <div className="flex items-center justify-between">
         <p className="text-sm text-zinc-500">{blocks.length} active blocks</p>
-        <Button onClick={() => setShowForm(!showForm)} className="bg-red-600 hover:bg-red-700" data-testid="block-ip-btn">
+        <Button onClick={() => setShowForm(!showForm)} className="bg-[#7380b6] hover:bg-[#5f6ca3]" data-testid="block-ip-btn">
           <Ban className="w-4 h-4 mr-2" /> Block IP
         </Button>
       </div>
@@ -773,7 +773,7 @@ function BlocksTab({ token, mainSiteId }) {
           </div>
           <div className="flex gap-2 justify-end">
             <Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
-            <Button onClick={blockIp} disabled={saving} className="bg-red-600 hover:bg-red-700" data-testid="confirm-block-btn">{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Block IP'}</Button>
+            <Button onClick={blockIp} disabled={saving} className="bg-[#7380b6] hover:bg-[#5f6ca3]" data-testid="confirm-block-btn">{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Block IP'}</Button>
           </div>
         </div>
       )}
@@ -784,7 +784,7 @@ function BlocksTab({ token, mainSiteId }) {
           <div key={block.id} className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center"><Ban className="w-5 h-5 text-red-400" /></div>
+                <div className="w-10 h-10 rounded-lg bg-[#7380b6]/100/10 flex items-center justify-center"><Ban className="w-5 h-5 text-[#7380b6]" /></div>
                 <div>
                   <div className="flex items-center gap-3">
                     <span className="text-sm font-mono font-medium">{block.ip}</span>
@@ -796,7 +796,7 @@ function BlocksTab({ token, mainSiteId }) {
                   <p className="text-xs text-zinc-500 mt-1">{block.reason}</p>
                   <div className="flex items-center gap-3 mt-1 text-xs text-zinc-600">
                     <span>{new Date(block.blocked_at).toLocaleString('en-GB')}</span>
-                    {block.expires_at ? <span className="flex items-center gap-1"><Clock className="w-3 h-3" />Expires: {new Date(block.expires_at).toLocaleString('en-GB')}</span> : <span className="text-red-400">Permanent</span>}
+                    {block.expires_at ? <span className="flex items-center gap-1"><Clock className="w-3 h-3" />Expires: {new Date(block.expires_at).toLocaleString('en-GB')}</span> : <span className="text-[#7380b6]">Permanent</span>}
                   </div>
                 </div>
               </div>
@@ -836,11 +836,11 @@ function LogsTab({ token, mainSiteId }) {
   useEffect(() => { fetchLogs(); }, [fetchLogs]);
 
   const EC = {
-    successful_login: 'text-green-400 bg-green-500/10', failed_login: 'text-red-400 bg-red-500/10',
-    ip_blocked: 'text-red-400 bg-red-500/10', ip_unblocked: 'text-green-400 bg-green-500/10',
+    successful_login: 'text-green-400 bg-green-500/10', failed_login: 'text-[#7380b6] bg-[#7380b6]/100/10',
+    ip_blocked: 'text-[#7380b6] bg-[#7380b6]/100/10', ip_unblocked: 'text-green-400 bg-green-500/10',
     rate_limit_exceeded: 'text-amber-400 bg-amber-500/10', geo_blocked: 'text-purple-400 bg-purple-500/10',
-    ip_blacklisted: 'text-red-400 bg-red-500/10', ip_not_whitelisted: 'text-rose-500 bg-rose-600/10',
-    session_terminated: 'text-red-400 bg-red-500/10', user_blocked: 'text-red-400 bg-red-500/10',
+    ip_blacklisted: 'text-[#7380b6] bg-[#7380b6]/100/10', ip_not_whitelisted: 'text-[#7380b6]0 bg-[#7380b6]/10',
+    session_terminated: 'text-[#7380b6] bg-[#7380b6]/100/10', user_blocked: 'text-[#7380b6] bg-[#7380b6]/100/10',
     user_unblocked: 'text-green-400 bg-green-500/10', api_access: 'text-blue-400 bg-blue-500/10',
   };
 
@@ -852,7 +852,7 @@ function LogsTab({ token, mainSiteId }) {
       </div>
       <div className="flex gap-2 overflow-x-auto pb-1">
         {eventTypes.map(type => (
-          <button key={type} onClick={() => { setFilter(type); setPage(0); }} className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${filter === type ? 'bg-red-600 text-white' : 'bg-zinc-100 text-zinc-600 border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-200'}`}>
+          <button key={type} onClick={() => { setFilter(type); setPage(0); }} className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${filter === type ? 'bg-[#7380b6] text-white' : 'bg-zinc-100 text-zinc-600 border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-200'}`}>
             {type === 'all' ? 'All' : type.replace(/_/g, ' ')}
           </button>
         ))}
@@ -970,7 +970,7 @@ function SettingsTab({ token, mainSiteId }) {
         </div>
       </div>
       <div className="flex justify-end">
-        <Button onClick={save} disabled={saving} className="bg-red-600 hover:bg-red-700" data-testid="save-settings-btn">
+        <Button onClick={save} disabled={saving} className="bg-[#7380b6] hover:bg-[#5f6ca3]" data-testid="save-settings-btn">
           {saving && <Loader2 className="w-4 h-4 animate-spin mr-2" />}Save Settings
         </Button>
       </div>
@@ -995,7 +995,7 @@ function NumInput({ label, value, onChange, testId }) {
   );
 }
 function Spinner() {
-  return <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-red-500" /></div>;
+  return <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-[#7380b6]0" /></div>;
 }
 function EmptyState({ icon: Icon, text }) {
   return (

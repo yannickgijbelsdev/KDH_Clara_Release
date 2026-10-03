@@ -175,7 +175,7 @@ export default function EnvironmentManager() {
       <div className="flex items-center justify-between">
         <div>
           {isSystemAdmin && (
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs bg-red-500/15 text-red-400 border border-red-500/25 mb-2">
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs bg-[#7380b6]/100/15 text-[#7380b6] border border-[#7380b6]/25 mb-2">
               <Crown className="w-3 h-3" /> System Administrator
             </span>
           )}
@@ -236,7 +236,7 @@ export default function EnvironmentManager() {
 
                   {/* S3 status */}
                   <div className="absolute bottom-3 right-3">
-                    <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-medium ${env.s3_enabled !== false ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-red-50 text-red-500 border border-red-200'}`}>
+                    <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-medium ${env.s3_enabled !== false ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-[#7380b6]/10 text-[#7380b6]0 border border-[#7380b6]/30'}`}>
                       {env.s3_enabled !== false ? <Cloud className="w-2.5 h-2.5" /> : <CloudOff className="w-2.5 h-2.5" />}
                       {env.s3_enabled !== false ? 'Cloud' : 'No Cloud'}
                     </div>
@@ -291,9 +291,9 @@ export default function EnvironmentManager() {
             className="cursor-pointer group w-[260px] flex-shrink-0"
             data-testid="create-env-btn"
           >
-            <div className="rounded-2xl border-2 border-dashed border-zinc-200 hover:border-rose-300 h-full min-h-[220px] flex flex-col items-center justify-center gap-3 transition-all duration-300 group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.06)]">
-              <div className="w-12 h-12 rounded-xl bg-zinc-100 group-hover:bg-rose-50 flex items-center justify-center transition-colors">
-                <Plus className="w-6 h-6 text-zinc-400 group-hover:text-rose-600 transition-colors" />
+            <div className="rounded-2xl border-2 border-dashed border-zinc-200 hover:border-[#7380b6]/40 h-full min-h-[220px] flex flex-col items-center justify-center gap-3 transition-all duration-300 group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.06)]">
+              <div className="w-12 h-12 rounded-xl bg-zinc-100 group-hover:bg-[#7380b6]/10 flex items-center justify-center transition-colors">
+                <Plus className="w-6 h-6 text-zinc-400 group-hover:text-[#7380b6] transition-colors" />
               </div>
               <span className="text-sm font-medium text-zinc-400 group-hover:text-zinc-600">New Environment</span>
             </div>
@@ -343,7 +343,7 @@ export default function EnvironmentManager() {
           </div>
           <DialogFooter className="flex !justify-between">
             {editingEnv && !editingEnv.is_default ? (
-              <Button variant="ghost" className="text-red-500 hover:text-red-600 hover:bg-red-50 gap-1.5" onClick={() => { setEnvDialog(false); setDeleteDialog({ open: true, id: editingEnv.id, name: editingEnv.name }); }} data-testid="env-delete-btn">
+              <Button variant="ghost" className="text-[#7380b6]0 hover:text-[#7380b6] hover:bg-[#7380b6]/10 gap-1.5" onClick={() => { setEnvDialog(false); setDeleteDialog({ open: true, id: editingEnv.id, name: editingEnv.name }); }} data-testid="env-delete-btn">
                 <Trash2 className="w-4 h-4" /> Delete
               </Button>
             ) : <div />}
@@ -365,12 +365,12 @@ export default function EnvironmentManager() {
                 <div>
                   <p className="text-sm text-zinc-800 flex items-center gap-1.5">
                     {a.user_name}
-                    {a.is_system_admin && <Crown className="w-3 h-3 text-red-400" />}
+                    {a.is_system_admin && <Crown className="w-3 h-3 text-[#7380b6]" />}
                   </p>
                   <p className="text-xs text-zinc-500">{a.user_email}</p>
                 </div>
                 {isSystemAdmin && !a.is_system_admin && (
-                  <Button size="sm" variant="ghost" onClick={() => removeAdmin(a.id)} className="h-7 text-xs text-red-400">Remove</Button>
+                  <Button size="sm" variant="ghost" onClick={() => removeAdmin(a.id)} className="h-7 text-xs text-[#7380b6]">Remove</Button>
                 )}
               </div>
             ))}
@@ -420,7 +420,7 @@ export default function EnvironmentManager() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
+            <AlertDialogAction onClick={confirmDelete} className="bg-[#7380b6] hover:bg-[#5f6ca3]">Delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

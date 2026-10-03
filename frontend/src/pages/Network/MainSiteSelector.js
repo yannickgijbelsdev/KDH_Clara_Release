@@ -43,7 +43,7 @@ export default function MainSiteSelector() {
     switch (role) {
       case 'admin':
       case 'network_admin':
-        return 'bg-rose-600/20 text-rose-500';
+        return 'bg-[#7380b6]/20 text-[#7380b6]0';
       case 'editor':
         return 'bg-blue-500/20 text-blue-400';
       case 'presenter':

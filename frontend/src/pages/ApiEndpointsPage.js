@@ -44,7 +44,7 @@ const METHOD_COLOR = {
   POST:   'bg-sky-100 text-sky-800 border-sky-200',
   PUT:    'bg-amber-100 text-amber-800 border-amber-200',
   PATCH:  'bg-amber-100 text-amber-800 border-amber-200',
-  DELETE: 'bg-rose-100 text-rose-800 border-rose-200',
+  DELETE: 'bg-[#7380b6]/15 text-[#4a5583] border-[#7380b6]/30',
 };
 
 

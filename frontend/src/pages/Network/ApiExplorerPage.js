@@ -29,8 +29,8 @@ const methodColors = {
   'GET': 'bg-emerald-50 text-emerald-600 border-emerald-200',
   'POST': 'bg-blue-50 text-blue-600 border-blue-200',
   'PUT': 'bg-amber-50 text-amber-600 border-amber-200',
-  'PATCH': 'bg-rose-50 text-rose-700 border-rose-200',
-  'DELETE': 'bg-red-50 text-red-600 border-red-200',
+  'PATCH': 'bg-[#7380b6]/10 text-[#5f6ca3] border-[#7380b6]/30',
+  'DELETE': 'bg-[#7380b6]/10 text-[#7380b6] border-[#7380b6]/30',
   'WEBSOCKET': 'bg-violet-50 text-violet-600 border-violet-200',
 };
 
@@ -79,7 +79,7 @@ const CategoryCard = ({ category, data, index, isSelected, onClick, color }) => 
       <div
         className={`relative rounded-2xl overflow-hidden transition-all duration-300 border ${
           isSelected
-            ? 'border-rose-300 shadow-[0_8px_40px_rgba(221,12,81,0.15)] scale-[1.03]'
+            ? 'border-[#7380b6]/40 shadow-[0_8px_40px_rgba(221,12,81,0.15)] scale-[1.03]'
             : 'border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)] group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] group-hover:scale-[1.02]'
         }`}
         style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}
@@ -129,7 +129,7 @@ const CategoryCard = ({ category, data, index, isSelected, onClick, color }) => 
       {isSelected && (
         <motion.div
           layoutId="endpoint-select-bar"
-          className="absolute -bottom-2 left-1/2 -translate-x-1/2 h-1 w-12 rounded-full bg-rose-600"
+          className="absolute -bottom-2 left-1/2 -translate-x-1/2 h-1 w-12 rounded-full bg-[#7380b6]"
           style={{ boxShadow: '0 0 12px rgba(221,12,81,0.5)' }}
         />
       )}
@@ -347,7 +347,7 @@ const ApiExplorerPage = () => {
             data-testid="panel-endpoint-stats"
           >
             <div className="flex items-center gap-2">
-              <Code className="w-4 h-4 text-rose-600" />
+              <Code className="w-4 h-4 text-[#7380b6]" />
               <span className="text-sm text-zinc-600">Endpoints</span>
               <span className="text-lg font-bold text-zinc-900">{totalEndpoints}</span>
             </div>
@@ -407,7 +407,7 @@ const ApiExplorerPage = () => {
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" style={{ boxShadow: '0 0 8px rgba(34,197,94,0.5)' }} />
             <span className="text-sm font-medium text-zinc-700">API Explorer active</span>
             <div className="w-px h-5 bg-black/[0.06]" />
-            <Code className="w-4 h-4 text-rose-600" />
+            <Code className="w-4 h-4 text-[#7380b6]" />
             <span className="text-sm font-bold text-zinc-900">{totalEndpoints} endpoints</span>
           </motion.div>
         </div>

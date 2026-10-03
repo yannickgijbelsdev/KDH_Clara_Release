@@ -41,10 +41,10 @@ const TYPES = [
 ];
 
 const PLATFORM_BADGES = {
-  youtube: { label: 'YouTube', class: 'bg-red-100 text-red-700 border-red-200' },
+  youtube: { label: 'YouTube', class: 'bg-[#7380b6]/15 text-[#5f6ca3] border-[#7380b6]/30' },
   vimeo: { label: 'Vimeo', class: 'bg-sky-100 text-sky-700 border-sky-200' },
   twitch: { label: 'Twitch', class: 'bg-violet-100 text-violet-700 border-violet-200' },
-  dailymotion: { label: 'Dailymotion', class: 'bg-rose-100 text-rose-800 border-rose-200' },
+  dailymotion: { label: 'Dailymotion', class: 'bg-[#7380b6]/15 text-[#4a5583] border-[#7380b6]/30' },
   iframe: { label: 'Custom iframe', class: 'bg-zinc-100 text-zinc-700 border-zinc-200' },
   upload: { label: 'Uploaded', class: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
 };
@@ -190,7 +190,7 @@ export default function VideoEndpointsPage() {
       <div className="flex items-center justify-between mb-8 flex-wrap gap-3">
         <div>
           <h1 className="text-3xl font-bold text-zinc-900 flex items-center gap-3">
-            <VideoIcon className="w-7 h-7 text-rose-500" /> Video Endpoints
+            <VideoIcon className="w-7 h-7 text-[#7380b6]0" /> Video Endpoints
           </h1>
           <p className="text-sm text-zinc-500 mt-1">
             Reusable library of video embeds and uploaded ads. Link these to shows in the Calendar
@@ -200,7 +200,7 @@ export default function VideoEndpointsPage() {
         <Button
           onClick={openCreate}
           data-testid="new-video-endpoint-btn"
-          className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
+          className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white"
         >
           <Plus className="w-4 h-4 mr-2" /> New endpoint
         </Button>
@@ -239,7 +239,7 @@ export default function VideoEndpointsPage() {
             data-testid="schedule-overview-toggle"
           >
             <div className="flex items-center gap-2">
-              <CalendarIcon className="w-4 h-4 text-rose-500" />
+              <CalendarIcon className="w-4 h-4 text-[#7380b6]0" />
               <span className="font-semibold text-zinc-900">Scheduling overview</span>
               <span className="text-xs text-zinc-400">
                 ({schedule.reduce((n, s) => n + s.show_count, 0)} show{schedule.reduce((n, s) => n + s.show_count, 0) === 1 ? '' : 's'} across {schedule.filter(s => s.show_count > 0).length} endpoint{schedule.filter(s => s.show_count > 0).length === 1 ? '' : 's'})
@@ -262,7 +262,7 @@ export default function VideoEndpointsPage() {
                       <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-600">
                         {endpoint.platform || 'iframe'}
                       </span>
-                      <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-rose-50 text-rose-700">
+                      <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#7380b6]/10 text-[#5f6ca3]">
                         {endpoint.type}
                       </span>
                       <span className="ml-auto text-xs text-zinc-400">{shows.length} show{shows.length === 1 ? '' : 's'}</span>
@@ -387,7 +387,7 @@ export default function VideoEndpointsPage() {
                       </button>
                       <button
                         onClick={() => remove(item)}
-                        className="p-1.5 text-zinc-400 hover:text-red-600 transition"
+                        className="p-1.5 text-zinc-400 hover:text-[#7380b6] transition"
                         title="Delete"
                         data-testid={`delete-video-${item.id}`}
                       >
@@ -524,7 +524,7 @@ export default function VideoEndpointsPage() {
             <Button
               onClick={save}
               disabled={saving}
-              className="bg-[#7380b6] text-white hover:bg-[#5f6ca3]"
+              className="bg-[#7380b6] !text-white [&_svg]:!text-white hover:bg-[#5f6ca3]"
               data-testid="video-save-btn"
             >
               {saving ? 'Saving…' : (editing ? 'Save changes' : 'Create endpoint')}

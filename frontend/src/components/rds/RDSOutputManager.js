@@ -90,7 +90,7 @@ const OutputItemRow = ({ item, index, onUpdate }) => {
           onKeyDown={(e) => e.key === 'Enter' && handleContentBlur()}
           placeholder="Enter text..."
           disabled={!item.enabled}
-          className="bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-1.5 text-zinc-900 text-sm flex-1 focus:outline-none focus:ring-2 focus:ring-rose-600 disabled:opacity-50"
+          className="bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-1.5 text-zinc-900 text-sm flex-1 focus:outline-none focus:ring-2 focus:ring-[#7380b6] disabled:opacity-50"
         />
       ) : (
         <span className="text-zinc-500 text-sm flex-1">{typeConfig.description}</span>
@@ -242,7 +242,7 @@ const OutputDialog = ({ isOpen, onClose, onSave, output, station }) => {
           {/* Preview URL */}
           <div className="bg-white/80 backdrop-blur rounded-lg p-3">
             <Label className="text-zinc-500 text-xs">API URL for MagicRDS:</Label>
-            <code className="text-rose-500 text-sm block mt-1">
+            <code className="text-[#7380b6]0 text-sm block mt-1">
               https://clara.koodh.com/api/rds-builder/output/{station}/{slug || 'slug'}.txt
             </code>
           </div>
@@ -288,7 +288,7 @@ const OutputDialog = ({ isOpen, onClose, onSave, output, station }) => {
           <Button variant="outline" onClick={onClose} className="border-zinc-300 text-zinc-600">
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={saving} className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white">
+          <Button onClick={handleSave} disabled={saving} className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white">
             {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
             Save
           </Button>
@@ -340,7 +340,7 @@ const OutputCard = ({ output, station, onEdit, onDelete, onRefresh }) => {
           <Button variant="ghost" size="sm" onClick={() => onEdit(output)} className="text-zinc-400 hover:text-zinc-700 h-8 w-8 p-0">
             <Pencil className="w-4 h-4" />
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => setShowDeleteDialog(true)} disabled={deleting} className="text-red-400 hover:text-red-300 h-8 w-8 p-0">
+          <Button variant="ghost" size="sm" onClick={() => setShowDeleteDialog(true)} disabled={deleting} className="text-[#7380b6] hover:text-[#7380b6] h-8 w-8 p-0">
             {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
           </Button>
         </div>
@@ -349,7 +349,7 @@ const OutputCard = ({ output, station, onEdit, onDelete, onRefresh }) => {
       {/* Current output preview */}
       <div className="bg-white/80 backdrop-blur rounded-lg p-3 mb-3">
         <span className="text-zinc-500 text-xs block mb-1">Current output:</span>
-        <span className="text-rose-500 font-medium">
+        <span className="text-[#7380b6]0 font-medium">
           {output.current_text || <span className="text-zinc-600 italic">No output</span>}
         </span>
       </div>
@@ -390,7 +390,7 @@ const OutputCard = ({ output, station, onEdit, onDelete, onRefresh }) => {
             </AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDelete}
-              className="bg-red-500 hover:bg-red-600 text-white"
+              className="bg-[#7380b6]/100 hover:bg-[#7380b6] text-white"
             >
               Delete
             </AlertDialogAction>
@@ -410,9 +410,9 @@ const RDSOutputManager = ({ station, stationName, color }) => {
 
   const colorClasses = {
     orange: {
-      border: 'border-rose-600/30',
+      border: 'border-[#7380b6]/30',
       bg: 'bg-[#7380b6]/10',
-      text: 'text-rose-500',
+      text: 'text-[#7380b6]0',
       button: 'bg-[#7380b6] hover:bg-[#5f6ca3]'
     },
     violet: {

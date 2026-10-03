@@ -225,7 +225,7 @@ const StepClaraCustom = ({ apis, onChange }) => {
               </div>
               <button
                 onClick={() => removeApi(idx)}
-                className="p-1.5 rounded-lg hover:bg-red-50 text-zinc-400 hover:text-red-600"
+                className="p-1.5 rounded-lg hover:bg-[#7380b6]/10 text-zinc-400 hover:text-[#7380b6]"
                 data-testid={`api-remove-${idx}`}
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -412,7 +412,7 @@ const StepStations = ({ stations, onStationsChange }) => {
               </div>
               <button
                 onClick={() => removeStation(idx)}
-                className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:text-[#7380b6]0 hover:bg-[#7380b6]/10 transition-colors"
                 data-testid={`remove-station-${idx}`}
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -516,10 +516,10 @@ const ClaraTestResult = ({ status, diagnosis, loading }) => {
   const isOk = status === 'ok';
   return (
     <div className={`p-3 rounded-lg border text-sm leading-relaxed ${
-      isOk ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'
+      isOk ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-[#7380b6]/10 border-[#7380b6]/30 text-[#4a5583]'
     }`} data-testid="clara-test-result">
       <div className="flex items-start gap-2">
-        {isOk ? <Check className="w-4 h-4 mt-0.5 text-emerald-600 flex-shrink-0" /> : <X className="w-4 h-4 mt-0.5 text-red-500 flex-shrink-0" />}
+        {isOk ? <Check className="w-4 h-4 mt-0.5 text-emerald-600 flex-shrink-0" /> : <X className="w-4 h-4 mt-0.5 text-[#7380b6]0 flex-shrink-0" />}
         <p>{diagnosis}</p>
       </div>
     </div>
@@ -678,7 +678,7 @@ const StepAdmin = ({ adminId, onAdminChange, users, token }) => (
             adminId === u.id ? 'border-zinc-900 bg-zinc-50' : 'border-zinc-100 hover:border-zinc-300 hover:bg-zinc-50'
           }`}
         >
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-rose-500 to-amber-500 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#7380b6] to-amber-500 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
             {u.name?.charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 text-left min-w-0">
@@ -803,7 +803,7 @@ const DeployStep = ({ label, status, delay }) => (
       ) : status === 'failed' ? (
         <motion.div
           initial={{ scale: 0 }} animate={{ scale: 1 }}
-          className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center"
+          className="w-10 h-10 bg-[#7380b6]/100 rounded-full flex items-center justify-center"
           data-testid="deploy-step-failed-icon"
         >
           <X className="w-5 h-5 text-white" />
@@ -815,7 +815,7 @@ const DeployStep = ({ label, status, delay }) => (
       )}
     </div>
     <span className={`text-sm font-medium transition-colors ${
-      status === 'done' ? 'text-emerald-700' : status === 'failed' ? 'text-red-600' : status === 'loading' ? 'text-zinc-900' : 'text-zinc-400'
+      status === 'done' ? 'text-emerald-700' : status === 'failed' ? 'text-[#7380b6]' : status === 'loading' ? 'text-zinc-900' : 'text-zinc-400'
     }`}>{label}</span>
   </motion.div>
 );
@@ -888,10 +888,10 @@ const StepDeploying = ({ siteName, siteType, require2FA, features, deployStatus,
       {deployError && (
         <motion.div
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-          className="mt-6 p-4 bg-red-50 rounded-xl border border-red-200"
+          className="mt-6 p-4 bg-[#7380b6]/10 rounded-xl border border-[#7380b6]/30"
           data-testid="deploy-error-banner"
         >
-          <div className="flex items-center justify-center gap-2 text-red-600 font-semibold text-sm mb-2">
+          <div className="flex items-center justify-center gap-2 text-[#7380b6] font-semibold text-sm mb-2">
             <X className="w-4 h-4" />
             {deployError}
           </div>
@@ -941,7 +941,7 @@ const StepZeroTier = ({ ztConfig, onZtConfigChange }) => {
               {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </Button>
           </div>
-          <p className="text-xs text-zinc-400 mt-1">Get your token from <a href="https://my.zerotier.com/account" target="_blank" rel="noreferrer" className="text-rose-600 hover:underline">my.zerotier.com/account</a></p>
+          <p className="text-xs text-zinc-400 mt-1">Get your token from <a href="https://my.zerotier.com/account" target="_blank" rel="noreferrer" className="text-[#7380b6] hover:underline">my.zerotier.com/account</a></p>
         </div>
         <div>
           <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Network ID</Label>
@@ -954,8 +954,8 @@ const StepZeroTier = ({ ztConfig, onZtConfigChange }) => {
           />
         </div>
       </div>
-      <div className="mt-5 p-3 bg-rose-50 border border-rose-100 rounded-xl">
-        <p className="text-xs text-rose-700">
+      <div className="mt-5 p-3 bg-[#7380b6]/10 border border-[#7380b6]/20 rounded-xl">
+        <p className="text-xs text-[#5f6ca3]">
           <strong>Tip:</strong> You can skip this step and configure ZeroTier later from the site settings.
         </p>
       </div>
@@ -1147,7 +1147,7 @@ const StepImportDataset = ({ token, onDone, onBack }) => {
           <Button
             onClick={startImport}
             disabled={selectedSites.size === 0}
-            className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white rounded-full px-5 gap-2"
+            className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white rounded-full px-5 gap-2"
             data-testid="import-start-btn"
           >
             <Upload className="w-4 h-4" />
@@ -1179,7 +1179,7 @@ const StepImportDataset = ({ token, onDone, onBack }) => {
             {result.status === 'success' ? (
               <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0" />
             ) : (
-              <XCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+              <XCircle className="w-5 h-5 text-[#7380b6]0 flex-shrink-0" />
             )}
             <div className="flex-1 min-w-0">
               <div className="text-sm font-semibold text-zinc-800 truncate">{result.name}</div>
@@ -1191,7 +1191,7 @@ const StepImportDataset = ({ token, onDone, onBack }) => {
         ))}
       </div>
       <div className="mt-4 pt-3 border-t border-zinc-100 flex justify-end">
-        <Button onClick={onDone} className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white rounded-full px-5 gap-2" data-testid="import-done-btn">
+        <Button onClick={onDone} className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white rounded-full px-5 gap-2" data-testid="import-done-btn">
           <Check className="w-4 h-4" /> Done
         </Button>
       </div>
@@ -1526,7 +1526,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
             <Button
               onClick={handleNext}
               disabled={!canNext()}
-              className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white px-6 rounded-full"
+              className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white px-6 rounded-full"
               data-testid="wizard-next-btn"
             >
               {stepName === 'Security' ? (

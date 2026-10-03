@@ -140,7 +140,7 @@ const TimeDisplay = ({ elapsed, remaining, total }) => {
       </div>
       <div className="text-center">
         <div className="text-zinc-500 text-[10px] uppercase tracking-wider">Remaining</div>
-        <div className="text-red-400 text-lg font-bold tabular-nums">-{fmt(remaining)}</div>
+        <div className="text-[#7380b6] text-lg font-bold tabular-nums">-{fmt(remaining)}</div>
       </div>
       <div className="text-center">
         <div className="text-zinc-500 text-[10px] uppercase tracking-wider">Duration</div>
@@ -272,7 +272,7 @@ const PlaylistItem = ({ track, index, isActive, isNext, onLoadToDeck, onRemove }
       exit={{ opacity: 0, x: 20 }}
       className={`group flex items-center gap-3 px-3 py-2 rounded-xl transition-all cursor-pointer ${
         isActive
-          ? 'bg-[#7380b6]/20 border border-rose-600/30'
+          ? 'bg-[#7380b6]/20 border border-[#7380b6]/30'
           : isNext
           ? 'bg-cyan-500/10 border border-cyan-500/20'
           : 'hover:bg-white/[0.04] border border-transparent'
@@ -286,7 +286,7 @@ const PlaylistItem = ({ track, index, isActive, isNext, onLoadToDeck, onRemove }
             {[1, 2, 3].map(i => (
               <motion.div
                 key={i}
-                className="w-[2px] bg-rose-500 rounded-full"
+                className="w-[2px] bg-[#7380b6]/100 rounded-full"
                 animate={{ height: [4, 12, 4] }}
                 transition={{ duration: 0.5, repeat: Infinity, delay: i * 0.15 }}
               />
@@ -297,7 +297,7 @@ const PlaylistItem = ({ track, index, isActive, isNext, onLoadToDeck, onRemove }
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <div className={`text-sm font-medium truncate ${isActive ? 'text-rose-300' : 'text-zinc-200'}`}>
+        <div className={`text-sm font-medium truncate ${isActive ? 'text-[#7380b6]' : 'text-zinc-200'}`}>
           {track.title}
         </div>
         <div className="text-xs text-zinc-500 truncate">{track.artist}</div>
@@ -324,7 +324,7 @@ const PlaylistItem = ({ track, index, isActive, isNext, onLoadToDeck, onRemove }
           size="sm"
           variant="ghost"
           onClick={(e) => { e.stopPropagation(); onRemove(); }}
-          className="h-6 w-6 p-0 text-zinc-600 hover:text-red-400 hover:bg-red-500/10"
+          className="h-6 w-6 p-0 text-zinc-600 hover:text-[#7380b6] hover:bg-[#7380b6]/100/10"
         >
           <Trash2 className="w-3 h-3" />
         </Button>
@@ -358,7 +358,7 @@ const LibraryTrack = ({ track, onAddToPlaylist }) => {
         <div className="text-xs text-zinc-500 truncate">{track.artist}</div>
       </div>
       <div className="text-xs text-zinc-600 font-mono">{fmt(track.duration)}</div>
-      <Plus className="w-4 h-4 text-zinc-600 opacity-0 group-hover:opacity-100 group-hover:text-rose-500 transition-all" />
+      <Plus className="w-4 h-4 text-zinc-600 opacity-0 group-hover:opacity-100 group-hover:text-[#7380b6]0 transition-all" />
     </div>
   );
 };
@@ -411,9 +411,9 @@ const CuePointEditor = ({ track, onSave }) => {
             <div className="grid grid-cols-2 gap-2 mt-2">
               {[
                 { key: 'intro', label: 'Intro', color: 'text-cyan-400' },
-                { key: 'outro', label: 'Outro', color: 'text-rose-400' },
+                { key: 'outro', label: 'Outro', color: 'text-[#7380b6]' },
                 { key: 'fadeIn', label: 'Fade In', color: 'text-lime-400' },
-                { key: 'fadeOut', label: 'Fade Out', color: 'text-rose-500' },
+                { key: 'fadeOut', label: 'Fade Out', color: 'text-[#7380b6]0' },
               ].map(({ key, label, color }) => (
                 <div key={key} className="flex items-center gap-2">
                   <span className={`text-[10px] w-14 ${color}`}>{label}</span>
@@ -423,7 +423,7 @@ const CuePointEditor = ({ track, onSave }) => {
                     placeholder="sec"
                     value={fmtSec(cues[key])}
                     onChange={(e) => setCues({ ...cues, [key]: parseSec(e.target.value) })}
-                    className="w-16 h-6 bg-white/[0.06] border border-white/10 rounded text-xs text-zinc-300 px-1.5 text-center placeholder:text-zinc-700 focus:border-rose-600/50 focus:outline-none"
+                    className="w-16 h-6 bg-white/[0.06] border border-white/10 rounded text-xs text-zinc-300 px-1.5 text-center placeholder:text-zinc-700 focus:border-[#7380b6]/50 focus:outline-none"
                   />
                   <span className="text-[10px] text-zinc-600">s</span>
                 </div>
@@ -578,7 +578,7 @@ export default function RadioAutomationPage() {
       {/* ══ TOP BAR ══ */}
       <div className="flex items-center justify-between px-5 py-3 border-b border-white/[0.06] bg-[#12122a]">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-rose-600 to-red-600 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#7380b6] to-[#7380b6] flex items-center justify-center">
             <Radio className="w-5 h-5 text-white" />
           </div>
           <div>
@@ -601,7 +601,7 @@ export default function RadioAutomationPage() {
             onClick={() => setAutoMix(!autoMix)}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all border ${
               autoMix
-                ? 'bg-[#7380b6]/20 border-rose-600/30 text-rose-500'
+                ? 'bg-[#7380b6]/20 border-[#7380b6]/30 text-[#7380b6]0'
                 : 'bg-white/[0.04] border-white/[0.06] text-zinc-500'
             }`}
             data-testid="auto-mix-toggle"
@@ -671,7 +671,7 @@ export default function RadioAutomationPage() {
             <div className="h-full bg-[#12122a] rounded-2xl border border-white/[0.06] flex flex-col">
               <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.06]">
                 <div className="flex items-center gap-2">
-                  <ListMusic className="w-4 h-4 text-rose-500" />
+                  <ListMusic className="w-4 h-4 text-[#7380b6]0" />
                   <span className="text-sm font-semibold text-zinc-200">Playlist</span>
                   <span className="text-xs text-zinc-600 ml-1">{playlist.length} tracks</span>
                 </div>
@@ -711,7 +711,7 @@ export default function RadioAutomationPage() {
         <div className="w-[340px] border-l border-white/[0.06] flex flex-col bg-[#0f0f24]" data-testid="track-library-panel">
           <div className="p-3 border-b border-white/[0.06]">
             <div className="flex items-center gap-2 mb-2">
-              <Disc3 className="w-4 h-4 text-rose-500" />
+              <Disc3 className="w-4 h-4 text-[#7380b6]0" />
               <span className="text-sm font-semibold text-zinc-200">Track Library</span>
               <span className="text-xs text-zinc-600 ml-auto">{filteredLibrary.length}</span>
             </div>
@@ -722,7 +722,7 @@ export default function RadioAutomationPage() {
                 placeholder="Search tracks..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-8 bg-white/[0.04] border border-white/[0.06] rounded-lg pl-8 pr-3 text-sm text-zinc-300 placeholder:text-zinc-600 focus:border-rose-600/40 focus:outline-none"
+                className="w-full h-8 bg-white/[0.04] border border-white/[0.06] rounded-lg pl-8 pr-3 text-sm text-zinc-300 placeholder:text-zinc-600 focus:border-[#7380b6]/40 focus:outline-none"
                 data-testid="library-search"
               />
             </div>
@@ -748,7 +748,7 @@ export default function RadioAutomationPage() {
           {/* Upload button */}
           <div className="p-3 border-t border-white/[0.06]">
             <Button
-              className="w-full h-9 bg-[#7380b6]/10 hover:bg-[#7380b6]/20 text-rose-500 border border-rose-600/20 gap-2 text-xs"
+              className="w-full h-9 bg-[#7380b6]/10 hover:bg-[#7380b6]/20 text-[#7380b6]0 border border-[#7380b6]/20 gap-2 text-xs"
               data-testid="upload-tracks-btn"
             >
               <Upload className="w-3.5 h-3.5" />

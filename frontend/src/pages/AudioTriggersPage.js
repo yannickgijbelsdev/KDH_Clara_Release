@@ -111,7 +111,7 @@ const TimeWindowEditor = ({ windows, onChange }) => {
               variant="ghost"
               size="sm"
               onClick={() => removeWindow(index)}
-              className="ml-auto text-red-400 hover:text-red-300"
+              className="ml-auto text-[#7380b6] hover:text-[#7380b6]"
             >
               <Trash2 className="w-4 h-4" />
             </Button>
@@ -123,7 +123,7 @@ const TimeWindowEditor = ({ windows, onChange }) => {
                 onClick={() => toggleDay(index, dayIndex)}
                 className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
                   (window.days || []).includes(dayIndex)
-                    ? 'bg-[#7380b6] text-white'
+                    ? 'bg-[#7380b6] !text-white [&_svg]:!text-white'
                     : 'bg-zinc-200 text-zinc-400 hover:bg-zinc-200'
                 }`}
               >
@@ -166,7 +166,7 @@ const AudioFileUpload = ({ label, filename, onUpload, onDelete, isUploading }) =
             variant="ghost"
             size="sm"
             onClick={onDelete}
-            className="text-red-400 hover:text-red-300 h-7 px-2"
+            className="text-[#7380b6] hover:text-[#7380b6] h-7 px-2"
           >
             <Trash2 className="w-3.5 h-3.5" />
           </Button>
@@ -335,7 +335,7 @@ const TriggerDialog = ({ isOpen, onClose, trigger, onSave, stations = [] }) => {
       <DialogContent className="bg-white border-zinc-200 max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-zinc-900 flex items-center gap-2">
-            <Volume2 className="w-5 h-5 text-rose-500" />
+            <Volume2 className="w-5 h-5 text-[#7380b6]0" />
             {trigger ? 'Edit Audio Trigger' : 'Create Audio Trigger'}
           </DialogTitle>
         </DialogHeader>
@@ -405,7 +405,7 @@ const TriggerDialog = ({ isOpen, onClose, trigger, onSave, stations = [] }) => {
                   isUploading={uploadingIn}
                 />
               </div>
-              <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+              <div className="p-4 bg-[#7380b6]/100/10 border border-[#7380b6]/30 rounded-lg">
                 <AudioFileUpload
                   label="OUT Sound (triggers deactivation) - Optional"
                   filename={trigger?.out_sound_filename}
@@ -451,8 +451,8 @@ const TriggerDialog = ({ isOpen, onClose, trigger, onSave, stations = [] }) => {
                 />
               )}
             </div>
-            <div className="space-y-3 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
-              <Label className="text-red-400 font-medium">When OUT sound / timeout:</Label>
+            <div className="space-y-3 p-4 bg-[#7380b6]/100/10 border border-[#7380b6]/30 rounded-lg">
+              <Label className="text-[#7380b6] font-medium">When OUT sound / timeout:</Label>
               <Select
                 value={formData.out_action_type}
                 onValueChange={(v) => setFormData({ ...formData, out_action_type: v })}
@@ -527,7 +527,7 @@ const TriggerDialog = ({ isOpen, onClose, trigger, onSave, stations = [] }) => {
             <Button
               onClick={handleSave}
               disabled={saving}
-              className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
+              className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               {trigger ? 'Save Changes' : 'Create Trigger'}
@@ -684,7 +684,7 @@ const AudioTriggersPage = () => {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-zinc-900 flex items-center gap-3">
-            <Volume2 className="w-7 h-7 text-rose-500" />
+            <Volume2 className="w-7 h-7 text-[#7380b6]0" />
             Audio Triggers
           </h1>
           <p className="text-zinc-400 mt-1">
@@ -705,7 +705,7 @@ const AudioTriggersPage = () => {
               setEditingTrigger(null);
               setDialogOpen(true);
             }}
-            className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
+            className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white"
           >
             <Plus className="w-4 h-4 mr-2" />
             New Audio Trigger
@@ -780,7 +780,7 @@ const AudioTriggersPage = () => {
                           {hasInSound ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
                           IN: {trigger.in_sound_filename || 'Not uploaded'}
                         </span>
-                        <span className={`flex items-center gap-1 ${hasOutSound ? 'text-red-400' : 'text-zinc-500'}`}>
+                        <span className={`flex items-center gap-1 ${hasOutSound ? 'text-[#7380b6]' : 'text-zinc-500'}`}>
                           {hasOutSound ? <Check className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
                           OUT: {trigger.out_sound_filename || 'Optional'}
                         </span>
@@ -812,7 +812,7 @@ const AudioTriggersPage = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => handleTest(trigger.id, 'deactivate')}
-                      className="border-red-600 text-red-400 hover:bg-red-500/20"
+                      className="border-[#7380b6] text-[#7380b6] hover:bg-[#7380b6]/100/20"
                     >
                       <Pause className="w-3.5 h-3.5 mr-1" />
                       Test OUT
@@ -832,7 +832,7 @@ const AudioTriggersPage = () => {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDeleteClick(trigger.id, trigger.name)}
-                      className="text-red-400 hover:text-red-300"
+                      className="text-[#7380b6] hover:text-[#7380b6]"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -859,7 +859,7 @@ const AudioTriggersPage = () => {
             </AlertDialogCancel>
             <AlertDialogAction 
               onClick={() => handleDelete(deleteDialog.triggerId)}
-              className="bg-red-500 hover:bg-red-600 text-white"
+              className="bg-[#7380b6]/100 hover:bg-[#7380b6] text-white"
             >
               Delete
             </AlertDialogAction>
@@ -905,7 +905,7 @@ const AudioTriggersPage = () => {
                         <td className="px-4 py-2">
                           <span className={`px-2 py-0.5 rounded text-xs ${
                             log.event === 'in_detected' ? 'bg-green-500/20 text-green-400' :
-                            log.event === 'out_detected' ? 'bg-red-500/20 text-red-400' :
+                            log.event === 'out_detected' ? 'bg-[#7380b6]/100/20 text-[#7380b6]' :
                             'bg-yellow-500/20 text-yellow-400'
                           }`}>
                             {log.event}

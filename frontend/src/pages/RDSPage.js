@@ -68,8 +68,8 @@ export default function RDSPage() {
     return (
       <div data-testid="rds-unified-page">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-rose-600/20 rounded-lg">
-            <Radio className="w-6 h-6 text-rose-600" />
+          <div className="p-2 bg-[#7380b6]/20 rounded-lg">
+            <Radio className="w-6 h-6 text-[#7380b6]" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-zinc-900">RDS</h1>
@@ -98,8 +98,8 @@ export default function RDSPage() {
     <div data-testid="rds-unified-page">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-rose-600/20 rounded-lg">
-            <Radio className="w-6 h-6 text-rose-600" />
+          <div className="p-2 bg-[#7380b6]/20 rounded-lg">
+            <Radio className="w-6 h-6 text-[#7380b6]" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-zinc-900">RDS</h1>
@@ -118,7 +118,7 @@ export default function RDSPage() {
               onClick={() => handleTabChange(tab.id)}
               className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
                 isActive
-                  ? 'border-rose-600 text-rose-700'
+                  ? 'border-[#7380b6] text-[#5f6ca3]'
                   : 'border-transparent text-zinc-500 hover:text-zinc-700 hover:border-zinc-300'
               }`}
               data-testid={`rds-tab-${tab.id}`}

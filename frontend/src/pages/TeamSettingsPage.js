@@ -425,8 +425,8 @@ const TeamSettingsPage = () => {
   if (adminCheckDone && !isMainSiteAdmin) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center" data-testid="no-access-message">
-        <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-6">
-          <ShieldAlert className="w-8 h-8 text-red-400" />
+        <div className="w-16 h-16 rounded-full bg-[#7380b6]/100/10 flex items-center justify-center mb-6">
+          <ShieldAlert className="w-8 h-8 text-[#7380b6]" />
         </div>
         <h2 className="text-xl font-bold text-zinc-900 mb-2">No access</h2>
         <p className="text-zinc-400 max-w-md">
@@ -449,8 +449,8 @@ const TeamSettingsPage = () => {
       <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-8">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-rose-600/20 rounded-lg">
-              <Building2 className="w-5 h-5 text-rose-600" />
+            <div className="p-2 bg-[#7380b6]/20 rounded-lg">
+              <Building2 className="w-5 h-5 text-[#7380b6]" />
             </div>
             <h2 className="text-lg font-semibold text-zinc-900">Site Information</h2>
           </div>
@@ -704,7 +704,7 @@ const TeamSettingsPage = () => {
                               setSelectedUser(member);
                               setDeleteDialogOpen(true);
                             }}
-                            className="text-rose-600 focus:text-rose-600"
+                            className="text-[#7380b6] focus:text-[#7380b6]"
                           >
                             <Trash2 className="w-4 h-4 mr-2" />
                             Remove User
@@ -799,7 +799,7 @@ const TeamSettingsPage = () => {
                 <ChevronLeft className="w-4 h-4" /> Cancel
               </Button>
               <Button type="submit" data-testid="submit-invite-btn" disabled={inviting}
-                className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white px-6 rounded-full">
+                className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white px-6 rounded-full">
                 {inviting ? <><Loader2 className="w-4 h-4 animate-spin" /> Inviting...</> : <><Zap className="w-4 h-4" /> Send Invite</>}
               </Button>
             </div>
@@ -836,7 +836,7 @@ const TeamSettingsPage = () => {
                     className="h-12 bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400 rounded-xl"
                   />
                   <Button onClick={() => searchAvailableUsers(userSearchQuery)} disabled={searchingUsers}
-                    className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white rounded-full h-12">
+                    className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white rounded-full h-12">
                     {searchingUsers ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Search'}
                   </Button>
                 </div>
@@ -908,7 +908,7 @@ const TeamSettingsPage = () => {
               <ChevronLeft className="w-4 h-4" /> Cancel
             </Button>
             <Button onClick={handleAddExistingUser} disabled={!selectedExistingUser || addingExistingUser}
-              className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white px-6 rounded-full">
+              className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white px-6 rounded-full">
               {addingExistingUser ? <><Loader2 className="w-4 h-4 animate-spin" /> Adding...</> : <><Zap className="w-4 h-4" /> Add User</>}
             </Button>
           </div>
@@ -932,7 +932,7 @@ const TeamSettingsPage = () => {
               <Label className="text-zinc-700 font-medium">Temporary Password</Label>
               <div className="flex items-center gap-2">
                 <Input value={tempPassword} readOnly className="h-12 bg-zinc-50 border-zinc-200 text-zinc-900 font-mono rounded-xl" />
-                <Button onClick={() => copyToClipboard(tempPassword)} className="h-12 bg-[#7380b6] hover:bg-[#5f6ca3] text-white rounded-full">
+                <Button onClick={() => copyToClipboard(tempPassword)} className="h-12 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white rounded-full">
                   {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                 </Button>
               </div>
@@ -942,7 +942,7 @@ const TeamSettingsPage = () => {
 
           <div className="flex items-center justify-end px-8 py-4 border-t border-zinc-100 flex-shrink-0">
             <Button onClick={() => { setPasswordDialogOpen(false); setTempPassword(''); }}
-              className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white px-6 rounded-full">Done</Button>
+              className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white px-6 rounded-full">Done</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -962,7 +962,7 @@ const TeamSettingsPage = () => {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleRemoveUser}
-              className="bg-red-500 hover:bg-red-600 text-white rounded-full"
+              className="bg-[#7380b6]/100 hover:bg-[#7380b6] text-white rounded-full"
             >
               Remove
             </AlertDialogAction>
@@ -1018,7 +1018,7 @@ const TeamSettingsPage = () => {
                 <ChevronLeft className="w-4 h-4" /> Cancel
               </Button>
               <Button type="submit" data-testid="save-user-btn" disabled={savingUser}
-                className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white px-6 rounded-full">
+                className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white px-6 rounded-full">
                 {savingUser ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : <><Zap className="w-4 h-4" /> Save Changes</>}
               </Button>
             </div>
@@ -1062,7 +1062,7 @@ const TeamSettingsPage = () => {
                 <ChevronLeft className="w-4 h-4" /> Cancel
               </Button>
               <Button type="submit" data-testid="confirm-reset-password-btn" disabled={resettingPassword}
-                className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white px-6 rounded-full">
+                className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white px-6 rounded-full">
                 {resettingPassword ? <><Loader2 className="w-4 h-4 animate-spin" /> Resetting...</> : <><Zap className="w-4 h-4" /> Reset Password</>}
               </Button>
             </div>

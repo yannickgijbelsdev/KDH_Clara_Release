@@ -83,7 +83,7 @@ const TroubleshootButton = ({ station }) => {
         variant="outline"
         onClick={run}
         data-testid={`troubleshoot-btn-${station}`}
-        className="border-red-300 text-red-600 hover:bg-red-50 h-7 px-2 text-xs"
+        className="border-[#7380b6]/40 text-[#7380b6] hover:bg-[#7380b6]/10 h-7 px-2 text-xs"
       >
         <AlertTriangle className="w-3.5 h-3.5 mr-1" /> Troubleshoot
       </Button>
@@ -113,12 +113,12 @@ const TroubleshootButton = ({ station }) => {
                 </div>
               )}
               {result?.error && (
-                <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
+                <div className="rounded-lg bg-[#7380b6]/10 border border-[#7380b6]/30 px-3 py-2 text-sm text-[#5f6ca3]">
                   {result.error}
                 </div>
               )}
               {result?.summary && (
-                <div className={`rounded-lg px-4 py-3 text-sm ${result.ok ? 'bg-emerald-50 border border-emerald-200 text-emerald-800' : 'bg-red-50 border border-red-200 text-red-800'}`}>
+                <div className={`rounded-lg px-4 py-3 text-sm ${result.ok ? 'bg-emerald-50 border border-emerald-200 text-emerald-800' : 'bg-[#7380b6]/10 border border-[#7380b6]/30 text-[#4a5583]'}`}>
                   <div className="font-semibold mb-0.5">{result.ok ? 'Alle checks OK' : 'Probleem gevonden'}</div>
                   <div className="text-xs">{result.summary}</div>
                 </div>
@@ -127,7 +127,7 @@ const TroubleshootButton = ({ station }) => {
                 <ul className="space-y-2">
                   {result.checks.map((c, i) => {
                     const icon = c.ok === true ? <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5" />
-                      : c.ok === false ? <AlertCircle className="w-4 h-4 text-red-500 mt-0.5" />
+                      : c.ok === false ? <AlertCircle className="w-4 h-4 text-[#7380b6]0 mt-0.5" />
                       : <Clock className="w-4 h-4 text-zinc-400 mt-0.5" />;
                     return (
                       <li key={i} className="flex items-start gap-3 rounded-lg border border-zinc-200 px-3 py-2 bg-zinc-50">
@@ -154,7 +154,7 @@ const TroubleshootButton = ({ station }) => {
                     {result.recent_logs.map((l, i) => (
                       <div key={i}>
                         <span className="text-zinc-400">{l.timestamp}</span>{' '}
-                        <span className={l.stream_online ? 'text-emerald-400' : 'text-red-400'}>{l.status}</span>{' '}
+                        <span className={l.stream_online ? 'text-emerald-400' : 'text-[#7380b6]'}>{l.status}</span>{' '}
                         listeners={l.current_listeners} song="{(l.song_title || '').slice(0, 40)}"
                       </div>
                     ))}
@@ -243,7 +243,7 @@ const StationCard = memo(({ station, data, stationName, staleCountdown, showEndC
           ) : (
             <>
               <span
-                className="flex items-center gap-1 text-red-400 text-sm"
+                className="flex items-center gap-1 text-[#7380b6] text-sm"
                 title="The RDS scheduler has not written an update recently"
                 data-testid={`rds-status-offline-${station}`}
               >
@@ -675,7 +675,7 @@ const RDSMonitorPage = () => {
           </div>
         )}
         {fetchErrors > 3 && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#7380b6]/100/10 border border-[#7380b6]/30 text-[#7380b6] text-sm">
             <AlertTriangle className="w-4 h-4 flex-shrink-0" />
             <span>Connection issues — {fetchErrors} failed attempts</span>
           </div>

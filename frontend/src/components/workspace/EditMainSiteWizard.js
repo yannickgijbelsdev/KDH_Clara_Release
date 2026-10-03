@@ -32,7 +32,7 @@ const STREAM_TYPES = [
 ];
 
 const ROLE_OPTIONS = [
-  { value: 'admin', label: 'Admin', icon: Crown, color: 'text-rose-600 bg-rose-50', desc: 'Full access to all features' },
+  { value: 'admin', label: 'Admin', icon: Crown, color: 'text-[#7380b6] bg-[#7380b6]/10', desc: 'Full access to all features' },
   { value: 'editor', label: 'Editor', icon: Pencil, color: 'text-blue-500 bg-blue-50', desc: 'Can edit content and shows' },
   { value: 'presenter', label: 'Presenter', icon: Mic, color: 'text-violet-500 bg-violet-50', desc: 'Can manage their own shows' },
   { value: 'viewer', label: 'Viewer', icon: Eye, color: 'text-zinc-500 bg-zinc-100', desc: 'Read-only access' },
@@ -502,8 +502,8 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
                     <Upload className="w-4 h-4" /> Upload logo
                     <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleLogoUpload(e.target.files[0])} />
                   </label>
-                  {logoUrl && <button onClick={() => setLogoUrl('')} className="text-xs text-red-500 hover:underline self-start">Remove</button>}
-                  {uploadError && <p className="text-xs text-red-500">{uploadError}</p>}
+                  {logoUrl && <button onClick={() => setLogoUrl('')} className="text-xs text-[#7380b6]0 hover:underline self-start">Remove</button>}
+                  {uploadError && <p className="text-xs text-[#7380b6]0">{uploadError}</p>}
                 </div>
               </div>
 
@@ -523,7 +523,7 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
               {/* 2FA Enforcement Toggle */}
               <div className="flex items-center justify-between p-3 bg-zinc-50 border border-zinc-200 rounded-xl">
                 <div className="flex items-center gap-3">
-                  <Shield className="w-5 h-5 text-rose-600" />
+                  <Shield className="w-5 h-5 text-[#7380b6]" />
                   <div>
                     <p className="text-sm font-medium text-zinc-900">Require 2FA</p>
                     <p className="text-xs text-zinc-500">All users of this site must enable two-factor authentication</p>
@@ -534,7 +534,7 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
                   role="switch"
                   aria-checked={require2fa}
                   onClick={() => setRequire2fa(!require2fa)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${require2fa ? 'bg-rose-600' : 'bg-zinc-300'}`}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${require2fa ? 'bg-[#7380b6]' : 'bg-zinc-300'}`}
                   data-testid="require-2fa-toggle"
                 >
                   <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${require2fa ? 'translate-x-6' : 'translate-x-1'}`} />
@@ -578,7 +578,7 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
                     value={environmentId}
                     onChange={(e) => setEnvironmentId(e.target.value)}
                     data-testid="environment-select"
-                    className="w-full px-3 py-2 rounded-lg border border-zinc-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-rose-600/40"
+                    className="w-full px-3 py-2 rounded-lg border border-zinc-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#7380b6]/40"
                   >
                     {environments.map((e) => (
                       <option key={e.id} value={e.id}>
@@ -627,16 +627,16 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
                         <button onClick={() => handleTestRdsWithClara(idx)} disabled={rdsTestLoading === idx || !station.stream_url} className="w-7 h-7 rounded-lg flex items-center justify-center text-violet-400 hover:text-violet-600 hover:bg-violet-50 transition-colors disabled:opacity-30" data-testid={`test-station-${idx}`} title="Test with Clara">
                           {rdsTestLoading === idx ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
                         </button>
-                        <button onClick={() => removeStation(idx)} className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:text-red-500 hover:bg-red-50 transition-colors" data-testid={`edit-remove-station-${idx}`}>
+                        <button onClick={() => removeStation(idx)} className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:text-[#7380b6]0 hover:bg-[#7380b6]/10 transition-colors" data-testid={`edit-remove-station-${idx}`}>
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
 
                     {rdsTestResult && rdsTestResult.idx === idx && rdsTestLoading === null && (
-                      <div className={`p-2.5 rounded-lg border text-xs leading-relaxed ${rdsTestResult.status === 'ok' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'}`} data-testid={`rds-test-result-${idx}`}>
+                      <div className={`p-2.5 rounded-lg border text-xs leading-relaxed ${rdsTestResult.status === 'ok' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-[#7380b6]/10 border-[#7380b6]/30 text-[#4a5583]'}`} data-testid={`rds-test-result-${idx}`}>
                         <div className="flex items-start gap-1.5">
-                          {rdsTestResult.status === 'ok' ? <Check className="w-3.5 h-3.5 mt-0.5 text-emerald-600 flex-shrink-0" /> : <X className="w-3.5 h-3.5 mt-0.5 text-red-500 flex-shrink-0" />}
+                          {rdsTestResult.status === 'ok' ? <Check className="w-3.5 h-3.5 mt-0.5 text-emerald-600 flex-shrink-0" /> : <X className="w-3.5 h-3.5 mt-0.5 text-[#7380b6]0 flex-shrink-0" />}
                           <p>{rdsTestResult.diagnosis}</p>
                         </div>
                       </div>
@@ -755,9 +755,9 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
                     </Button>
                   </div>
                   {wpTestResult && wpTestLoading === null && (
-                    <div className={`mt-2 p-2.5 rounded-lg border text-xs leading-relaxed ${wpTestResult.status === 'ok' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'}`} data-testid="wp-form-test-result">
+                    <div className={`mt-2 p-2.5 rounded-lg border text-xs leading-relaxed ${wpTestResult.status === 'ok' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-[#7380b6]/10 border-[#7380b6]/30 text-[#4a5583]'}`} data-testid="wp-form-test-result">
                       <div className="flex items-start gap-1.5">
-                        {wpTestResult.status === 'ok' ? <Check className="w-3.5 h-3.5 mt-0.5 text-emerald-600 flex-shrink-0" /> : <X className="w-3.5 h-3.5 mt-0.5 text-red-500 flex-shrink-0" />}
+                        {wpTestResult.status === 'ok' ? <Check className="w-3.5 h-3.5 mt-0.5 text-emerald-600 flex-shrink-0" /> : <X className="w-3.5 h-3.5 mt-0.5 text-[#7380b6]0 flex-shrink-0" />}
                         <p>{wpTestResult.diagnosis}</p>
                       </div>
                     </div>
@@ -784,15 +784,15 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
                               <button onClick={() => startEditWp(idx)} className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors" data-testid={`edit-wp-${idx}`}>
                                 <Pencil className="w-3.5 h-3.5" />
                               </button>
-                              <button onClick={() => handleDeleteWpSite(ws.id)} className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:text-red-500 hover:bg-red-50 transition-colors" data-testid={`delete-wp-${idx}`}>
+                              <button onClick={() => handleDeleteWpSite(ws.id)} className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:text-[#7380b6]0 hover:bg-[#7380b6]/10 transition-colors" data-testid={`delete-wp-${idx}`}>
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             </div>
                           </div>
                           {wpTestResult && wpTestLoading === null && wpTestResult.status && (
-                            <div className={`mt-1 p-2.5 rounded-lg border text-xs leading-relaxed ${wpTestResult.status === 'ok' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'}`} data-testid={`wp-test-result-${idx}`}>
+                            <div className={`mt-1 p-2.5 rounded-lg border text-xs leading-relaxed ${wpTestResult.status === 'ok' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-[#7380b6]/10 border-[#7380b6]/30 text-[#4a5583]'}`} data-testid={`wp-test-result-${idx}`}>
                               <div className="flex items-start gap-1.5">
-                                {wpTestResult.status === 'ok' ? <Check className="w-3.5 h-3.5 mt-0.5 text-emerald-600 flex-shrink-0" /> : <X className="w-3.5 h-3.5 mt-0.5 text-red-500 flex-shrink-0" />}
+                                {wpTestResult.status === 'ok' ? <Check className="w-3.5 h-3.5 mt-0.5 text-emerald-600 flex-shrink-0" /> : <X className="w-3.5 h-3.5 mt-0.5 text-[#7380b6]0 flex-shrink-0" />}
                                 <p>{wpTestResult.diagnosis}</p>
                               </div>
                             </div>
@@ -895,10 +895,10 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
                   {packages.filter(p => p.is_active).map(pkg => (
                     <button key={pkg.id} onClick={() => setSelectedPackageId(pkg.id)}
                       className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${
-                        selectedPackageId === pkg.id ? 'border-rose-300 bg-rose-50 ring-1 ring-rose-300' : 'border-zinc-200 bg-zinc-50 hover:border-zinc-300'
+                        selectedPackageId === pkg.id ? 'border-[#7380b6]/40 bg-[#7380b6]/10 ring-1 ring-[#7380b6]/50' : 'border-zinc-200 bg-zinc-50 hover:border-zinc-300'
                       }`} data-testid={`license-pkg-${pkg.slug || pkg.id}`}>
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${selectedPackageId === pkg.id ? 'bg-rose-100' : 'bg-zinc-100'}`}>
-                        <CreditCard className={`w-4 h-4 ${selectedPackageId === pkg.id ? 'text-rose-600' : 'text-zinc-400'}`} />
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${selectedPackageId === pkg.id ? 'bg-[#7380b6]/15' : 'bg-zinc-100'}`}>
+                        <CreditCard className={`w-4 h-4 ${selectedPackageId === pkg.id ? 'text-[#7380b6]' : 'text-zinc-400'}`} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium text-zinc-800">{pkg.name}</div>
@@ -957,7 +957,7 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
                     const roleOpt = ROLE_OPTIONS.find(r => r.value === u.role) || ROLE_OPTIONS[3];
                     return (
                       <div key={u.user_id} className="flex items-center gap-3 p-2.5 rounded-xl bg-zinc-50 border border-zinc-200 group">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-500 to-amber-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7380b6] to-amber-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                           {u.user_name?.charAt(0)?.toUpperCase() || '?'}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -968,8 +968,8 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
                           className="h-7 text-xs rounded-lg border border-zinc-200 bg-white text-zinc-700 px-2" data-testid={`role-select-${u.user_id}`}>
                           {ROLE_OPTIONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                         </select>
-                        <button onClick={() => handleRemoveUser(u.user_id)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100" data-testid={`remove-user-${u.user_id}`}>
-                          <Trash2 className="w-3.5 h-3.5 text-zinc-400 hover:text-red-500" />
+                        <button onClick={() => handleRemoveUser(u.user_id)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[#7380b6]/10 transition-colors opacity-0 group-hover:opacity-100" data-testid={`remove-user-${u.user_id}`}>
+                          <Trash2 className="w-3.5 h-3.5 text-zinc-400 hover:text-[#7380b6]0" />
                         </button>
                       </div>
                     );

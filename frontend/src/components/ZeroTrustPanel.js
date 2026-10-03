@@ -27,7 +27,7 @@ import {
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const SEVERITY_STYLE = {
-  high:   { ring: 'ring-red-200',    bg: 'bg-red-50/70',    text: 'text-red-600',    label: 'High'   },
+  high:   { ring: 'ring-red-200',    bg: 'bg-[#7380b6]/10/70',    text: 'text-[#7380b6]',    label: 'High'   },
   medium: { ring: 'ring-amber-200',  bg: 'bg-amber-50/70',  text: 'text-amber-600',  label: 'Medium' },
   low:    { ring: 'ring-zinc-200',   bg: 'bg-zinc-50/70',   text: 'text-zinc-600',   label: 'Low'    },
 };
@@ -141,21 +141,21 @@ export default function ZeroTrustPanel({ token }) {
           icon={overview?.encryption_enabled ? ShieldCheck : ShieldAlert}
           label="Veld-encryptie"
           value={overview?.encryption_enabled ? 'Actief' : 'Inactief'}
-          accent={overview?.encryption_enabled ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}
+          accent={overview?.encryption_enabled ? 'bg-emerald-50 text-emerald-600' : 'bg-[#7380b6]/10 text-[#7380b6]'}
         />
         <StatTile
           testid="zt-tile-anomalies"
           icon={AlertTriangle}
           label="Open anomalieën"
           value={`${overview?.open_anomalies ?? 0}${overview?.high_severity_anomalies ? ` (${overview.high_severity_anomalies} hoog)` : ''}`}
-          accent={overview?.high_severity_anomalies ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'}
+          accent={overview?.high_severity_anomalies ? 'bg-[#7380b6]/10 text-[#7380b6]' : 'bg-amber-50 text-amber-600'}
         />
         <StatTile
           testid="zt-tile-lockouts"
           icon={Lock}
           label="Actieve lockouts"
           value={overview?.active_lockouts ?? 0}
-          accent="bg-rose-50 text-rose-700"
+          accent="bg-[#7380b6]/10 text-[#5f6ca3]"
         />
         <StatTile
           testid="zt-tile-devices"
@@ -226,7 +226,7 @@ export default function ZeroTrustPanel({ token }) {
         <CardContent className="p-5">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-zinc-800 flex items-center gap-2">
-              <Lock className="w-4 h-4 text-rose-600" /> Brute-force lockouts
+              <Lock className="w-4 h-4 text-[#7380b6]" /> Brute-force lockouts
             </h3>
             <span className="text-xs text-zinc-400">{lockouts.length} totaal</span>
           </div>

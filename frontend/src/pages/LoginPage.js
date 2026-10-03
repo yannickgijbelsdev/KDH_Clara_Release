@@ -230,7 +230,7 @@ const LoginPage = () => {
                     type="submit"
                     data-testid="forgot-submit-btn"
                     disabled={forgotLoading}
-                className="w-full h-11 bg-[#7380b6] hover:bg-[#5f6ca3] text-white font-medium rounded-full transition-colors"
+                className="w-full h-11 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white font-medium rounded-full transition-colors"
                   >
                     {forgotLoading ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Sending...</> : 'Send temporary password'}
                   </Button>
@@ -290,7 +290,7 @@ const LoginPage = () => {
                 type="submit"
                 data-testid="login-submit-btn"
                 disabled={isLoading}
-                className="w-full h-11 bg-[#7380b6] hover:bg-[#5f6ca3] text-white font-medium rounded-full transition-colors"
+                className="w-full h-11 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white font-medium rounded-full transition-colors"
               >
                 {isLoading ? 'Signing in...' : 'Sign in'}
               </Button>
@@ -361,7 +361,7 @@ const LoginPage = () => {
                 type="submit"
                 data-testid="login-2fa-submit-btn"
                 disabled={isLoading || (!useBackupCode && totpCode.length !== 6)}
-                className="w-full h-11 bg-[#7380b6] hover:bg-[#5f6ca3] text-white font-medium rounded-full transition-colors"
+                className="w-full h-11 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white font-medium rounded-full transition-colors"
               >
                 {isLoading ? 'Verifying...' : 'Verify'}
               </Button>

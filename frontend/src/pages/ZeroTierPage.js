@@ -414,7 +414,7 @@ const ZeroTierPage = () => {
           <Button
             onClick={handleSaveConfig}
             disabled={savingConfig}
-            className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white shadow-lg shadow-[#7380b6]/20"
+            className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white shadow-lg shadow-[#7380b6]/20"
             data-testid="zt-save-config"
           >
             <Save className="w-4 h-4 mr-1" /> {savingConfig ? 'Saving...' : 'Save Configuration'}
@@ -465,11 +465,11 @@ const ZeroTierPage = () => {
                 </div>
               </div>
               <div className="relative bg-white border border-zinc-200 rounded-xl p-5 overflow-hidden">
-                <div className="absolute inset-y-0 left-0 w-1 bg-rose-500" />
-                <div className="flex items-center gap-2 text-rose-500 text-xs mb-3 font-medium uppercase tracking-wide">
+                <div className="absolute inset-y-0 left-0 w-1 bg-[#7380b6]/100" />
+                <div className="flex items-center gap-2 text-[#7380b6]0 text-xs mb-3 font-medium uppercase tracking-wide">
                   <WifiOff className="w-3.5 h-3.5" /> Offline
                 </div>
-                <p className="text-rose-500 font-semibold text-3xl tabular-nums leading-none">{members?.offline || 0}</p>
+                <p className="text-[#7380b6]0 font-semibold text-3xl tabular-nums leading-none">{members?.offline || 0}</p>
               </div>
             </div>
           )}
@@ -632,7 +632,7 @@ const ZeroTierPage = () => {
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="h-7 px-2.5 text-xs text-emerald-600 hover:text-rose-500 hover:bg-rose-50 border border-emerald-200 hover:border-rose-200 bg-emerald-50/50"
+                            className="h-7 px-2.5 text-xs text-emerald-600 hover:text-[#7380b6]0 hover:bg-[#7380b6]/10 border border-emerald-200 hover:border-[#7380b6]/30 bg-emerald-50/50"
                             onClick={() => handleAuthorize(member.id, false)}
                             data-testid={`zt-deauth-inline-${member.id}`}
                           >
@@ -641,7 +641,7 @@ const ZeroTierPage = () => {
                         ) : (
                           <Button
                             size="sm"
-                            className="h-7 px-2.5 text-xs bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
+                            className="h-7 px-2.5 text-xs bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white"
                             onClick={() => handleAuthorize(member.id, true)}
                             data-testid={`zt-auth-inline-${member.id}`}
                           >
@@ -754,7 +754,7 @@ const ZeroTierPage = () => {
                           ) : (
                             <Button
                               size="sm"
-                              className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white shadow-lg shadow-[#7380b6]/20"
+                              className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white shadow-lg shadow-[#7380b6]/20"
                               onClick={(e) => { e.stopPropagation(); handleAuthorize(selectedMember.id, true); }}
                               data-testid="zt-auth-btn"
                             >
@@ -764,7 +764,7 @@ const ZeroTierPage = () => {
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                            className="text-[#7380b6] hover:bg-[#7380b6]/100/10 hover:text-[#7380b6]"
                             onClick={(e) => { e.stopPropagation(); setDeleteConfirm(member); }}
                             data-testid={`zt-delete-btn-${member.id}`}
                           >
@@ -833,7 +833,7 @@ const ZeroTierPage = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-red-400 hover:bg-red-500/10"
+                  className="text-[#7380b6] hover:bg-[#7380b6]/100/10"
                   onClick={async () => {
                     setAlertRecipients([]);
                     await axios.put(`${API}/zerotier/${mainSite.id}/member/${alertDialogMember.id}/alert`, { enabled: false, recipients: [] });
@@ -865,7 +865,7 @@ const ZeroTierPage = () => {
         <AlertDialogContent className="bg-white border-zinc-200 text-zinc-900">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
-              <Trash2 className="w-5 h-5 text-red-400" />
+              <Trash2 className="w-5 h-5 text-[#7380b6]" />
               Delete Member
             </AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
@@ -875,7 +875,7 @@ const ZeroTierPage = () => {
           <AlertDialogFooter>
             <AlertDialogCancel className="bg-zinc-50 border-zinc-200 text-zinc-600 hover:bg-zinc-100">Cancel</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
               onClick={() => handleDeleteMember(deleteConfirm)}
               data-testid="zt-delete-confirm-btn"
             >

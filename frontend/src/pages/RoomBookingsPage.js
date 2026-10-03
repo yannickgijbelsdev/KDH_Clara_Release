@@ -233,7 +233,7 @@ export default function RoomBookingsPage() {
         <div>
           <div className="flex justify-between mb-4">
             <p className="text-sm text-zinc-500">Book a room. Radio shows using the same room and time block the booking automatically.</p>
-            <Button onClick={openNewBooking} className="bg-rose-500 text-white hover:bg-rose-600" data-testid="new-booking-btn">
+            <Button onClick={openNewBooking} className="bg-[#7380b6]/100 text-white hover:bg-[#7380b6]" data-testid="new-booking-btn">
               <Plus className="w-4 h-4 mr-1" /> New booking
             </Button>
           </div>
@@ -280,7 +280,7 @@ export default function RoomBookingsPage() {
                           <Pencil className="w-3.5 h-3.5" />
                         </Button>
                         <Button size="sm" variant="ghost" onClick={() => removeBooking(b)} data-testid={`delete-booking-${b.id}`}>
-                          <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                          <Trash2 className="w-3.5 h-3.5 text-[#7380b6]0" />
                         </Button>
                       </div>
                     )}
@@ -299,7 +299,7 @@ export default function RoomBookingsPage() {
               Rooms are shared with the radio schedule (Studios). {isAdmin ? '' : 'Only admins can create or edit rooms.'}
             </p>
             {isAdmin && (
-              <Button onClick={openNewRoom} className="bg-[#7380b6] text-white hover:bg-[#5f6ca3]" data-testid="new-room-btn">
+              <Button onClick={openNewRoom} className="bg-[#7380b6] !text-white [&_svg]:!text-white hover:bg-[#5f6ca3]" data-testid="new-room-btn">
                 <Plus className="w-4 h-4 mr-1" /> New room
               </Button>
             )}
@@ -322,7 +322,7 @@ export default function RoomBookingsPage() {
                         <Pencil className="w-3 h-3 mr-1" /> Edit
                       </Button>
                       <Button size="sm" variant="outline" onClick={() => removeRoom(r)} data-testid={`delete-room-${r.id}`}>
-                        <Trash2 className="w-3 h-3 mr-1 text-red-500" /> Delete
+                        <Trash2 className="w-3 h-3 mr-1 text-[#7380b6]0" /> Delete
                       </Button>
                     </div>
                   )}
@@ -454,7 +454,7 @@ export default function RoomBookingsPage() {
                   type="checkbox"
                   checked={!!bookingDraft.blocks_room}
                   onChange={(e) => setBookingDraft({ ...bookingDraft, blocks_room: e.target.checked })}
-                  className="mt-0.5 accent-rose-500"
+                  className="mt-0.5 accent-[#7380b6]"
                   data-testid="booking-blocks-checkbox"
                 />
                 <div className="text-xs">
@@ -466,7 +466,7 @@ export default function RoomBookingsPage() {
           )}
           <DialogFooter>
             <Button variant="ghost" onClick={() => setBookingDraft(null)}><X className="w-4 h-4 mr-1" /> Cancel</Button>
-            <Button onClick={saveBooking} disabled={saving} className="bg-rose-500 text-white hover:bg-rose-600" data-testid="booking-save-btn">
+            <Button onClick={saveBooking} disabled={saving} className="bg-[#7380b6]/100 text-white hover:bg-[#7380b6]" data-testid="booking-save-btn">
               {saving ? 'Saving…' : 'Save'}
             </Button>
           </DialogFooter>
@@ -503,7 +503,7 @@ export default function RoomBookingsPage() {
           )}
           <DialogFooter>
             <Button variant="ghost" onClick={() => setRoomDraft(null)}><X className="w-4 h-4 mr-1" /> Cancel</Button>
-            <Button onClick={saveRoom} disabled={saving} className="bg-[#7380b6] text-white hover:bg-[#5f6ca3]" data-testid="room-save-btn">
+            <Button onClick={saveRoom} disabled={saving} className="bg-[#7380b6] !text-white [&_svg]:!text-white hover:bg-[#5f6ca3]" data-testid="room-save-btn">
               {saving ? 'Saving…' : 'Save'}
             </Button>
           </DialogFooter>

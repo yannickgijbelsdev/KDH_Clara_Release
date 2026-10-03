@@ -138,7 +138,7 @@ const SortableRundownItem = ({ item, index, timestamp, onEdit, onDelete, canEdit
       {/* Timestamp */}
       {timestamp && (
         <span 
-          className="font-mono text-sm text-rose-500 w-14 text-center mt-1 shrink-0"
+          className="font-mono text-sm text-[#7380b6]0 w-14 text-center mt-1 shrink-0"
           data-testid={`timestamp-${index}`}
           title="Scheduled start time"
         >
@@ -211,7 +211,7 @@ const SortableRundownItem = ({ item, index, timestamp, onEdit, onDelete, canEdit
             size="icon"
             data-testid={`delete-item-${index}`}
             onClick={onDelete}
-            className="h-8 w-8 text-zinc-400 hover:text-rose-500 hover:bg-rose-500/10"
+            className="h-8 w-8 text-zinc-400 hover:text-[#7380b6]0 hover:bg-[#7380b6]/100/10"
           >
             <Trash2 className="w-4 h-4" />
           </Button>

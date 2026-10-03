@@ -348,7 +348,7 @@ export default function ClaraCustomPage() {
                     </button>
                     <button
                       onClick={() => setDeleteTarget(api)}
-                      className="p-2 rounded-lg hover:bg-red-50 text-zinc-400 hover:text-red-600 transition-colors"
+                      className="p-2 rounded-lg hover:bg-[#7380b6]/10 text-zinc-400 hover:text-[#7380b6] transition-colors"
                       data-testid={`delete-${api.id}`}
                       title="Delete"
                     >
@@ -498,7 +498,7 @@ export default function ClaraCustomPage() {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmDelete} disabled={deleting} className="bg-red-600 hover:bg-red-700 text-white">
+              <AlertDialogAction onClick={confirmDelete} disabled={deleting} className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white">
                 {deleting ? <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Removing...</> : 'Yes, remove'}
               </AlertDialogAction>
             </AlertDialogFooter>

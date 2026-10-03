@@ -321,7 +321,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                               autoFocus
                             />
                             <Button type="button" onClick={handleCreateNewTitle} disabled={creatingTitle}
-                              className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white rounded-full">
+                              className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white rounded-full">
                               {creatingTitle ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Add'}
                             </Button>
                           </div>
@@ -342,7 +342,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                             {isAdmin && (
                               <>
                                 <div className="border-t border-zinc-200 my-1" />
-                                <SelectItem value="add-new" className="text-rose-600 focus:text-rose-700 focus:bg-rose-50">
+                                <SelectItem value="add-new" className="text-[#7380b6] focus:text-[#5f6ca3] focus:bg-[#7380b6]/10">
                                   <span className="flex items-center gap-2"><Plus className="w-4 h-4" /> Add new show title...</span>
                                 </SelectItem>
                               </>
@@ -387,7 +387,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                               type="checkbox"
                               checked={formData.blocks_room !== false}
                               onChange={(e) => setFormData({ ...formData, blocks_room: e.target.checked })}
-                              className="mt-1 accent-rose-600"
+                              className="mt-1 accent-[#7380b6]"
                               data-testid="show-blocks-room-checkbox"
                             />
                             <div className="text-xs">
@@ -645,7 +645,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
           </Button>
           <Button onClick={handleNext} disabled={!canNext() || loading}
             data-testid="show-wizard-next-btn"
-            className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] text-white px-6 rounded-full">
+            className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white px-6 rounded-full">
             {loading ? (
               <><Loader2 className="w-4 h-4 animate-spin" /> Creating...</>
             ) : wizardStep === 2 ? (

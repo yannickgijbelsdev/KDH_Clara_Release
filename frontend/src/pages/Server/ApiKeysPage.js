@@ -70,18 +70,18 @@ export default function ApiKeysPage() {
           <h1 className="text-2xl font-bold text-zinc-900">API Keys</h1>
           <p className="text-sm text-zinc-400 mt-1">Manage API keys for external sync agents</p>
         </div>
-        <Button onClick={() => { setShowCreate(true); setNewKey(null); }} className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white" data-testid="create-key-btn">
+        <Button onClick={() => { setShowCreate(true); setNewKey(null); }} className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white" data-testid="create-key-btn">
           <Plus className="w-4 h-4 mr-2" />New API Key
         </Button>
       </div>
 
       {/* New key reveal */}
       {newKey && (
-        <div className="bg-[#7380b6]/5 border border-rose-600/20 rounded-full p-5" data-testid="new-key-reveal">
+        <div className="bg-[#7380b6]/5 border border-[#7380b6]/20 rounded-full p-5" data-testid="new-key-reveal">
           <div className="flex items-start gap-3">
-            <Shield className="w-5 h-5 text-rose-500 flex-shrink-0 mt-0.5" />
+            <Shield className="w-5 h-5 text-[#7380b6]0 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-rose-300">New API Key Created</p>
+              <p className="text-sm font-medium text-[#7380b6]">New API Key Created</p>
               <p className="text-xs text-zinc-400 mt-1">Copy this key now. It will not be shown again.</p>
               <div className="mt-3 flex items-center gap-2">
                 <div className="flex-1 bg-zinc-900 border border-zinc-300 rounded-lg px-3 py-2 font-mono text-sm text-white flex items-center gap-2">
@@ -121,7 +121,7 @@ export default function ApiKeysPage() {
               data-testid="key-name-input"
             />
           </div>
-          <Button type="submit" disabled={creating} className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white" data-testid="save-key-btn">
+          <Button type="submit" disabled={creating} className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white" data-testid="save-key-btn">
             {creating ? 'Creating...' : 'Create Key'}
           </Button>
           <Button type="button" variant="ghost" onClick={() => setShowCreate(false)} className="text-zinc-400">Cancel</Button>
@@ -140,11 +140,11 @@ export default function ApiKeysPage() {
           <div className="divide-y divide-zinc-800">
             {keys.map(k => (
               <div key={k.id} className={`flex items-center px-4 py-3 gap-3 ${!k.active ? 'opacity-40' : ''}`} data-testid={`key-${k.id}`}>
-                <Key className={`w-4 h-4 flex-shrink-0 ${k.active ? 'text-rose-500' : 'text-zinc-600'}`} />
+                <Key className={`w-4 h-4 flex-shrink-0 ${k.active ? 'text-[#7380b6]0' : 'text-zinc-600'}`} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-zinc-700 font-medium">{k.name}</span>
-                    {!k.active && <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/10 text-red-400">Inactive</span>}
+                    {!k.active && <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#7380b6]/100/10 text-[#7380b6]">Inactive</span>}
                   </div>
                   <div className="flex items-center gap-3 mt-0.5">
                     <span className="text-xs text-zinc-500 font-mono">{k.key_prefix}</span>
@@ -157,7 +157,7 @@ export default function ApiKeysPage() {
                   </div>
                 </div>
                 {k.active && (
-                  <button onClick={() => handleDelete(k.id)} className="p-1.5 rounded hover:bg-red-500/20 text-zinc-500 hover:text-red-400" title="Deactivate">
+                  <button onClick={() => handleDelete(k.id)} className="p-1.5 rounded hover:bg-[#7380b6]/100/20 text-zinc-500 hover:text-[#7380b6]" title="Deactivate">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 )}

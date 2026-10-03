@@ -52,7 +52,7 @@ const ServerRack3D = ({ rackIndex, sites, isSelected, onClick, width = 320, fire
       <div
         className={`relative rounded-2xl overflow-hidden transition-all duration-300 border ${
           isSelected
-            ? 'border-rose-300 shadow-[0_8px_40px_rgba(221,12,81,0.15)] scale-[1.03]'
+            ? 'border-[#7380b6]/40 shadow-[0_8px_40px_rgba(221,12,81,0.15)] scale-[1.03]'
             : 'border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)] group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] group-hover:scale-[1.02]'
         }`}
         style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}
@@ -280,7 +280,7 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
               <div className="text-[10px] text-slate-400 uppercase tracking-wider font-medium">{envName}</div>
               <div className="text-sm font-semibold text-slate-700">Servers online</div>
             </div>
-            <Button onClick={onCreateSite} className="ml-1 bg-[#7380b6] hover:bg-[#5f6ca3] text-white rounded-full px-4 gap-1.5 text-sm font-medium" data-testid="create-site-btn">
+            <Button onClick={onCreateSite} className="ml-1 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white rounded-full px-4 gap-1.5 text-sm font-medium" data-testid="create-site-btn">
               <Plus className="w-3.5 h-3.5" /> New Server
             </Button>
           </motion.div>
@@ -414,8 +414,8 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
                           onClick={(e) => { e.stopPropagation(); handleToggleRackFirewall(selectedRackSites, !allOn); }}
                           className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
                             allOn
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200'
-                              : 'bg-[#7380b6] text-white shadow-lg shadow-[#7380b6]/20 hover:bg-[#7380b6]'
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-[#7380b6]/10 hover:text-[#7380b6] hover:border-[#7380b6]/30'
+                              : 'bg-[#7380b6] !text-white [&_svg]:!text-white shadow-lg shadow-[#7380b6]/20 hover:bg-[#7380b6]'
                           }`}
                           data-testid="rack-firewall-toggle-btn"
                         >
@@ -473,8 +473,8 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
                                 </button>
                               )}
                               {onDeleteSite && (
-                                <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDeleteSite(site.id, site.name); }} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-red-50 transition-colors" data-testid={`delete-site-${site.slug}`}>
-                                  <Trash2 className="w-3.5 h-3.5 text-zinc-400 hover:text-red-500" />
+                                <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDeleteSite(site.id, site.name); }} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[#7380b6]/10 transition-colors" data-testid={`delete-site-${site.slug}`}>
+                                  <Trash2 className="w-3.5 h-3.5 text-zinc-400 hover:text-[#7380b6]0" />
                                 </button>
                               )}
                             </div>
@@ -524,7 +524,7 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" style={{ boxShadow: '0 0 8px rgba(34,197,94,0.5)' }} />
             <span className="text-sm font-medium text-zinc-700">All systems operational</span>
             <div className="w-px h-5 bg-black/[0.06]" />
-            <Zap className="w-4 h-4 text-rose-600" />
+            <Zap className="w-4 h-4 text-[#7380b6]" />
             <span className="text-sm font-bold text-zinc-900">{sites.length}/{sites.length}</span>
           </motion.div>
         </div>

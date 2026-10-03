@@ -22,11 +22,11 @@ function StepIndicator({ steps, current }) {
     <div className="flex items-center gap-1 mb-4 flex-wrap">
       {steps.map((s, i) => (
         <div key={i} className="flex items-center gap-1">
-          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors ${i <= current ? 'bg-red-500/20 text-red-400 border border-red-500/50' : 'bg-zinc-100 text-zinc-500 border border-zinc-200'}`}>
+          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors ${i <= current ? 'bg-[#7380b6]/100/20 text-[#7380b6] border border-[#7380b6]/50' : 'bg-zinc-100 text-zinc-500 border border-zinc-200'}`}>
             {i < current ? <Check className="w-3 h-3" /> : i + 1}
           </div>
           <span className={`text-[10px] hidden sm:inline ${i <= current ? 'text-zinc-600' : 'text-zinc-600'}`}>{s}</span>
-          {i < steps.length - 1 && <div className={`w-4 h-px ${i < current ? 'bg-red-500/50' : 'bg-zinc-700'}`} />}
+          {i < steps.length - 1 && <div className={`w-4 h-px ${i < current ? 'bg-[#7380b6]/100/50' : 'bg-zinc-700'}`} />}
         </div>
       ))}
     </div>
@@ -40,7 +40,7 @@ function SyncBadge({ result }) {
   const steps = result.steps || [];
   const tooltip = steps.length > 0 ? steps.join('\n') : result.message;
   return (
-    <span className="inline-flex items-center gap-1.5 text-[9px] px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 cursor-help" title={tooltip}>
+    <span className="inline-flex items-center gap-1.5 text-[9px] px-1.5 py-0.5 rounded bg-[#7380b6]/100/10 text-[#7380b6] border border-[#7380b6]/20 cursor-help" title={tooltip}>
       Sync failed: {result.message?.substring(0, 50)}
       <ClaraErrorButton errorMessage={`WAF Sync failed: ${result.message}`} errorContext="WordPress Security — Cloudflare WAF sync" className="text-[9px] px-1.5 py-0.5" />
     </span>
@@ -252,8 +252,8 @@ export default function WpSecurityPage() {
   const toggleWafRule = (id) => setWafRules(rules => rules.map(r => r.id === id ? { ...r, enabled: !r.enabled } : r));
 
   const severityColors = {
-    critical: 'bg-red-500/10 text-red-400 border-red-500/20',
-    high: 'bg-rose-600/10 text-rose-500 border-rose-600/20',
+    critical: 'bg-[#7380b6]/100/10 text-[#7380b6] border-[#7380b6]/20',
+    high: 'bg-[#7380b6]/10 text-[#7380b6]0 border-[#7380b6]/20',
     medium: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
     low: 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20',
   };
@@ -265,7 +265,7 @@ export default function WpSecurityPage() {
   return (
     <div className="space-y-4" data-testid="wp-security-page">
       <div>
-        <h2 className="text-lg font-semibold text-zinc-100 flex items-center gap-2"><Shield className="w-5 h-5 text-red-400" /> WordPress Security</h2>
+        <h2 className="text-lg font-semibold text-zinc-100 flex items-center gap-2"><Shield className="w-5 h-5 text-[#7380b6]" /> WordPress Security</h2>
         <p className="text-xs text-zinc-500">Firewall, WAF rules, IP blocklist & brute force protection</p>
       </div>
 
@@ -286,7 +286,7 @@ export default function WpSecurityPage() {
           <Label className="text-xs text-zinc-400">WordPress URL</Label>
           <Input value={wpUrl} onChange={e => setWpUrl(e.target.value)} placeholder="https://example.com" className="bg-zinc-50 border-zinc-200 text-zinc-900 font-mono text-sm" data-testid="wp-url-input" />
         </div>
-        <Button onClick={saveWpUrl} disabled={!wpUrl.trim() || wpSaving} className="bg-red-600 hover:bg-red-700" data-testid="save-wp-url-btn">
+        <Button onClick={saveWpUrl} disabled={!wpUrl.trim() || wpSaving} className="bg-[#7380b6] hover:bg-[#5f6ca3]" data-testid="save-wp-url-btn">
           {wpSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Check className="w-4 h-4 mr-2" />} Save & Continue
         </Button>
       </WizardStep>
@@ -305,7 +305,7 @@ export default function WpSecurityPage() {
         <div className="rounded-md bg-zinc-100/60 border border-zinc-200 p-3 space-y-2">
           <p className="text-[10px] uppercase tracking-wider text-zinc-400 font-semibold">How to get your API Token:</p>
           <ol className="space-y-1 text-xs text-zinc-400 list-decimal list-inside">
-            <li>Go to <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" rel="noopener noreferrer" className="text-rose-500 hover:text-rose-300">dash.cloudflare.com/profile/api-tokens</a></li>
+            <li>Go to <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" rel="noopener noreferrer" className="text-[#7380b6]0 hover:text-[#7380b6]">dash.cloudflare.com/profile/api-tokens</a></li>
             <li>Click <strong className="text-zinc-200">Create Token</strong></li>
             <li>Use the <strong className="text-zinc-200">Edit zone DNS</strong> template (or custom)</li>
             <li>Add permissions: <code className="bg-zinc-900 px-1 rounded text-[10px]">Zone - Firewall Services - Edit</code> and <code className="bg-zinc-900 px-1 rounded text-[10px]">Zone - Zone - Read</code></li>
@@ -329,7 +329,7 @@ export default function WpSecurityPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={saveCfConfig} disabled={(!cfToken.trim() && !cfZoneId.trim()) || cfSaving} className="bg-red-600 hover:bg-red-700" data-testid="save-cf-config-btn">
+          <Button onClick={saveCfConfig} disabled={(!cfToken.trim() && !cfZoneId.trim()) || cfSaving} className="bg-[#7380b6] hover:bg-[#5f6ca3]" data-testid="save-cf-config-btn">
             {cfSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Check className="w-4 h-4 mr-2" />} Save Credentials
           </Button>
           {config?.cf_api_token_set && (
@@ -339,7 +339,7 @@ export default function WpSecurityPage() {
           )}
         </div>
         {cfTestResult && (
-          <div className={`rounded-md border p-2.5 text-xs ${cfTestResult.status === 'ok' ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-400' : 'bg-red-500/5 border-red-500/20 text-red-400'}`} data-testid="cf-test-result">
+          <div className={`rounded-md border p-2.5 text-xs ${cfTestResult.status === 'ok' ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-400' : 'bg-[#7380b6]/100/5 border-[#7380b6]/20 text-[#7380b6]'}`} data-testid="cf-test-result">
             <div className="flex items-center gap-1.5">
               {cfTestResult.status === 'ok' ? <CheckCircle className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
               <span>{cfTestResult.message}</span>
@@ -376,13 +376,13 @@ export default function WpSecurityPage() {
                 </div>
                 <p className="text-xs text-zinc-500 mt-0.5">{rule.description}</p>
               </div>
-              <button onClick={() => toggleWafRule(rule.id)} className={`relative w-10 h-5 rounded-full transition-colors flex-shrink-0 ml-3 ${rule.enabled ? 'bg-red-600' : 'bg-zinc-700'}`} data-testid={`toggle-waf-${rule.id}`}>
+              <button onClick={() => toggleWafRule(rule.id)} className={`relative w-10 h-5 rounded-full transition-colors flex-shrink-0 ml-3 ${rule.enabled ? 'bg-[#7380b6]' : 'bg-zinc-700'}`} data-testid={`toggle-waf-${rule.id}`}>
                 <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${rule.enabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
               </button>
             </div>
           ))}
         </div>
-        <Button onClick={saveWafRules} disabled={wafSaving} className="bg-red-600 hover:bg-red-700" data-testid="save-waf-rules-btn">
+        <Button onClick={saveWafRules} disabled={wafSaving} className="bg-[#7380b6] hover:bg-[#5f6ca3]" data-testid="save-waf-rules-btn">
           {wafSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <ShieldCheck className="w-4 h-4 mr-2" />}
           {hasCf ? 'Save & Sync to Cloudflare' : 'Save WAF Rules'}
         </Button>
@@ -415,7 +415,7 @@ export default function WpSecurityPage() {
                     <td className="px-3 py-2 font-mono text-zinc-200">{entry.ip}</td>
                     <td className="px-3 py-2 text-zinc-500">{entry.note || '—'}</td>
                     <td className="px-3 py-2 text-zinc-600">{entry.added_at ? new Date(entry.added_at).toLocaleDateString() : '—'}</td>
-                    <td className="px-2 py-2"><button onClick={() => removeFromBlocklist(entry.ip)} className="text-zinc-600 hover:text-red-400"><Trash2 className="w-3 h-3" /></button></td>
+                    <td className="px-2 py-2"><button onClick={() => removeFromBlocklist(entry.ip)} className="text-zinc-600 hover:text-[#7380b6]"><Trash2 className="w-3 h-3" /></button></td>
                   </tr>
                 ))}
               </tbody>
@@ -437,15 +437,15 @@ export default function WpSecurityPage() {
         </TipBox>
         <div className="space-y-3">
           <label className="flex items-center gap-3 p-3 rounded-lg border border-zinc-300 bg-zinc-100/70 cursor-pointer">
-            <input type="checkbox" checked={loginProtection.enabled} onChange={e => setLoginProtection({...loginProtection, enabled: e.target.checked})} className="rounded bg-zinc-200 border-zinc-600 text-red-500" />
+            <input type="checkbox" checked={loginProtection.enabled} onChange={e => setLoginProtection({...loginProtection, enabled: e.target.checked})} className="rounded bg-zinc-200 border-zinc-600 text-[#7380b6]0" />
             <div><p className="text-sm text-zinc-200">Enable Login Protection</p><p className="text-xs text-zinc-500">Master switch for all login protection features</p></div>
           </label>
           <label className="flex items-center gap-3 p-3 rounded-lg border border-zinc-300 bg-zinc-100/70 cursor-pointer">
-            <input type="checkbox" checked={loginProtection.block_xmlrpc} onChange={e => setLoginProtection({...loginProtection, block_xmlrpc: e.target.checked})} className="rounded bg-zinc-200 border-zinc-600 text-red-500" />
+            <input type="checkbox" checked={loginProtection.block_xmlrpc} onChange={e => setLoginProtection({...loginProtection, block_xmlrpc: e.target.checked})} className="rounded bg-zinc-200 border-zinc-600 text-[#7380b6]0" />
             <div><p className="text-sm text-zinc-200">Block XML-RPC Authentication</p><p className="text-xs text-zinc-500">Blocks authentication via xmlrpc.php — the #1 brute force vector</p></div>
           </label>
           <label className="flex items-center gap-3 p-3 rounded-lg border border-zinc-300 bg-zinc-100/70 cursor-pointer">
-            <input type="checkbox" checked={loginProtection.limit_login_attempts} onChange={e => setLoginProtection({...loginProtection, limit_login_attempts: e.target.checked})} className="rounded bg-zinc-200 border-zinc-600 text-red-500" />
+            <input type="checkbox" checked={loginProtection.limit_login_attempts} onChange={e => setLoginProtection({...loginProtection, limit_login_attempts: e.target.checked})} className="rounded bg-zinc-200 border-zinc-600 text-[#7380b6]0" />
             <div><p className="text-sm text-zinc-200">Limit Login Attempts</p><p className="text-xs text-zinc-500">Auto-block after too many failed attempts</p></div>
           </label>
           {loginProtection.limit_login_attempts && (
@@ -455,7 +455,7 @@ export default function WpSecurityPage() {
             </div>
           )}
         </div>
-        <Button onClick={saveLoginProtection} disabled={loginSaving} className="bg-red-600 hover:bg-red-700" data-testid="save-login-protection-btn">
+        <Button onClick={saveLoginProtection} disabled={loginSaving} className="bg-[#7380b6] hover:bg-[#5f6ca3]" data-testid="save-login-protection-btn">
           {loginSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
           {hasCf ? 'Save & Sync to Cloudflare' : 'Save Login Protection'}
         </Button>
@@ -516,11 +516,11 @@ export default function WpSecurityPage() {
                   </div>
                 )}
                 {wfStatus.vulnerability_scan.vulnerabilities?.map((vuln, i) => (
-                  <div key={i} className="rounded-md bg-red-500/5 border border-red-500/20 p-2.5 text-xs">
+                  <div key={i} className="rounded-md bg-[#7380b6]/100/5 border border-[#7380b6]/20 p-2.5 text-xs">
                     <div className="flex items-center gap-2">
-                      <XCircle className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />
+                      <XCircle className="w-3.5 h-3.5 text-[#7380b6] flex-shrink-0" />
                       <span className="text-zinc-200 font-medium">{vuln.title}</span>
-                      {vuln.cvss_score && <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-500/20 text-red-400">{vuln.severity} ({vuln.cvss_score})</span>}
+                      {vuln.cvss_score && <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#7380b6]/100/20 text-[#7380b6]">{vuln.severity} ({vuln.cvss_score})</span>}
                     </div>
                     <p className="text-zinc-500 mt-1 ml-5">Software: {vuln.software} v{vuln.version} {vuln.patched_in && `→ Update to ${vuln.patched_in}`}</p>
                   </div>
@@ -546,7 +546,7 @@ export default function WpSecurityPage() {
 function WizardStep({ stepNum, title, icon, completed, summary, active, editStep, setEditStep, badge, prerequisite, alwaysShowContent, children }) {
   const isOpen = active || editStep === stepNum || alwaysShowContent;
   return (
-    <Card className={`border-zinc-200 ${active ? 'bg-gradient-to-r from-red-100 to-white ring-1 ring-red-500/30' : 'bg-white'}`}>
+    <Card className={`border-zinc-200 ${active ? 'bg-gradient-to-r from-[#7380b6]/0 to-100 to-white ring-1 ring-[#7380b6]/30' : 'bg-white'}`}>
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-3 cursor-pointer" onClick={() => setEditStep(editStep === stepNum ? null : stepNum)}>
           <div className="flex items-center gap-2">
@@ -567,7 +567,7 @@ function WizardStep({ stepNum, title, icon, completed, summary, active, editStep
 }
 
 function TipBox({ color = 'red', title, children }) {
-  const colors = { red: 'text-red-400', orange: 'text-rose-500', emerald: 'text-emerald-400' };
+  const colors = { red: 'text-[#7380b6]', orange: 'text-[#7380b6]0', emerald: 'text-emerald-400' };
   return (
     <div className="rounded-md bg-zinc-100/60 border border-zinc-200 p-3">
       <p className={`text-[10px] uppercase tracking-wider ${colors[color]} font-semibold mb-1`}>{title}</p>

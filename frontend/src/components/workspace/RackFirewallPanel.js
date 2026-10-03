@@ -14,17 +14,17 @@ const headers = () => ({
 });
 
 const SEVERITY_STYLES = {
-  critical: 'bg-red-500/10 text-red-600 border-red-200',
+  critical: 'bg-[#7380b6]/100/10 text-[#7380b6] border-[#7380b6]/30',
   warning: 'bg-amber-500/10 text-amber-600 border-amber-200',
   info: 'bg-blue-500/10 text-blue-600 border-blue-200',
 };
 
 const EVENT_ICONS = {
-  brute_force_detected: <Ban className="w-3.5 h-3.5 text-red-500" />,
+  brute_force_detected: <Ban className="w-3.5 h-3.5 text-[#7380b6]0" />,
   ip_blocked: <Lock className="w-3.5 h-3.5 text-amber-500" />,
   ip_unblocked: <Unlock className="w-3.5 h-3.5 text-emerald-500" />,
   login_failed: <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />,
-  geo_blocked: <Globe className="w-3.5 h-3.5 text-red-400" />,
+  geo_blocked: <Globe className="w-3.5 h-3.5 text-[#7380b6]" />,
   default: <Shield className="w-3.5 h-3.5 text-zinc-400" />,
 };
 
@@ -119,8 +119,8 @@ export default function RackFirewallPanel({ rackId, rackName, onClose }) {
         {/* Header */}
         <div className="px-6 py-4 border-b border-zinc-100 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-rose-600/10 flex items-center justify-center">
-              <ShieldCheck className="w-5 h-5 text-rose-600" />
+            <div className="w-10 h-10 rounded-xl bg-[#7380b6]/10 flex items-center justify-center">
+              <ShieldCheck className="w-5 h-5 text-[#7380b6]" />
             </div>
             <div>
               <h2 className="text-base font-bold text-zinc-900">Clara Global Protect</h2>
@@ -147,7 +147,7 @@ export default function RackFirewallPanel({ rackId, rackName, onClose }) {
               {t.label}
               {t.count > 0 && (
                 <span className={`min-w-[18px] h-[18px] flex items-center justify-center rounded-full text-[10px] font-bold ${
-                  tab === t.id ? 'bg-[#7380b6] text-white' : 'bg-zinc-100 text-zinc-500'
+                  tab === t.id ? 'bg-[#7380b6] !text-white [&_svg]:!text-white' : 'bg-zinc-100 text-zinc-500'
                 }`}>{t.count}</span>
               )}
             </button>
@@ -193,7 +193,7 @@ export default function RackFirewallPanel({ rackId, rackName, onClose }) {
                   className="bg-zinc-50 border-zinc-200 text-sm h-9"
                   data-testid="block-ip-input"
                 />
-                <Button size="sm" onClick={handleBlockIp} disabled={!blockIpInput.trim() || actionLoading === 'block-new'} className="bg-red-500 hover:bg-red-600 text-white h-9 px-3 text-xs" data-testid="block-ip-btn">
+                <Button size="sm" onClick={handleBlockIp} disabled={!blockIpInput.trim() || actionLoading === 'block-new'} className="bg-[#7380b6]/100 hover:bg-[#7380b6] text-white h-9 px-3 text-xs" data-testid="block-ip-btn">
                   {actionLoading === 'block-new' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><Ban className="w-3.5 h-3.5 mr-1" />Block</>}
                 </Button>
               </div>
@@ -204,7 +204,7 @@ export default function RackFirewallPanel({ rackId, rackName, onClose }) {
                 </div>
               ) : blockedIps.map((b, i) => (
                 <div key={b.ip + i} className="flex items-center gap-3 p-3 rounded-xl border border-zinc-200 bg-zinc-50 group" data-testid={`blocked-ip-${i}`}>
-                  <Ban className="w-4 h-4 text-red-400 flex-shrink-0" />
+                  <Ban className="w-4 h-4 text-[#7380b6] flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <span className="text-sm font-mono text-zinc-800">{b.ip}</span>
                     <p className="text-[11px] text-zinc-400 truncate">{b.reason} &mdash; {new Date(b.blocked_at).toLocaleString('en-GB')}</p>
@@ -225,9 +225,9 @@ export default function RackFirewallPanel({ rackId, rackName, onClose }) {
                   <div className="text-lg font-bold text-emerald-600">{allowedCount}</div>
                   <div className="text-[10px] text-emerald-500 uppercase tracking-wider">Allowed</div>
                 </div>
-                <div className="flex-1 bg-red-50 rounded-xl p-3 text-center border border-red-100">
-                  <div className="text-lg font-bold text-red-500">{blockedCount}</div>
-                  <div className="text-[10px] text-red-400 uppercase tracking-wider">Blocked</div>
+                <div className="flex-1 bg-[#7380b6]/10 rounded-xl p-3 text-center border border-[#7380b6]/20">
+                  <div className="text-lg font-bold text-[#7380b6]0">{blockedCount}</div>
+                  <div className="text-[10px] text-[#7380b6] uppercase tracking-wider">Blocked</div>
                 </div>
               </div>
 
@@ -256,7 +256,7 @@ export default function RackFirewallPanel({ rackId, rackName, onClose }) {
                   const isAllowed = allowedSet.has(c.code);
                   return (
                     <div key={c.code} className={`flex items-center gap-3 px-3 py-2 rounded-lg border transition-colors ${
-                      isAllowed ? 'border-emerald-100 bg-emerald-50/50' : 'border-red-100 bg-red-50/30'
+                      isAllowed ? 'border-emerald-100 bg-emerald-50/50' : 'border-[#7380b6]/20 bg-[#7380b6]/10/30'
                     }`} data-testid={`country-${c.code}`}>
                       <span className="text-sm">{c.code}</span>
                       <span className="text-sm text-zinc-700 flex-1">{c.name}</span>
@@ -265,7 +265,7 @@ export default function RackFirewallPanel({ rackId, rackName, onClose }) {
                         onClick={() => handleToggleCountry(c.code, isAllowed)}
                         disabled={actionLoading === c.code}
                         className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
-                          isAllowed ? 'bg-emerald-100 text-emerald-600 hover:bg-red-100 hover:text-red-500' : 'bg-red-100 text-red-500 hover:bg-emerald-100 hover:text-emerald-600'
+                          isAllowed ? 'bg-emerald-100 text-emerald-600 hover:bg-[#7380b6]/15 hover:text-[#7380b6]0' : 'bg-[#7380b6]/15 text-[#7380b6]0 hover:bg-emerald-100 hover:text-emerald-600'
                         }`}
                         data-testid={`toggle-country-${c.code}`}
                       >

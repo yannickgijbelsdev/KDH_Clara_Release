@@ -149,7 +149,7 @@ const AudioPlayer = ({ url, name }) => {
         variant="ghost"
         size="icon"
         onClick={togglePlay}
-        className="h-10 w-10 rounded-full bg-[#7380b6]/20 hover:bg-[#7380b6]/30 text-rose-400"
+        className="h-10 w-10 rounded-full bg-[#7380b6]/20 hover:bg-[#7380b6]/30 text-[#7380b6]"
       >
         {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
       </Button>
@@ -617,7 +617,7 @@ const ChatPage = () => {
 
   const getThreadIcon = (thread) => {
     switch (thread.type) {
-      case 'team': return <Users className="w-5 h-5 text-rose-600" />;
+      case 'team': return <Users className="w-5 h-5 text-[#7380b6]" />;
       case 'group': return <UsersRound className="w-5 h-5 text-violet-500" />;
       case 'private': return <User className="w-5 h-5 text-emerald-500" />;
       case 'show': return <Radio className="w-5 h-5 text-amber-500" />;
@@ -654,7 +654,7 @@ const ChatPage = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin text-rose-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#7380b6]" />
       </div>
     );
   }
@@ -727,7 +727,7 @@ const ChatPage = () => {
                       className={cn(
                         'w-full p-3 rounded-lg text-left transition-all',
                         activeThread?.id === thread.id
-                          ? 'bg-[#7380b6]/20 border border-rose-600/30'
+                          ? 'bg-[#7380b6]/20 border border-[#7380b6]/30'
                           : 'hover:bg-white/5 border border-transparent'
                       )}
                     >
@@ -767,7 +767,7 @@ const ChatPage = () => {
                   className={cn(
                     'w-full p-3 rounded-lg text-left transition-all',
                     activeThread?.id === thread.id
-                      ? 'bg-[#7380b6]/20 border border-rose-600/30'
+                      ? 'bg-[#7380b6]/20 border border-[#7380b6]/30'
                       : 'hover:bg-white/5 border border-transparent'
                   )}
                 >
@@ -849,7 +849,7 @@ const ChatPage = () => {
                     {activeThread.members?.slice(0, 4).map((member) => (
                       <div
                         key={member.id}
-                        className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-600/30 to-violet-500/30 border-2 border-[#18181b] flex items-center justify-center"
+                        className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7380b6]/30 to-violet-500/30 border-2 border-[#18181b] flex items-center justify-center"
                         title={member.name}
                       >
                         {getAvatarUrl(member) ? (
@@ -887,7 +887,7 @@ const ChatPage = () => {
                             <DropdownMenuSeparator className="bg-zinc-200" />
                             <DropdownMenuItem 
                               onClick={() => setShowDeleteDialog(true)}
-                              className="text-red-400 focus:text-red-300 focus:bg-red-500/10"
+                              className="text-[#7380b6] focus:text-[#7380b6] focus:bg-[#7380b6]/100/10"
                             >
                               <Trash2 className="w-4 h-4 mr-2" />
                               Delete Group
@@ -904,7 +904,7 @@ const ChatPage = () => {
                       variant="ghost" 
                       size="icon"
                       onClick={() => setShowDeleteDialog(true)}
-                      className="text-zinc-400 hover:text-red-400 hover:bg-red-500/10"
+                      className="text-zinc-400 hover:text-[#7380b6] hover:bg-[#7380b6]/100/10"
                       title="Delete conversation"
                     >
                       <Trash2 className="w-5 h-5" />
@@ -934,7 +934,7 @@ const ChatPage = () => {
                             )}
                           >
                             <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-[#7380b6]/20 flex items-center justify-center flex-shrink-0">
-                              <span className="text-xs font-semibold text-rose-600">
+                              <span className="text-xs font-semibold text-[#7380b6]">
                                 {(message.user_name || 'U').charAt(0).toUpperCase()}
                               </span>
                             </div>
@@ -948,7 +948,7 @@ const ChatPage = () => {
                                 )}
                               >
                                 {message.user_id !== user?.id && (
-                                  <p className="text-xs font-medium text-rose-400 mb-1">{message.user_name}</p>
+                                  <p className="text-xs font-medium text-[#7380b6] mb-1">{message.user_name}</p>
                                 )}
                                 {message.body && (
                                   <p className="text-sm text-white whitespace-pre-wrap break-words">
@@ -968,7 +968,7 @@ const ChatPage = () => {
                                   onClick={() => handleDeleteMessage(message.id)}
                                   className={cn(
                                     'absolute top-1 opacity-0 group-hover:opacity-100 transition-opacity',
-                                    'p-1 rounded-full bg-zinc-200 hover:bg-red-500/20 text-zinc-400 hover:text-red-400',
+                                    'p-1 rounded-full bg-zinc-200 hover:bg-[#7380b6]/100/20 text-zinc-400 hover:text-[#7380b6]',
                                     message.user_id === user?.id ? 'right-full mr-1' : 'left-full ml-1'
                                   )}
                                   title="Delete message"
@@ -1025,7 +1025,7 @@ const ChatPage = () => {
                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                     className={cn(
                       "h-9 w-9 md:h-10 md:w-10 flex-shrink-0 transition-colors",
-                      showEmojiPicker ? "bg-[#7380b6]/20 text-rose-400" : "hover:bg-white/10 text-zinc-400 hover:text-zinc-700"
+                      showEmojiPicker ? "bg-[#7380b6]/20 text-[#7380b6]" : "hover:bg-white/10 text-zinc-400 hover:text-zinc-700"
                     )}
                     data-testid="emoji-picker-btn"
                   >
@@ -1085,7 +1085,7 @@ const ChatPage = () => {
         <DialogContent className="bg-white border-zinc-200 text-zinc-900 sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle className="text-zinc-900 flex items-center gap-2">
-              <Plus className="w-5 h-5 text-rose-600" />
+              <Plus className="w-5 h-5 text-[#7380b6]" />
               New Chat
             </DialogTitle>
             <DialogDescription className="text-zinc-400">
@@ -1175,18 +1175,18 @@ const ChatPage = () => {
                         className={cn(
                           'w-full p-3 rounded-lg flex items-center gap-3 transition-all',
                           selectedMembers.includes(member.id)
-                            ? 'bg-[#7380b6]/20 border border-rose-600/30'
+                            ? 'bg-[#7380b6]/20 border border-[#7380b6]/30'
                             : 'hover:bg-white/5 border border-transparent'
                         )}
                       >
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-rose-600/30 to-violet-500/30 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#7380b6]/30 to-violet-500/30 flex items-center justify-center">
                           <span className="text-sm font-semibold text-zinc-900">{member.name.charAt(0).toUpperCase()}</span>
                         </div>
                         <div className="flex-1 text-left">
                           <p className="text-sm font-medium text-zinc-900">{member.name}</p>
                           <p className="text-xs text-zinc-500">{member.role}</p>
                         </div>
-                        {selectedMembers.includes(member.id) && <Check className="w-5 h-5 text-rose-600" />}
+                        {selectedMembers.includes(member.id) && <Check className="w-5 h-5 text-[#7380b6]" />}
                       </button>
                     ))
                   )}
@@ -1242,7 +1242,7 @@ const ChatPage = () => {
                     
                     return (
                       <div key={member.id} className="p-3 rounded-lg flex items-center gap-3 bg-white/5">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-rose-600/30 to-violet-500/30 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#7380b6]/30 to-violet-500/30 flex items-center justify-center">
                           <span className="text-sm font-semibold text-zinc-900">{member.name.charAt(0).toUpperCase()}</span>
                         </div>
                         <div className="flex-1">
@@ -1273,7 +1273,7 @@ const ChatPage = () => {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                              className="h-8 w-8 text-[#7380b6] hover:text-[#7380b6] hover:bg-[#7380b6]/100/10"
                               onClick={() => handleManageMember('remove', member.id)}
                             >
                               <UserMinus className="w-4 h-4" />
@@ -1322,7 +1322,7 @@ const ChatPage = () => {
         <AlertDialogContent className="bg-white border-zinc-200">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-zinc-900 flex items-center gap-2">
-              <Trash2 className="w-5 h-5 text-red-500" />
+              <Trash2 className="w-5 h-5 text-[#7380b6]0" />
               {activeThread?.type === 'private' ? 'Delete Conversation' : 'Delete Group'}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
@@ -1341,7 +1341,7 @@ const ChatPage = () => {
             <Button
               onClick={handleDeleteGroup}
               disabled={deleting}
-              className="bg-red-500 hover:bg-red-600 text-white"
+              className="bg-[#7380b6]/100 hover:bg-[#7380b6] text-white"
             >
               {deleting ? (
                 <>

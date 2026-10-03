@@ -210,17 +210,17 @@ export default function NetworkAdminManager({ open, onClose, inline = false }) {
       ) : (
         <div className="space-y-4">
           {admins.map(admin => (
-            <Card key={admin.id} className={`bg-zinc-100/70 border-zinc-300 ${admin.is_primary_network_admin ? 'border-rose-600/30' : ''}`}>
+            <Card key={admin.id} className={`bg-zinc-100/70 border-zinc-300 ${admin.is_primary_network_admin ? 'border-[#7380b6]/30' : ''}`}>
               <CardContent className="flex items-center justify-between p-4">
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${admin.is_primary_network_admin ? 'bg-gradient-to-br from-rose-600 to-amber-600 text-white' : 'bg-zinc-200 text-zinc-600'}`}>
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${admin.is_primary_network_admin ? 'bg-gradient-to-br from-[#7380b6] to-amber-600 text-white' : 'bg-zinc-200 text-zinc-600'}`}>
                     {admin.name?.charAt(0).toUpperCase()}
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-zinc-900">{admin.name}</span>
                       {admin.is_primary_network_admin && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-rose-600/20 text-rose-500 border border-rose-600/20">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#7380b6]/20 text-[#7380b6]0 border border-[#7380b6]/20">
                           Primary
                         </span>
                       )}
@@ -239,7 +239,7 @@ export default function NetworkAdminManager({ open, onClose, inline = false }) {
                       <Edit className="w-4 h-4 text-zinc-400" />
                     </Button>
                     <Button variant="ghost" size="icon" onClick={() => handleRemove(admin.id)} data-testid={`remove-admin-${admin.id}`}>
-                      <Trash2 className="w-4 h-4 text-red-400" />
+                      <Trash2 className="w-4 h-4 text-[#7380b6]" />
                     </Button>
                   </div>
                 )}
@@ -394,7 +394,7 @@ export default function NetworkAdminManager({ open, onClose, inline = false }) {
       <DialogContent className="bg-white border-zinc-200 max-w-2xl max-h-[85vh] overflow-y-auto" data-testid="network-admin-manager">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
-            <Crown className="w-5 h-5 text-rose-500" />
+            <Crown className="w-5 h-5 text-[#7380b6]0" />
             Network Admins
           </DialogTitle>
         </DialogHeader>

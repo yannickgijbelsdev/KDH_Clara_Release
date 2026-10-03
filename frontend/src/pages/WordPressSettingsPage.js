@@ -257,8 +257,8 @@ const WordPressSettingsPage = () => {
   if (!hasAccess) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center" data-testid="no-access-message">
-        <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-6">
-          <ShieldAlert className="w-8 h-8 text-red-400" />
+        <div className="w-16 h-16 rounded-full bg-[#7380b6]/100/10 flex items-center justify-center mb-6">
+          <ShieldAlert className="w-8 h-8 text-[#7380b6]" />
         </div>
         <h2 className="text-xl font-bold text-zinc-900 mb-2">No access</h2>
         <p className="text-zinc-400 max-w-md">
@@ -427,7 +427,7 @@ const WordPressSettingsPage = () => {
                       size="sm"
                       data-testid={`delete-site-${site.id}`}
                       onClick={() => confirmDelete(site.id)}
-                      className="bg-transparent border-zinc-300 text-rose-500 hover:bg-rose-500/10"
+                      className="bg-transparent border-zinc-300 text-[#7380b6]0 hover:bg-[#7380b6]/100/10"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -439,14 +439,14 @@ const WordPressSettingsPage = () => {
                   <div className={`flex items-center gap-3 p-3 rounded-lg mt-4 ${
                     testResult.success 
                       ? 'bg-green-500/10 border border-green-500/30' 
-                      : 'bg-rose-500/10 border border-rose-500/30'
+                      : 'bg-[#7380b6]/100/10 border border-[#7380b6]/100/30'
                   }`}>
                     {testResult.success ? (
                       <CheckCircle className="w-4 h-4 text-green-500" />
                     ) : (
-                      <AlertCircle className="w-4 h-4 text-rose-500" />
+                      <AlertCircle className="w-4 h-4 text-[#7380b6]0" />
                     )}
-                    <span className={`text-sm ${testResult.success ? 'text-green-400' : 'text-rose-400'}`}>
+                    <span className={`text-sm ${testResult.success ? 'text-green-400' : 'text-[#7380b6]'}`}>
                       {testResult.message}
                     </span>
                   </div>
@@ -618,7 +618,7 @@ const WordPressSettingsPage = () => {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
+              className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white"
             >
               Remove
             </AlertDialogAction>

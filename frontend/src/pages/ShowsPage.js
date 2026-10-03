@@ -60,10 +60,10 @@ const ShowCard = ({ show, index, onClick }) => (
     
     <div className="p-5">
       <div className="flex items-start justify-between mb-3">
-        <h3 className="text-lg font-semibold text-zinc-900 group-hover:text-rose-600 transition-colors line-clamp-1">
+        <h3 className="text-lg font-semibold text-zinc-900 group-hover:text-[#7380b6] transition-colors line-clamp-1">
           {show.title}
         </h3>
-        <ChevronRight className="w-5 h-5 text-zinc-600 group-hover:text-rose-600 transition-all group-hover:translate-x-1 flex-shrink-0" />
+        <ChevronRight className="w-5 h-5 text-zinc-600 group-hover:text-[#7380b6] transition-all group-hover:translate-x-1 flex-shrink-0" />
       </div>
 
       {show.description && (
@@ -151,7 +151,7 @@ const RecurringSeriesBundle = ({ seriesName, shows, onShowClick, onDeleteSeries,
               onClick={() => setIsExpanded(!isExpanded)}
             >
               <div className="p-2 bg-[#7380b6]/20 rounded-full">
-                <Repeat className="w-5 h-5 text-rose-600" />
+                <Repeat className="w-5 h-5 text-[#7380b6]" />
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-zinc-900 flex items-center gap-2">
@@ -208,7 +208,7 @@ const RecurringSeriesBundle = ({ seriesName, shows, onShowClick, onDeleteSeries,
                     e.stopPropagation();
                     setShowDeleteDialog(true);
                   }}
-                  className="h-8 w-8 text-zinc-500 hover:text-rose-600 hover:bg-[#7380b6]/10"
+                  className="h-8 w-8 text-zinc-500 hover:text-[#7380b6] hover:bg-[#7380b6]/10"
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
@@ -233,10 +233,10 @@ const RecurringSeriesBundle = ({ seriesName, shows, onShowClick, onDeleteSeries,
                 className="p-4 bg-zinc-50 rounded-lg cursor-pointer hover:bg-zinc-100 transition-colors group"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-zinc-900 group-hover:text-rose-400">
+                  <span className="text-sm font-medium text-zinc-900 group-hover:text-[#7380b6]">
                     {format(parseISO(show.date), 'EEEE, MMM d, yyyy')}
                   </span>
-                  <ChevronRight className="w-4 h-4 text-zinc-600 group-hover:text-rose-400" />
+                  <ChevronRight className="w-4 h-4 text-zinc-600 group-hover:text-[#7380b6]" />
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-zinc-500 font-mono">
@@ -258,7 +258,7 @@ const RecurringSeriesBundle = ({ seriesName, shows, onShowClick, onDeleteSeries,
       <AlertDialogContent className="bg-white border-zinc-200">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-zinc-900 flex items-center gap-2">
-            <Trash2 className="w-5 h-5 text-rose-600" />
+            <Trash2 className="w-5 h-5 text-[#7380b6]" />
             Delete Recurring Series
           </AlertDialogTitle>
           <AlertDialogDescription className="text-zinc-400">
@@ -273,7 +273,7 @@ const RecurringSeriesBundle = ({ seriesName, shows, onShowClick, onDeleteSeries,
           <Button
             onClick={handleDelete}
             disabled={deleting}
-            className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
+            className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white"
           >
             {deleting ? (
               <>
@@ -464,7 +464,7 @@ const ShowsPage = () => {
           <p className="text-zinc-400 mb-6">Get started by creating your first show</p>
           <Button
             onClick={() => setIsCreateOpen(true)}
-            className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white"
+            className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white"
           >
             <Plus className="w-4 h-4 mr-2" />
             Create Show
@@ -476,7 +476,7 @@ const ShowsPage = () => {
           {series.length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <Layers className="w-5 h-5 text-rose-600" />
+                <Layers className="w-5 h-5 text-[#7380b6]" />
                 <h2 className="text-lg font-semibold text-zinc-900">Recurring Shows</h2>
                 <span className="text-sm text-zinc-500">({series.length} series)</span>
               </div>
