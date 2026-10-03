@@ -431,7 +431,7 @@ const ShowManagementPage = () => {
                   >
                     <div className="flex items-center gap-4">
                       {/* Show Image or Icon */}
-                      <div className="w-16 h-16 rounded-lg bg-[#7380b6]/20 flex items-center justify-center overflow-hidden flex-shrink-0">
+                      <div className="w-16 h-16 rounded-full bg-[#7380b6]/20 flex items-center justify-center overflow-hidden flex-shrink-0">
                         {title.image ? (
                           <img
                             src={getImageUrl(title.image)}

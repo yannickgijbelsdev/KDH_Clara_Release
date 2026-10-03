@@ -323,7 +323,7 @@ export default function UserTicketsPanel({ open, onClose }) {
                         )}
                       </div>
                     </div>
-                    <Button onClick={handleSend} disabled={sending || (!msgInput.trim() && pendingAttachments.length === 0)} className="h-9 w-9 rounded-xl bg-[#7380b6] hover:bg-[#5f6ca3] text-white p-0 flex-shrink-0">
+                    <Button onClick={handleSend} disabled={sending || (!msgInput.trim() && pendingAttachments.length === 0)} className="h-9 w-9 rounded-full bg-[#7380b6] hover:bg-[#5f6ca3] text-white p-0 flex-shrink-0">
                       {sending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
                     </Button>
                   </div>

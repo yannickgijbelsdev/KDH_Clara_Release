@@ -341,7 +341,7 @@ function SnapshotsTabContent() {
       <button
         onClick={createSnapshot}
         disabled={creating}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium bg-[#7380b6] hover:bg-[#5f6ca3] text-white mb-3 disabled:opacity-50"
+        className="flex items-center gap-2 px-3 py-2 rounded-full text-xs font-medium bg-[#7380b6] hover:bg-[#5f6ca3] text-white mb-3 disabled:opacity-50"
         data-testid="devtools-create-snapshot"
       >
         <Camera className="w-3.5 h-3.5" />

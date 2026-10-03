@@ -150,7 +150,7 @@ const RecurringSeriesBundle = ({ seriesName, shows, onShowClick, onDeleteSeries,
               className="flex items-center gap-3 flex-1"
               onClick={() => setIsExpanded(!isExpanded)}
             >
-              <div className="p-2 bg-[#7380b6]/20 rounded-lg">
+              <div className="p-2 bg-[#7380b6]/20 rounded-full">
                 <Repeat className="w-5 h-5 text-rose-600" />
               </div>
               <div>

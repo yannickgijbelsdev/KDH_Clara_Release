@@ -587,7 +587,7 @@ export default function SiteDashboard() {
             {site.audio_enabled && (
               <div className="space-y-4">
                 <div className="flex gap-4">
-                  <label className={`flex-1 p-4 rounded-lg border-2 cursor-pointer transition ${site.audio_type === 'stream' ? 'border-rose-600 bg-[#7380b6]/10' : 'border-zinc-300 hover:border-zinc-600'}`}>
+                  <label className={`flex-1 p-4 rounded-full border-2 cursor-pointer transition ${site.audio_type === 'stream' ? 'border-rose-600 bg-[#7380b6]/10' : 'border-zinc-300 hover:border-zinc-600'}`}>
                     <input
                       type="radio"
                       name="audio_type"
@@ -600,7 +600,7 @@ export default function SiteDashboard() {
                       <span>Livestream URL</span>
                     </div>
                   </label>
-                  <label className={`flex-1 p-4 rounded-lg border-2 cursor-pointer transition ${site.audio_type === 'file' ? 'border-rose-600 bg-[#7380b6]/10' : 'border-zinc-300 hover:border-zinc-600'}`}>
+                  <label className={`flex-1 p-4 rounded-full border-2 cursor-pointer transition ${site.audio_type === 'file' ? 'border-rose-600 bg-[#7380b6]/10' : 'border-zinc-300 hover:border-zinc-600'}`}>
                     <input
                       type="radio"
                       name="audio_type"
@@ -694,7 +694,7 @@ export default function SiteDashboard() {
                     {['youtube', 'vimeo', 'twitch', 'hls'].map(type => (
                       <label
                         key={type}
-                        className={`p-3 rounded-lg border-2 cursor-pointer transition text-center capitalize ${site.video_type === type ? 'border-rose-600 bg-[#7380b6]/10' : 'border-zinc-300 hover:border-zinc-600'}`}
+                        className={`p-3 rounded-full border-2 cursor-pointer transition text-center capitalize ${site.video_type === type ? 'border-rose-600 bg-[#7380b6]/10' : 'border-zinc-300 hover:border-zinc-600'}`}
                       >
                         <input
                           type="radio"

@@ -775,7 +775,7 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
           </button>
           <button
             onClick={advanceGuideStep}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#7380b6] text-white text-xs font-semibold hover:bg-[#7380b6] transition-colors shadow-md shadow-[#7380b6]/20"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#7380b6] text-white text-xs font-semibold hover:bg-[#7380b6] transition-colors shadow-md shadow-[#7380b6]/20"
             data-testid="clara-guide-next"
           >
             {isLastStep ? (
@@ -918,7 +918,7 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
                 Skip
               </button>
               <button onClick={submitAutoFixInput}
-                className="flex-1 text-xs py-2 rounded-lg bg-[#7380b6] text-white font-semibold hover:bg-[#7380b6] transition-colors shadow-sm"
+                className="flex-1 text-xs py-2 rounded-full bg-[#7380b6] text-white font-semibold hover:bg-[#7380b6] transition-colors shadow-sm"
               >
                 Save & Continue
               </button>
@@ -946,7 +946,7 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
                 Skip
               </button>
               <button onClick={confirmAutoFix}
-                className="flex-1 text-xs py-2 rounded-lg bg-[#7380b6] text-white font-semibold hover:bg-[#7380b6] transition-colors shadow-sm"
+                className="flex-1 text-xs py-2 rounded-full bg-[#7380b6] text-white font-semibold hover:bg-[#7380b6] transition-colors shadow-sm"
                 data-testid="autofix-confirm-2fa"
               >
                 Enable 2FA

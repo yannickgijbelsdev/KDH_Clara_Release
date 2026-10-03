@@ -382,7 +382,7 @@ export default function VmixDirector() {
       <div className={`bg-white/60 border rounded-xl transition-all ${setupStep === 0 ? 'border-rose-600/30 ring-1 ring-rose-600/20' : xmlServers.length > 0 ? 'border-emerald-500/20' : 'border-zinc-200'}`}>
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${xmlServers.length > 0 ? 'bg-emerald-500/20' : setupStep === 0 ? 'bg-[#7380b6]/20' : 'bg-zinc-100'}`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${xmlServers.length > 0 ? 'bg-emerald-500/20' : setupStep === 0 ? 'bg-[#7380b6]/20' : 'bg-zinc-100'}`}>
               {xmlServers.length > 0 ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Monitor className="w-4 h-4 text-rose-500" />}
             </div>
             <div>
@@ -400,7 +400,7 @@ export default function VmixDirector() {
         </div>
         {setupStep === 0 && xmlServers.length === 0 && (
           <div className="px-4 pb-4 border-t border-zinc-200 pt-3">
-            <div className="flex items-start gap-2 p-3 bg-[#7380b6]/5 rounded-lg border border-rose-600/10">
+            <div className="flex items-start gap-2 p-3 bg-[#7380b6]/5 rounded-full border border-rose-600/10">
               <Settings className="w-4 h-4 text-rose-500 mt-0.5 flex-shrink-0" />
               <div className="text-xs text-zinc-400">
                 <p className="text-rose-300 font-medium mb-1">How to connect XML servers</p>
@@ -546,7 +546,7 @@ export default function VmixDirector() {
                     key={el.id}
                     data-testid={`vmix-el-toggle-${el.id}`}
                     onClick={() => setActiveElement(el.id)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${activeElement === el.id ? 'bg-[#7380b6]/15 border border-rose-600/25' : 'bg-zinc-100/30 border border-transparent hover:bg-zinc-100/60'}`}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-full cursor-pointer transition-colors ${activeElement === el.id ? 'bg-[#7380b6]/15 border border-rose-600/25' : 'bg-zinc-100/30 border border-transparent hover:bg-zinc-100/60'}`}
                   >
                     <Icon className="w-4 h-4 flex-shrink-0" style={{ color: meta?.color }} />
                     <span className="text-sm text-zinc-200 flex-1">{meta?.label}</span>

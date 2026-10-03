@@ -421,7 +421,7 @@ const DashboardLayout = () => {
                 <img src={brandingData.logo_url.startsWith('/') ? `${process.env.REACT_APP_BACKEND_URL}${brandingData.logo_url}` : brandingData.logo_url} alt={brandName} className="h-7 object-contain" />
               ) : (
                 <>
-                  <div className="p-2 bg-[#7380b6] rounded-lg">
+                  <div className="p-2 bg-[#7380b6] rounded-full">
                     <span className="text-zinc-700 font-black text-sm">C</span>
                   </div>
                   <BrandLogo className="text-lg font-bold text-zinc-900" />
@@ -609,7 +609,7 @@ const DashboardLayout = () => {
                     <TooltipTrigger asChild>
                       <NavLink
                         to={sitesBasePath}
-                        className="w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-200 text-zinc-500 hover:text-rose-600 hover:bg-[#7380b6]/10 mb-2"
+                        className="w-11 h-11 flex items-center justify-center rounded-full transition-all duration-200 text-zinc-500 hover:text-rose-600 hover:bg-[#7380b6]/10 mb-2"
                       >
                         <ArrowLeft className="w-5 h-5" />
                       </NavLink>
@@ -704,7 +704,7 @@ const DashboardLayout = () => {
                   variant="ghost"
                   size="icon"
                   data-testid="user-menu-btn"
-                  className={`${useGroupedMenu ? 'w-full justify-start gap-3 px-3 h-12' : 'w-11 h-11'} rounded-xl hover:bg-[#7380b6]/10`}
+                  className={`${useGroupedMenu ? 'w-full justify-start gap-3 px-3 h-12' : 'w-11 h-11'} rounded-full hover:bg-[#7380b6]/10`}
                 >
                   {getAvatarUrl(user) ? (
                     <img 
@@ -817,7 +817,7 @@ const DashboardLayout = () => {
                   <img src={brandingData.logo_url.startsWith('/') ? `${process.env.REACT_APP_BACKEND_URL}${brandingData.logo_url}` : brandingData.logo_url} alt={brandName} className="h-7 object-contain" />
                 ) : (
                   <>
-                    <div className="p-2 bg-[#7380b6] rounded-lg">
+                    <div className="p-2 bg-[#7380b6] rounded-full">
                       <span className="text-zinc-700 font-black text-sm">C</span>
                     </div>
                     <BrandLogo className="text-lg font-bold text-zinc-900" />

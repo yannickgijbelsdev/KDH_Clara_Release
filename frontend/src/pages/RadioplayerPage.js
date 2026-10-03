@@ -140,7 +140,7 @@ const RadioplayerPage = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-[#7380b6]/20 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full bg-[#7380b6]/20 flex items-center justify-center">
               <RadioplayerIcon size={24} className="text-rose-500" />
             </div>
             <div>
@@ -185,7 +185,7 @@ const RadioplayerPage = () => {
         <div className={`bg-white border rounded-xl transition-all ${(setupStep === 0 || editStep === 0) ? 'border-rose-600/30 ring-1 ring-rose-600/20' : hasCredentials ? 'border-emerald-500/20' : 'border-zinc-200'}`}>
           <div className="flex items-center justify-between p-5 cursor-pointer" onClick={() => setEditStep(editStep === 0 ? null : 0)}>
             <div className="flex items-center gap-3">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${hasCredentials ? 'bg-emerald-500/20' : (setupStep === 0 || editStep === 0) ? 'bg-[#7380b6]/20' : 'bg-zinc-100'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${hasCredentials ? 'bg-emerald-500/20' : (setupStep === 0 || editStep === 0) ? 'bg-[#7380b6]/20' : 'bg-zinc-100'}`}>
                 {hasCredentials ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Settings className="w-4 h-4 text-rose-500" />}
               </div>
               <div>
@@ -196,7 +196,7 @@ const RadioplayerPage = () => {
           </div>
           {(setupStep === 0 || editStep === 0) && (
             <div className="px-5 pb-5 space-y-4 border-t border-zinc-200 pt-4">
-              <div className="flex items-start gap-2 p-3 bg-[#7380b6]/5 rounded-lg border border-rose-600/10">
+              <div className="flex items-start gap-2 p-3 bg-[#7380b6]/5 rounded-full border border-rose-600/10">
                 <AlertCircle className="w-4 h-4 text-rose-500 mt-0.5 flex-shrink-0" />
                 <div className="text-xs text-zinc-400">
                   <p className="text-rose-300 font-medium mb-1">How to get your credentials</p>
@@ -246,7 +246,7 @@ const RadioplayerPage = () => {
         <div className={`bg-white border rounded-xl transition-all ${(setupStep === 1 || editStep === 1) ? 'border-rose-600/30 ring-1 ring-rose-600/20' : hasStation ? 'border-emerald-500/20' : 'border-zinc-200'}`}>
           <div className="flex items-center justify-between p-5 cursor-pointer" onClick={() => setEditStep(editStep === 1 ? null : 1)}>
             <div className="flex items-center gap-3">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${hasStation ? 'bg-emerald-500/20' : (setupStep === 1 || editStep === 1) ? 'bg-[#7380b6]/20' : 'bg-zinc-100'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${hasStation ? 'bg-emerald-500/20' : (setupStep === 1 || editStep === 1) ? 'bg-[#7380b6]/20' : 'bg-zinc-100'}`}>
                 {hasStation ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Radio className="w-4 h-4 text-rose-500" />}
               </div>
               <div>
@@ -257,7 +257,7 @@ const RadioplayerPage = () => {
           </div>
           {(setupStep === 1 || editStep === 1) && (
             <div className="px-5 pb-5 space-y-4 border-t border-zinc-200 pt-4">
-              <div className="flex items-start gap-2 p-3 bg-[#7380b6]/5 rounded-lg border border-rose-600/10">
+              <div className="flex items-start gap-2 p-3 bg-[#7380b6]/5 rounded-full border border-rose-600/10">
                 <AlertCircle className="w-4 h-4 text-rose-500 mt-0.5 flex-shrink-0" />
                 <div className="text-xs text-zinc-400">
                   <p className="text-rose-300 font-medium mb-1">Where to find your station details</p>
@@ -297,7 +297,7 @@ const RadioplayerPage = () => {
         <div className={`bg-white border rounded-xl transition-all ${(setupStep === 2 || editStep === 2) ? 'border-rose-600/30 ring-1 ring-rose-600/20' : config?.enabled ? 'border-emerald-500/20' : 'border-zinc-200'}`}>
           <div className="flex items-center justify-between p-5 cursor-pointer" onClick={() => setEditStep(editStep === 2 ? null : 2)}>
             <div className="flex items-center gap-3">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${config?.enabled ? 'bg-emerald-500/20' : (setupStep === 2 || editStep === 2) ? 'bg-[#7380b6]/20' : 'bg-zinc-100'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${config?.enabled ? 'bg-emerald-500/20' : (setupStep === 2 || editStep === 2) ? 'bg-[#7380b6]/20' : 'bg-zinc-100'}`}>
                 {config?.enabled ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Settings className="w-4 h-4 text-rose-500" />}
               </div>
               <div>
@@ -308,7 +308,7 @@ const RadioplayerPage = () => {
           </div>
           {(setupStep === 2 || editStep === 2) && (
             <div className="px-5 pb-5 space-y-4 border-t border-zinc-200 pt-4">
-              <div className="flex items-start gap-2 p-3 bg-[#7380b6]/5 rounded-lg border border-rose-600/10">
+              <div className="flex items-start gap-2 p-3 bg-[#7380b6]/5 rounded-full border border-rose-600/10">
                 <AlertCircle className="w-4 h-4 text-rose-500 mt-0.5 flex-shrink-0" />
                 <div className="text-xs text-zinc-400">
                   <p className="text-rose-300 font-medium mb-1">What happens when you enable</p>
@@ -371,7 +371,7 @@ const RadioplayerPage = () => {
         <div className={`bg-white border rounded-xl transition-all ${setupStep === 3 ? 'border-rose-600/30 ring-1 ring-rose-600/20' : 'border-zinc-200'}`}>
           <div className="flex items-center justify-between p-5">
             <div className="flex items-center gap-3">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${pushLog.length > 0 ? 'bg-emerald-500/20' : setupStep === 3 ? 'bg-[#7380b6]/20' : 'bg-zinc-100'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${pushLog.length > 0 ? 'bg-emerald-500/20' : setupStep === 3 ? 'bg-[#7380b6]/20' : 'bg-zinc-100'}`}>
                 {pushLog.length > 0 ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Send className="w-4 h-4 text-rose-500" />}
               </div>
               <div>

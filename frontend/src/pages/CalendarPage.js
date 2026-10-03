@@ -326,7 +326,7 @@ const CalendarPage = () => {
       <div className="w-full lg:w-80 lg:shrink-0">
         <div className="bg-white border border-zinc-200 rounded-xl p-4 sm:p-6 lg:sticky lg:top-8">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-[#7380b6]/20 rounded-lg">
+            <div className="p-2 bg-[#7380b6]/20 rounded-full">
               <CalendarIcon className="w-5 h-5 text-rose-600" />
             </div>
             <div>

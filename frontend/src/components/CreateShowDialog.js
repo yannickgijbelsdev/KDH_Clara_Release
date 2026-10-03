@@ -321,7 +321,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                               autoFocus
                             />
                             <Button type="button" onClick={handleCreateNewTitle} disabled={creatingTitle}
-                              className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white rounded-xl">
+                              className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white rounded-full">
                               {creatingTitle ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Add'}
                             </Button>
                           </div>

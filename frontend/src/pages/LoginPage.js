@@ -203,7 +203,7 @@ const LoginPage = () => {
               Back to login
             </button>
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-[#7380b6]/10 rounded-xl">
+              <div className="p-2 bg-[#7380b6]/10 rounded-full">
                 <Mail className="w-6 h-6 text-[#7380b6]" />
               </div>
               <h2 className="font-display text-2xl font-bold text-slate-900">Forgot password</h2>
@@ -314,7 +314,7 @@ const LoginPage = () => {
               Back
             </button>
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-[#7380b6]/10 rounded-xl">
+              <div className="p-2 bg-[#7380b6]/10 rounded-full">
                 <Shield className="w-6 h-6 text-[#7380b6]" />
               </div>
               <h2 className="font-display text-2xl font-bold text-slate-900">Two-factor authentication</h2>

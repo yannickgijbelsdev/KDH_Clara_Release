@@ -836,7 +836,7 @@ const TeamSettingsPage = () => {
                     className="h-12 bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400 rounded-xl"
                   />
                   <Button onClick={() => searchAvailableUsers(userSearchQuery)} disabled={searchingUsers}
-                    className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white rounded-xl h-12">
+                    className="bg-[#7380b6] hover:bg-[#5f6ca3] text-white rounded-full h-12">
                     {searchingUsers ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Search'}
                   </Button>
                 </div>
@@ -932,7 +932,7 @@ const TeamSettingsPage = () => {
               <Label className="text-zinc-700 font-medium">Temporary Password</Label>
               <div className="flex items-center gap-2">
                 <Input value={tempPassword} readOnly className="h-12 bg-zinc-50 border-zinc-200 text-zinc-900 font-mono rounded-xl" />
-                <Button onClick={() => copyToClipboard(tempPassword)} className="h-12 bg-[#7380b6] hover:bg-[#5f6ca3] text-white rounded-xl">
+                <Button onClick={() => copyToClipboard(tempPassword)} className="h-12 bg-[#7380b6] hover:bg-[#5f6ca3] text-white rounded-full">
                   {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                 </Button>
               </div>

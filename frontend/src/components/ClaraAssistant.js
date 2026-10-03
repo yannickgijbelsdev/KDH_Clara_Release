@@ -596,7 +596,7 @@ function SupportForm({ form, onChange, onSubmit, submitting, onCancel }) {
         <Button
           onClick={onSubmit}
           disabled={!form.subject.trim() || !form.description.trim() || submitting}
-          className="flex-1 rounded-xl bg-[#7380b6] hover:bg-[#5f6ca3] text-white text-sm gap-1.5"
+          className="flex-1 rounded-full bg-[#7380b6] hover:bg-[#5f6ca3] text-white text-sm gap-1.5"
           data-testid="support-submit-btn"
         >
           {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}

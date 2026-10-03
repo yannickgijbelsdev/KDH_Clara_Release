@@ -1324,7 +1324,7 @@ const MainSiteDashboardContent = () => {
                 </span>
               ) : (
                 <NavLink key={tab.to} to={tab.to} end={tab.to === `/${mainSiteSlug}`}
-                  className={`relative px-3.5 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-1.5 z-[1] whitespace-nowrap flex-shrink-0 hover:text-slate-900 ${isTabActive ? 'text-white' : 'text-slate-500'}`}
+                  className={`relative px-3.5 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-1.5 z-[1] whitespace-nowrap flex-shrink-0 hover:text-slate-700 ${isTabActive ? 'text-white' : 'text-slate-500 hover:bg-slate-100/60'}`}
                   data-testid={`pill-${tab.label.toLowerCase().replace(/\s+/g, '-')}`}
                 >
                   {isTabActive && (

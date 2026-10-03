@@ -1358,7 +1358,7 @@ export default function DomainManager() {
                   <code className="text-xs text-amber-400 font-mono">_clara-verify.{domainForm.custom_domain} &rarr; verify.{baseDomain}</code>
                 </div>
               </div>
-              <a href={cfDnsUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full py-2 px-4 rounded-lg bg-[#7380b6]/15 border border-rose-700/30 text-rose-500 text-sm hover:bg-[#7380b6]/25 transition-colors">
+              <a href={cfDnsUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full py-2 px-4 rounded-full bg-[#7380b6]/15 border border-rose-700/30 text-rose-500 text-sm hover:bg-[#7380b6]/25 transition-colors">
                 <ExternalLink className="w-4 h-4" /> Add records in Cloudflare
               </a>
               <div className="flex gap-2">

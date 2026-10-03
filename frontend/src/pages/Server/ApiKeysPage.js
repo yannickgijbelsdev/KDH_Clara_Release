@@ -77,7 +77,7 @@ export default function ApiKeysPage() {
 
       {/* New key reveal */}
       {newKey && (
-        <div className="bg-[#7380b6]/5 border border-rose-600/20 rounded-xl p-5" data-testid="new-key-reveal">
+        <div className="bg-[#7380b6]/5 border border-rose-600/20 rounded-full p-5" data-testid="new-key-reveal">
           <div className="flex items-start gap-3">
             <Shield className="w-5 h-5 text-rose-500 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
