@@ -1202,18 +1202,24 @@ const MainSiteDashboardContent = () => {
           <button onClick={() => setSidebarOpen(!sidebarOpen)} data-testid="mobile-menu-btn" className="lg:hidden w-9 h-9 flex items-center justify-center rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors">
             <Menu className="w-5 h-5" />
           </button>
-          {/* Logo lockup — mark + divider + wordmark */}
-          <div className="flex items-center gap-2.5 shrink-0">
-            <button onClick={() => navigate(`/${mainSiteSlug}`)} className="hover:opacity-80 transition-opacity flex items-center justify-center" data-testid="logo-pill">
-              <img src="/clara-chevron.png" alt="Clara" className="h-8 w-auto object-contain" />
+          {/* Logo lockup — periwinkle chevron + divider + "Clara" wordmark */}
+          <div className="flex items-center gap-3 shrink-0">
+            <button
+              onClick={() => navigate(`/${mainSiteSlug}`)}
+              className="hover:opacity-80 transition-opacity flex items-center justify-center"
+              data-testid="logo-pill"
+              aria-label="Clara"
+            >
+              <img src="/clara-chevron.png" alt="Clara" className="h-7 w-auto object-contain" />
             </button>
-            <div className="h-6 w-px bg-slate-300" />
-            <span className="font-display font-semibold text-slate-900 text-[17px] whitespace-nowrap">
+            <div className="h-7 w-px bg-zinc-200" />
+            <span className="font-display font-bold text-zinc-900 text-[20px] leading-none whitespace-nowrap tracking-tight">
               Clara
             </span>
             {mainSite?.clara_enterprise && (
               <span
-                className="inline-flex items-center text-[10px] font-semibold uppercase tracking-wider text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-1.5 py-0.5 whitespace-nowrap"
+                className="inline-flex items-center text-[10px] font-semibold uppercase tracking-wider rounded-full px-1.5 py-0.5 whitespace-nowrap border"
+                style={{ color: '#b45309', backgroundColor: '#FFFBEB', borderColor: '#FDE68A' }}
                 data-testid="enterprise-tag"
                 title="Clara Enterprise"
               >

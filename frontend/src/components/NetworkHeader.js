@@ -163,13 +163,18 @@ export default function NetworkHeader({
           <Menu className="w-5 h-5" />
         </button>
 
-        {/* Logo lockup — mark + divider + Outfit wordmark */}
-        <div className="flex items-center gap-2.5 shrink-0">
-          <Link to="/network" className="hover:opacity-80 transition-opacity flex items-center justify-center" data-testid="logo-pill">
-            <img src="/clara-chevron.png" alt="Clara" className="h-8 w-auto object-contain" />
+        {/* Logo lockup — periwinkle chevron + divider + "Clara" wordmark */}
+        <div className="flex items-center gap-3 shrink-0">
+          <Link
+            to="/network"
+            className="hover:opacity-80 transition-opacity flex items-center justify-center"
+            data-testid="logo-pill"
+            aria-label="Clara"
+          >
+            <img src="/clara-chevron.png" alt="Clara" className="h-7 w-auto object-contain" />
           </Link>
-          <div className="h-6 w-px bg-slate-300" />
-          <span className="font-display font-semibold text-slate-900 text-[17px] whitespace-nowrap" data-testid="enterprise-global-label">
+          <div className="h-7 w-px bg-zinc-200" />
+          <span className="font-display font-bold text-zinc-900 text-[20px] leading-none whitespace-nowrap tracking-tight" data-testid="enterprise-global-label">
             Clara
           </span>
         </div>
