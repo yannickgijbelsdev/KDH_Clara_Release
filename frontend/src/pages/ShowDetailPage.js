@@ -478,80 +478,86 @@ const ShowDetailPage = () => {
   return (
     <div data-testid="show-detail-page">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-8">
-        <Button
-          variant="ghost"
-          size="icon"
-          data-testid="back-btn"
-          onClick={() => navigate(navTo('/shows'))}
-          className="text-zinc-400 hover:text-zinc-700 hover:bg-white/5"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
-        
-        {/* Show Image */}
-        {show.image && (
-          <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-zinc-200">
+      <div className="flex flex-col lg:flex-row lg:items-center gap-4 mb-8">
+        <div className="flex items-center gap-4 flex-1 min-w-0">
+          <Button
+            variant="ghost"
+            size="icon"
+            data-testid="back-btn"
+            onClick={() => navigate(navTo('/shows'))}
+            className="text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 rounded-full flex-shrink-0"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+
+          {/* Show Image — rounded like Show Management, with transparent placeholder */}
+          <div className="w-14 h-14 rounded-full bg-transparent overflow-hidden flex-shrink-0 flex items-center justify-center">
             <img
-              src={show.image.s3_url || `${API}/uploads/show_title_images/${show.image.file_key}`}
+              src={show.image ? (show.image.s3_url || `${API}/uploads/show_title_images/${show.image.file_key}`) : '/show-placeholder.png'}
               alt={show.title}
               className="w-full h-full object-cover"
             />
           </div>
-        )}
-        
-        <div className="flex-1">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-zinc-900">{show.title}</h1>
-            {show.is_recurring && (
-              <span className="flex items-center gap-1 px-2 py-0.5 bg-violet-500/20 text-violet-400 rounded-full text-xs font-medium">
-                <Repeat className="w-3 h-3" />
-                Recurring
-              </span>
-            )}
-            {/* Connection status */}
-            <div className="flex items-center gap-1 text-xs">
+
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-2xl font-bold text-zinc-900 truncate">{show.title}</h1>
+              {show.is_recurring && (
+                <span className="flex items-center gap-1 px-2 py-0.5 bg-[#7380b6]/10 text-[#5f6ca3] rounded-full text-xs font-medium">
+                  <Repeat className="w-3 h-3" />
+                  Recurring
+                </span>
+              )}
               {isConnected ? (
-                <span className="flex items-center gap-1 text-green-500">
-                  <Wifi className="w-3 h-3" />
-                  Live
+                <span className="flex items-center gap-1 text-xs text-green-600" title="Live connection">
+                  <Wifi className="w-3.5 h-3.5" />
                 </span>
               ) : (
-                <span className="flex items-center gap-1 text-zinc-500">
-                  <WifiOff className="w-3 h-3" />
+                <span className="flex items-center gap-1 text-xs text-zinc-400" title="Offline">
+                  <WifiOff className="w-3.5 h-3.5" />
                 </span>
               )}
             </div>
-          </div>
-          <div className="flex items-center gap-4 mt-1 text-sm text-zinc-500">
-            <span className="flex items-center gap-1">
-              <Calendar className="w-4 h-4" />
-              <span className="font-mono">{format(parseISO(show.date), 'MMMM d, yyyy')}</span>
-            </span>
-            <span className="flex items-center gap-1">
-              <Clock className="w-4 h-4" />
-              <span className="font-mono">{show.start_time} - {show.end_time}</span>
-            </span>
-            {/* Presence avatars */}
-            {presence.length > 0 && (
-              <PresenceAvatars users={presence} />
-            )}
+            <div className="flex items-center gap-3 mt-1 text-sm text-zinc-500 flex-wrap">
+              <span className="flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5" />
+                <span className="font-mono text-xs">{format(parseISO(show.date), 'MMM d, yyyy')}</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5" />
+                <span className="font-mono text-xs">{show.start_time} – {show.end_time}</span>
+              </span>
+              {presence.length > 0 && <PresenceAvatars users={presence} />}
+            </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          {/* Export/Print Button */}
+
+        <div className="flex items-center gap-2 flex-wrap lg:flex-nowrap lg:justify-end">
+          {/* Export/Print — modern pill */}
           <Button
             data-testid="print-rundown-btn"
             onClick={handlePrintView}
             variant="outline"
             size="sm"
-            className="gap-2 border-zinc-300 text-zinc-600 hover:bg-white/5"
+            className="gap-2 h-9 px-4 rounded-full border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50"
           >
             <Printer className="w-4 h-4" />
-            Export / Print
+            Export
           </Button>
           <VideoEndpointInline show={show} setShow={setShow} isEditor={isEditor} />
-          <span className={`px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wider ${statusColors[show.status]}`}>
+          {/* Modern status pill with dot */}
+          <span className={`inline-flex items-center gap-2 h-9 px-4 rounded-full text-sm font-medium ${
+            show.status === 'scheduled'
+              ? 'bg-[#7380b6]/10 text-[#5f6ca3] border border-[#7380b6]/20'
+              : show.status === 'completed'
+              ? 'bg-green-500/10 text-green-700 border border-green-500/20'
+              : 'bg-zinc-100 text-zinc-600 border border-zinc-200'
+          }`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${
+              show.status === 'scheduled' ? 'bg-[#7380b6]'
+              : show.status === 'completed' ? 'bg-green-500'
+              : 'bg-zinc-400'
+            }`} />
             {statusLabels[show.status]}
           </span>
         </div>
@@ -1480,19 +1486,21 @@ const VideoEndpointInline = ({ show, setShow, isEditor }) => {
         onClick={() => setOpen((o) => !o)}
         disabled={!isEditor}
         data-testid="send-to-video-endpoint-btn"
-        className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wider transition ${
+        className={`inline-flex items-center gap-2 h-9 px-4 rounded-full text-sm font-medium transition ${
           hasVideo
-            ? 'bg-[#7380b6]/15 text-[#5f6ca3] border border-[#7380b6]/30 hover:bg-[#7380b6]/25'
-            : 'bg-white text-zinc-500 border border-zinc-300 hover:bg-zinc-50'
+            ? 'bg-[#7380b6] text-white [&_svg]:text-white hover:bg-[#5f6ca3] border border-transparent'
+            : 'bg-white text-zinc-700 border border-zinc-200 hover:bg-zinc-50'
         } disabled:opacity-60 disabled:cursor-not-allowed`}
         title="Send to Video Endpoint"
       >
-        <Video className="w-3.5 h-3.5" />
-        {hasVideo ? (currentEndpoint?.name || 'Send to Video Endpoint') : 'Send to Video Endpoint'}
+        <Video className="w-4 h-4" />
+        <span className="truncate max-w-[180px]">
+          {hasVideo ? (currentEndpoint?.name || 'Send to Video') : 'Send to Video'}
+        </span>
         {saving ? (
-          <Loader2 className="w-3 h-3 animate-spin" />
+          <Loader2 className="w-3.5 h-3.5 animate-spin" />
         ) : (
-          <ChevronRight className={`w-3 h-3 transition ${open ? 'rotate-90' : ''}`} />
+          <ChevronRight className={`w-3.5 h-3.5 transition ${open ? 'rotate-90' : ''}`} />
         )}
       </button>
 
