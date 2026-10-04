@@ -1,0 +1,33 @@
+{
+  "summary": "Re-tested the admin impersonation flow after the services/auth.py fix (projection now includes `id`, check changed to `admin_user is None or admin_user.get('is_blocked')`). Pre-condition reproduced: admkoodh@koodh.com has NO `is_blocked` field (unset confirmed). All 6 executed impersonation tests PASS. The user-reported bug (switch-user bouncing back to /login) is fully resolved on the backend.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "POST /api/auth/login (yannick.gijbels@koodh.com / 'test')",
+        "issue": "Password still invalid — non-admin credential-based test (test_switch_user_non_admin_forbidden) remains SKIPPED. Please reset password or seed a test non-admin user so the admin-only guard can be positively asserted."
+      }
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_impersonation.py",
+    "/app/test_reports/pytest/impersonation_results.xml"
+  ],
+  "action_items": [
+    "Reset / verify password for yannick.gijbels@koodh.com so the non-admin-forbidden test is no longer skipped."
+  ],
+  "critical_code_review_comments": [
+    "services/auth.py L80-85: Fix is correct. Projection now returns `{id, is_blocked?}` so an existing admin without is_blocked no longer produces an empty dict. Check uses `admin_user is None` which is the correct not-found sentinel.",
+    "Consider also storing a session_id in impersonation JWTs (currently absent) so admins can be force-logged-out of impersonation sessions in the future.",
+    "server.py switch-user response is still a raw dict; consider formalising with a Pydantic response model."
+  ],
+  "updated_files": ["/app/backend/tests/test_impersonation.py"],
+  "success_rate": {"backend": "6 passed / 0 failed / 1 skipped (100% of executed)", "frontend": "not tested (backend-only)"},
+  "test_credentials": "Admin admkoodh@koodh.com / KYLovie13monx works. Non-admin yannick.gijbels@koodh.com / 'test' still does NOT authenticate.",
+  "seed_data_creation": "db.users.update_one({email:'admkoodh@koodh.com'}, {$unset:{is_blocked:''}}) — explicit unset to reproduce the bug's trigger condition before testing. Verified admin doc has no is_blocked field.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Impersonation flow is green. Only outstanding minor issue is the yannick.gijbels password. All 5 scenarios from the review request are verified: (1) switch-user→/auth/me returns target user, (2) exit-impersonation→/auth/me returns admin, (3) impersonation token works on /api/shows, (4) non-admin forbidden test is skipped due to credentials (needs password reset), (5) JWT contains user_id/impersonated_by/exp claims.",
+  "rca of the issue": "Confirmed fixed. Earlier bug: services/auth.py L74-78 used projection {_id:0, is_blocked:1} which returns `{}` for admins without is_blocked; `if not admin_user` treated `{}` as falsy and raised 401 'Impersonation session expired'. Current code uses projection {_id:0, id:1, is_blocked:1} and check `admin_user is None or admin_user.get('is_blocked')`. Verified with explicit $unset of is_blocked on the admin doc — /auth/me and /api/shows now return 200 with the impersonation token, and exit-impersonation returns a valid admin token."
+}

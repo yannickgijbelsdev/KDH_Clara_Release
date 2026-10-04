@@ -109,6 +109,17 @@ class TestImpersonation:
         assert me.get("email") == target_user["email"], f"Expected target, got {me.get('email')}"
         assert me.get("id") == target_user["id"]
 
+    def test_impersonation_token_works_on_other_endpoint(self, session, main_site_id):
+        """Impersonation token must also work for non-/auth/me endpoints."""
+        tok = getattr(pytest, "impersonation_token", None)
+        assert tok
+        headers = {
+            "Authorization": f"Bearer {tok}",
+            "X-Main-Site-ID": main_site_id,
+        }
+        r = session.get(f"{BASE_URL}/api/shows", headers=headers)
+        assert r.status_code == 200, f"/api/shows failed: {r.status_code} {r.text}"
+
     def test_exit_impersonation_returns_admin(self, session, main_site_id):
         tok = getattr(pytest, "impersonation_token", None)
         assert tok
