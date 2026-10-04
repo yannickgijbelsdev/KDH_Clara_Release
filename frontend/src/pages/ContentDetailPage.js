@@ -932,56 +932,57 @@ const ContentDetailPage = () => {
           </div>
         </div>
         
-        {/* WordPress Publish Button */}
-        {isEditor && wpSites.length > 0 && (
-          <div className="flex flex-col items-end gap-1">
-            <Button
-              data-testid="publish-wp-btn"
-              onClick={() => !isPublishBlocked && openPublishDialog()}
-              disabled={isPublishBlocked}
-              className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white rounded-full px-5"
-            >
-              <Upload className="w-4 h-4" />
-              {hasPublishedSites ? 'Sync to WordPress' : 'Publish to WordPress'}
-            </Button>
-            {isPublishBlocked && (
-              <span className="text-xs text-amber-500">
-                Requires admin approval
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* News API Publish Button — works on every main site.
-            Same shape/size as the WordPress sync button; green only when synced. */}
+        {/* Publish action buttons — WordPress + News API side-by-side */}
         {isEditor && (
-          <div className="flex flex-col items-end gap-1" data-testid="clara-publish-section">
-            <Button
-              data-testid="publish-clara-btn"
-              onClick={() => publishViaClara()}
-              disabled={newsApiBlocked || claraPublishBusy}
-              className={`gap-2 rounded-full px-5 !text-white disabled:!text-white disabled:opacity-60 ${
-                content?.status === 'published'
-                  ? 'bg-emerald-600 hover:bg-emerald-700 border border-emerald-700'
-                  : 'bg-violet-600 hover:bg-violet-700 border border-violet-700'
-              }`}
-            >
-              {claraPublishBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-              {content?.status === 'published' ? 'Sync to News API' : 'Publish to News API'}
-            </Button>
-            {content?.status === 'published' && (
-              <button
-                onClick={() => unpublishViaClara()}
-                disabled={claraPublishBusy}
-                className="text-[11px] text-zinc-500 hover:text-[#7380b6]0 underline"
-                data-testid="unpublish-clara-btn"
+          <div className="flex items-start gap-3" data-testid="publish-actions">
+            {wpSites.length > 0 && (
+              <div className="flex flex-col items-end gap-1">
+                <Button
+                  data-testid="publish-wp-btn"
+                  onClick={() => !isPublishBlocked && openPublishDialog()}
+                  disabled={isPublishBlocked}
+                  className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white rounded-full px-5"
+                >
+                  <Upload className="w-4 h-4" />
+                  {hasPublishedSites ? 'Sync to WordPress' : 'Publish to WordPress'}
+                </Button>
+                {isPublishBlocked && (
+                  <span className="text-xs text-amber-500">
+                    Requires admin approval
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* News API Publish Button — works on every main site.
+                Same shape/size as the WordPress sync button; green only when synced. */}
+            <div className="flex flex-col items-end gap-1" data-testid="clara-publish-section">
+              <Button
+                data-testid="publish-clara-btn"
+                onClick={() => publishViaClara()}
+                disabled={newsApiBlocked || claraPublishBusy}
+                className={`gap-2 rounded-full px-5 !text-white [&_svg]:!text-white disabled:!text-white disabled:opacity-60 ${
+                  content?.status === 'published'
+                    ? 'bg-emerald-600 hover:bg-emerald-700 border border-emerald-700'
+                    : 'bg-[#7380b6] hover:bg-[#5f6ca3] border border-[#5f6ca3]'
+                }`}
               >
-                Unpublish from News API
-              </button>
-            )}
-            {isPublishBlocked && (
-              <span className="text-xs text-amber-500">Requires admin approval</span>
-            )}
+                {claraPublishBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                {content?.status === 'published' ? 'Sync to News API' : 'Publish to News API'}
+              </Button>
+              {content?.status === 'published' && (
+                <button
+                  onClick={() => unpublishViaClara()}
+                  disabled={claraPublishBusy}
+                  className="text-[11px] text-zinc-500 hover:text-[#7380b6]0 underline"
+                  data-testid="unpublish-clara-btn"
+                >
+                  Unpublish from News API
+                </button>
+              )}
+              {isPublishBlocked && (
+                <span className="text-xs text-amber-500">Requires admin approval</span>
+              )}
             {!isPublishBlocked && !hasFeaturedImage && (
               <span className="text-xs text-amber-600">
                 Featured image required — see the section above to upload one.
@@ -998,6 +999,7 @@ const ContentDetailPage = () => {
                 {imageRights.missing} image{imageRights.missing !== 1 ? 's' : ''} still missing rights — click to fill in
               </button>
             )}
+            </div>
           </div>
         )}
       </div>
