@@ -9,7 +9,6 @@ import ImageCopyrightDialog from '../components/ImageCopyrightDialog';
 import ImageRightsModal from '../components/ImageRightsModal';
 import LiveblogPanel from '../components/LiveblogPanel';
 import MainSiteContext from '../context/MainSiteContext';
-import PublishToButton from '../components/ClaraCustom/PublishToButton';
 import { isImageFile, isOversized } from '../utils/imageResize';
 import {
   ArrowLeft,
@@ -1212,7 +1211,6 @@ const ContentDetailPage = () => {
           {!isEditing ? (
             isEditor && (
               <div className="flex gap-2">
-                <PublishToButton contentId={content?.id} mainSiteId={content?.main_site_id || mainSiteCtx?.mainSite?.id} token={token} />
                 <Button
                   variant="outline"
                   size="sm"
