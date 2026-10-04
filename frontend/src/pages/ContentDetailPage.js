@@ -1000,9 +1000,9 @@ const ContentDetailPage = () => {
                   data-testid="approve-inline-btn"
                   onClick={() => submitApproval('approved')}
                   disabled={approvalBusy}
-                  className="gap-2 bg-white hover:bg-zinc-50 text-zinc-800 border border-zinc-200 rounded-full px-5 disabled:opacity-60"
+                  className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white rounded-full px-5 disabled:opacity-60"
                 >
-                  <Check className="w-4 h-4 text-green-600" />
+                  <Check className="w-4 h-4" />
                   Approve
                 </Button>
                 <Button

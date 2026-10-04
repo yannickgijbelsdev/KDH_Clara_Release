@@ -452,9 +452,9 @@ const AdminApprovalPage = () => {
                         <Button
                           size="sm"
                           onClick={() => openApprovalDialog(item, 'approved')}
-                          className="bg-white hover:bg-zinc-50 text-zinc-700 border border-zinc-200 gap-1 rounded-full"
+                          className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white gap-1 rounded-full"
                         >
-                          <Check className="w-4 h-4 text-green-600" />
+                          <Check className="w-4 h-4" />
                           Approve
                         </Button>
                         <Button
@@ -484,9 +484,9 @@ const AdminApprovalPage = () => {
                       <Button
                         size="sm"
                         onClick={() => openApprovalDialog(item, 'approved')}
-                        className="bg-white hover:bg-zinc-50 text-zinc-700 border border-zinc-200 gap-1 rounded-full"
+                        className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white gap-1 rounded-full"
                       >
-                        <Check className="w-4 h-4 text-green-600" />
+                        <Check className="w-4 h-4" />
                         Approve
                       </Button>
                     )}
