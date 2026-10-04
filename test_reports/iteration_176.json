@@ -1,0 +1,55 @@
+{
+  "summary": "Backend-only testing of admin impersonation (switch-user) flow. Root-caused the user-reported bug: after calling POST /api/admin/switch-user/{user_id}, the returned impersonation JWT is REJECTED by get_current_user with 401 'Impersonation session expired' on every subsequent request (including /auth/me). This is why the frontend lands back on /login — AuthContext's fetchUser receives a 401 and clears the session, regardless of the new skipNextTokenFetchRef guard, because the token itself is unusable.",
+  "backend_issues": {
+    "critical": [
+      {
+        "endpoint": "GET /api/auth/me (and all authed endpoints when using an impersonation token)",
+        "issue": "services/auth.py:76 does `admin_user = await db.users.find_one({'id': impersonated_by}, {'_id': 0, 'is_blocked': 1})`. When the impersonating admin exists but has NO `is_blocked` field (which is the normal case — admkoodh@koodh.com), the Mongo projection returns an empty dict `{}`. The next line `if not admin_user or admin_user.get('is_blocked')` treats `{}` as falsy (`not {}` is True in Python), so it raises 401 'Impersonation session expired' for every valid impersonation token. Impersonation is therefore completely broken end-to-end.",
+        "priority": "CRITICAL"
+      },
+      {
+        "endpoint": "POST /api/admin/exit-impersonation",
+        "issue": "Also unusable — it depends on get_current_user which fails for every impersonation token for the same reason (returns 401 'Impersonation session expired' before the handler runs).",
+        "priority": "CRITICAL"
+      }
+    ],
+    "minor": [
+      {
+        "endpoint": "POST /api/auth/login (yannick.gijbels@koodh.com / 'test')",
+        "issue": "Provided non-admin credentials did not authenticate (login returned non-200). As a result the admin-only test was SKIPPED. Please verify the password for the non-admin test account, or seed one, so admin-guard testing can run."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_impersonation.py",
+    "/app/test_reports/pytest/impersonation_results.xml"
+  ],
+  "action_items": [
+    "FIX /app/backend/services/auth.py line 76: change the projection to include a sentinel always-present field, e.g. `{'_id': 0, 'id': 1, 'is_blocked': 1}`, OR replace the check with `admin_user = await db.users.find_one({'id': impersonated_by}, {'_id': 0, 'is_blocked': 1, 'email': 1})` and then test `if admin_user is None or admin_user.get('is_blocked'):`. The current `if not admin_user` is a bug because `{}` is falsy — this makes impersonation always 401 for admins without an explicit is_blocked field in the users doc.",
+    "After the fix, re-run /app/backend/tests/test_impersonation.py — the 2 currently-failing tests (test_auth_me_with_impersonation_token, test_exit_impersonation_returns_admin) should pass without any further code changes. The frontend AuthContext fix (skipNextTokenFetchRef, retaining session on 5xx) is reasonable but was never the real cause of the /login redirect; the backend 401 is.",
+    "Verify / reset the non-admin test credentials (yannick.gijbels@koodh.com) so the admin-only enforcement test is no longer skipped."
+  ],
+  "critical_code_review_comments": [
+    "services/auth.py L74-78: Treating `{}` as 'admin not found' is incorrect; Mongo returns `{}` for an existing document when the projection excludes every stored field. Use `is None` for 'not found' checks whenever a projection may legitimately return an empty dict.",
+    "server.py L446-449: Legacy (no X-Main-Site-ID) branch only allows switching within the same team_id, which is fine. However the impersonation JWT contains `email` of the target but no `session_id`; if session enforcement later matters for impersonation sessions, consider adding one so admins can be force-logged-out of an impersonation session.",
+    "server.py L469-478: Response is not a Pydantic model and `target_user` is a raw Mongo doc minus _id/password_hash; shape is implicit. Consider formalising with a response model for stability."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_impersonation.py"
+  ],
+  "success_rate": {
+    "backend": "3 passed / 2 failed / 1 skipped (50% of executed assertions, but the 2 failures are the exact user-reported bug)",
+    "frontend": "not tested (backend-only task)"
+  },
+  "test_credentials": "Admin admkoodh@koodh.com / KYLovie13monx works. Non-admin yannick.gijbels@koodh.com / 'test' did NOT authenticate during this run (admin-only guard test was skipped).",
+  "seed_data_creation": "None.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Rerun `pytest /app/backend/tests/test_impersonation.py -v` after the one-line fix in services/auth.py. Expected: all tests pass (minus the admin-only test if non-admin password still invalid). The frontend AuthContext changes referenced in the review request will only matter AFTER this backend bug is fixed; before that, any impersonation token is DOA.",
+  "rca of the issue": "Reproduction: 1) POST /api/auth/login admkoodh → ok. 2) POST /api/admin/switch-user/<yannick_id> with Authorization + X-Main-Site-ID → 200, returns {token, user, original_user, expires_at} with a well-formed JWT ({user_id, email, impersonated_by, exp}). 3) GET /api/auth/me with that token → 401 {'detail': 'Impersonation session expired'}. Root cause: services/auth.py get_current_user() looks up the impersonating admin with projection {'_id':0,'is_blocked':1}. For admkoodh (no is_blocked field in doc) Mongo returns `{}`. The subsequent `if not admin_user or admin_user.get('is_blocked')` is True because `not {}` is True in Python, so the request is rejected. Frontend AuthContext then sees 401 on /auth/me and redirects to /login — which is exactly the symptom reported by the user. Mitigation: include an always-present field in the projection (e.g. 'id':1) OR check `admin_user is None` instead of `not admin_user`."
+}
