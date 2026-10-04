@@ -130,6 +130,42 @@ const ContentDetailPage = () => {
 
   // Clara native publish (independent of WordPress)
   const [claraPublishBusy, setClaraPublishBusy] = useState(false);
+
+  // Approval permission check for current main site
+  const [canApproveForSite, setCanApproveForSite] = useState(false);
+  const [approvalBusy, setApprovalBusy] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        if (!mainSiteSlug) {
+          if (!cancelled) setCanApproveForSite(isAdmin && isAdmin());
+          return;
+        }
+        const r = await axios.get(`${API}/main-sites/my/access`);
+        const siteAccess = r.data.main_sites?.find((s) => s.slug === mainSiteSlug);
+        const ok = r.data.is_network_admin || siteAccess?.role === 'admin' || siteAccess?.role === 'news_admin';
+        if (!cancelled) setCanApproveForSite(!!ok);
+      } catch (_e) {
+        if (!cancelled) setCanApproveForSite(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [mainSiteSlug, isAdmin]);
+
+  const submitApproval = useCallback(async (nextStatus) => {
+    if (!contentId) return;
+    setApprovalBusy(true);
+    try {
+      await axios.put(`${API}/content/${contentId}/approval`, { approval_status: nextStatus });
+      toast.success(nextStatus === 'approved' ? 'Content approved' : nextStatus === 'rejected' ? 'Content rejected' : 'Approval revoked');
+      await fetchContent();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Could not update approval');
+    } finally {
+      setApprovalBusy(false);
+    }
+  }, [contentId]);
   const claraPublishEnabled = useMemo(() => {
     const feats = parentMainSite?.enabled_features || [];
     return Array.isArray(feats) && feats.includes('clara_publish');
@@ -954,36 +990,66 @@ const ContentDetailPage = () => {
               </div>
             )}
 
-            {wpSites.length > 0 && (
-              <Button
-                data-testid="publish-wp-btn"
-                onClick={() => !isPublishBlocked && !rightsMissing && hasFeaturedImage && openPublishDialog()}
-                disabled={isPublishBlocked || !hasFeaturedImage || rightsMissing}
-                className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white rounded-full px-5"
-              >
-                <img src="/wordpress-logo.webp" alt="" aria-hidden="true" className="w-6 h-6 object-contain brightness-0 invert" />
-                {hasPublishedSites ? 'Sync to WordPress' : 'Publish to WordPress'}
-              </Button>
-            )}
+            {/* When content is Ready and pending approval, show Approve/Reject
+                buttons in-place of the publish buttons for users who have approval
+                rights. Once approved (or if the user cannot approve), the normal
+                publish buttons return below. */}
+            {content.status === 'ready' && isPendingApproval && canApproveForSite ? (
+              <>
+                <Button
+                  data-testid="approve-inline-btn"
+                  onClick={() => submitApproval('approved')}
+                  disabled={approvalBusy}
+                  className="gap-2 bg-white hover:bg-zinc-50 text-zinc-800 border border-zinc-200 rounded-full px-5 disabled:opacity-60"
+                >
+                  <Check className="w-4 h-4 text-green-600" />
+                  Approve
+                </Button>
+                <Button
+                  data-testid="reject-inline-btn"
+                  onClick={() => submitApproval('rejected')}
+                  disabled={approvalBusy}
+                  variant="outline"
+                  className="gap-2 bg-white hover:bg-zinc-50 text-zinc-800 border border-zinc-200 rounded-full px-5 disabled:opacity-60"
+                >
+                  <X className="w-4 h-4 text-[#7380b6]" />
+                  Reject
+                </Button>
+              </>
+            ) : (
+              <>
+                {wpSites.length > 0 && (
+                  <Button
+                    data-testid="publish-wp-btn"
+                    onClick={() => !isPublishBlocked && !rightsMissing && hasFeaturedImage && openPublishDialog()}
+                    disabled={isPublishBlocked || !hasFeaturedImage || rightsMissing}
+                    className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white rounded-full px-5"
+                  >
+                    <img src="/wordpress-logo.webp" alt="" aria-hidden="true" className="w-6 h-6 object-contain brightness-0 invert" />
+                    {hasPublishedSites ? 'Sync to WordPress' : 'Publish to WordPress'}
+                  </Button>
+                )}
 
-            {/* News API Publish Button */}
-            <Button
-              data-testid="publish-clara-btn"
-              onClick={() => publishViaClara()}
-              disabled={newsApiBlocked || claraPublishBusy}
-              className={`gap-2 rounded-full px-5 !text-white [&_svg]:!text-white disabled:!text-white disabled:opacity-60 ${
-                content?.status === 'published'
-                  ? 'bg-emerald-600 hover:bg-emerald-700 border border-emerald-700'
-                  : 'bg-[#7380b6] hover:bg-[#5f6ca3] border border-[#5f6ca3]'
-              }`}
-            >
-              {claraPublishBusy ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <img src="/clara-chevron.png" alt="" aria-hidden="true" className="w-7 h-7 object-contain brightness-0 invert -ml-1" />
-              )}
-              {content?.status === 'published' ? 'Sync to News API' : 'Publish to News API'}
-            </Button>
+                {/* News API Publish Button */}
+                <Button
+                  data-testid="publish-clara-btn"
+                  onClick={() => publishViaClara()}
+                  disabled={newsApiBlocked || claraPublishBusy}
+                  className={`gap-2 rounded-full px-5 !text-white [&_svg]:!text-white disabled:!text-white disabled:opacity-60 ${
+                    content?.status === 'published'
+                      ? 'bg-emerald-600 hover:bg-emerald-700 border border-emerald-700'
+                      : 'bg-[#7380b6] hover:bg-[#5f6ca3] border border-[#5f6ca3]'
+                  }`}
+                >
+                  {claraPublishBusy ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <img src="/clara-chevron.png" alt="" aria-hidden="true" className="w-7 h-7 object-contain brightness-0 invert -ml-1" />
+                  )}
+                  {content?.status === 'published' ? 'Sync to News API' : 'Publish to News API'}
+                </Button>
+              </>
+            )}
           </div>
         )}
       </div>

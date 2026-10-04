@@ -28,6 +28,7 @@ import {
   Users,
   User,
   Video,
+  Info,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -198,6 +199,10 @@ const ShowDetailPage = () => {
   const [linkedFolders, setLinkedFolders] = useState([]);
   const [expandedFolders, setExpandedFolders] = useState(new Set());
   const [folderAssets, setFolderAssets] = useState({});
+
+  // Collapsible panel visibility (buttons in header toggle these)
+  const [showDetailsOpen, setShowDetailsOpen] = useState(false);
+  const [recurrenceOpen, setRecurrenceOpen] = useState(false);
 
   useEffect(() => {
     fetchShow();
@@ -533,6 +538,34 @@ const ShowDetailPage = () => {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap lg:flex-nowrap lg:justify-end">
+          {/* Show Details toggle */}
+          <Button
+            data-testid="toggle-show-details-btn"
+            onClick={() => setShowDetailsOpen((v) => !v)}
+            variant="outline"
+            size="sm"
+            className={`gap-2 h-9 px-4 rounded-full border-zinc-200 ${
+              showDetailsOpen ? 'bg-[#7380b6] text-white [&_svg]:text-white hover:bg-[#5f6ca3] border-transparent' : 'bg-white text-zinc-700 hover:bg-zinc-50'
+            }`}
+          >
+            <Info className="w-4 h-4" />
+            Details
+          </Button>
+          {/* Recurrence toggle — only when show is recurring or user can enable it */}
+          {(show.is_recurring || (!show.parent_show_id && isEditor)) && (
+            <Button
+              data-testid="toggle-recurrence-btn"
+              onClick={() => setRecurrenceOpen((v) => !v)}
+              variant="outline"
+              size="sm"
+              className={`gap-2 h-9 px-4 rounded-full border-zinc-200 ${
+                recurrenceOpen ? 'bg-[#7380b6] text-white [&_svg]:text-white hover:bg-[#5f6ca3] border-transparent' : 'bg-white text-zinc-700 hover:bg-zinc-50'
+              }`}
+            >
+              <Repeat className="w-4 h-4" />
+              Recurrence
+            </Button>
+          )}
           {/* Export/Print — modern pill */}
           <Button
             data-testid="print-rundown-btn"
@@ -563,7 +596,8 @@ const ShowDetailPage = () => {
         </div>
       </div>
 
-      {/* Show Details Section */}
+      {/* Show Details Section — toggled by "Details" button in header */}
+      {showDetailsOpen && (
       <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-zinc-900">Show Details</h2>
@@ -842,9 +876,10 @@ const ShowDetailPage = () => {
           </div>
         )}
       </div>
+      )}
 
-      {/* Show Settings Section - Recurrence Only */}
-      {!show.is_recurring && !show.parent_show_id && isEditor && (
+      {/* Show Settings Section - Recurrence Only — toggled by "Recurrence" button */}
+      {recurrenceOpen && !show.is_recurring && !show.parent_show_id && isEditor && (
         <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -872,8 +907,8 @@ const ShowDetailPage = () => {
         </div>
       )}
 
-      {/* Recurrence Settings Section - Only for recurring shows */}
-      {show.is_recurring && (
+      {/* Recurrence Settings Section - Only for recurring shows — toggled by "Recurrence" button */}
+      {recurrenceOpen && show.is_recurring && (
         <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
