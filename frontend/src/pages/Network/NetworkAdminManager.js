@@ -12,6 +12,7 @@ import {
   Plus, Crown, Shield, Trash2, Edit, Copy, Eye, Settings, Users, Globe,
   ShieldCheck, Loader2, UserPlus, Lock
 } from 'lucide-react';
+import { getAvatarUrl } from '../../utils/avatar';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -210,12 +211,14 @@ export default function NetworkAdminManager({ open, onClose, inline = false }) {
       ) : (
         <div className="space-y-4">
           {admins.map(admin => (
-            <Card key={admin.id} className={`bg-zinc-100/70 border-zinc-300 ${admin.is_primary_network_admin ? 'border-[#7380b6]/30' : ''}`}>
+            <Card key={admin.id} className={`bg-white border-zinc-200 ${admin.is_primary_network_admin ? 'border-[#7380b6]/30' : ''}`}>
               <CardContent className="flex items-center justify-between p-4">
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${admin.is_primary_network_admin ? 'bg-gradient-to-br from-[#7380b6] to-amber-600 text-white' : 'bg-zinc-200 text-zinc-600'}`}>
-                    {admin.name?.charAt(0).toUpperCase()}
-                  </div>
+                  <img
+                    src={getAvatarUrl({ avatar_url: admin.avatar_url })}
+                    alt={admin.name || 'avatar'}
+                    className="w-10 h-10 rounded-full object-cover border border-zinc-200 bg-zinc-100 flex-shrink-0"
+                  />
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-zinc-900">{admin.name}</span>
