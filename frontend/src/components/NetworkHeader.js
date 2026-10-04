@@ -221,7 +221,7 @@ export default function NetworkHeader({
               <button
                 key={tab.id}
                 onClick={() => handleNavClick(tab)}
-                className={`relative px-3.5 py-2 rounded-full text-sm font-medium transition-colors z-[1] whitespace-nowrap flex-shrink-0 hover:text-slate-700 ${active ? 'text-white' : 'text-slate-500 hover:bg-slate-100/60'}`}
+                className={`relative px-3.5 py-2 rounded-full text-sm font-medium transition-colors z-[1] whitespace-nowrap flex-shrink-0 ${active ? 'text-white' : 'text-slate-500'}`}
                 data-testid={`pill-${tab.id}`}
               >
                 {active && (
@@ -248,7 +248,7 @@ export default function NetworkHeader({
           {/* More dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="relative px-4 py-2 rounded-full text-sm font-medium text-zinc-500 hover:text-zinc-900 hover:bg-slate-100 transition-colors">
+              <button className="relative px-4 py-2 rounded-full text-sm font-medium text-zinc-500 transition-colors">
                 More<ChevronDown className="w-3.5 h-3.5 ml-1 inline" />
                 {supportCount > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] flex items-center justify-center text-[9px] font-bold bg-[#7380b6]/100 text-white rounded-full px-0.5">{supportCount}</span>
