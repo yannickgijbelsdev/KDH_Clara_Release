@@ -1226,8 +1226,11 @@ const MainSiteDashboardContent = () => {
             {/* Clara Enterprise */}
             {mainSite?.clara_enterprise && (
               <div className="relative group" data-testid="enterprise-icon">
-                <div className="w-7 h-7 rounded-full bg-violet-500/15 flex items-center justify-center cursor-default">
-                  <Sparkles className="w-3.5 h-3.5 text-violet-500" />
+                {/* Animated amber pulse rings */}
+                <span className="pointer-events-none absolute inset-0 rounded-full bg-amber-400/20 animate-ping" aria-hidden="true" />
+                <span className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-amber-400/40 animate-pulse" aria-hidden="true" />
+                <div className="relative w-7 h-7 rounded-full bg-amber-50 ring-2 ring-amber-200 flex items-center justify-center cursor-default shadow-sm">
+                  <Crown className="w-3.5 h-3.5 enterprise-crown-wiggle" strokeWidth={2.5} style={{ color: '#f59e0b' }} />
                 </div>
                 <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2.5 py-1 bg-zinc-900 text-white text-[10px] font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
                   Clara Enterprise

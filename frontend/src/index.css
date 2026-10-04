@@ -89,6 +89,20 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.025em;
 }
 
+/* Clara Enterprise crown animation — subtle sparkle/wiggle to signal premium */
+@keyframes enterprise-crown-wiggle {
+  0%, 100% { transform: rotate(0deg) scale(1); filter: drop-shadow(0 0 0 rgba(245, 158, 11, 0)); }
+  20%      { transform: rotate(-7deg) scale(1.05); }
+  40%      { transform: rotate(7deg)  scale(1.05); filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.6)); }
+  60%      { transform: rotate(-4deg) scale(1.03); }
+  80%      { transform: rotate(4deg)  scale(1.02); }
+}
+.enterprise-crown-wiggle {
+  animation: enterprise-crown-wiggle 3.6s ease-in-out infinite;
+  transform-origin: 50% 70%;
+  will-change: transform, filter;
+}
+
 .font-mono {
   font-family: 'JetBrains Mono', monospace;
 }
