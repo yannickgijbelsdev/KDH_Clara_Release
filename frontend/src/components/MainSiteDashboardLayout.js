@@ -1218,8 +1218,7 @@ const MainSiteDashboardContent = () => {
             </span>
             {mainSite?.clara_enterprise && (
               <span
-                className="inline-flex items-center text-[10px] font-semibold uppercase tracking-wider rounded-full px-1.5 py-0.5 whitespace-nowrap border"
-                style={{ color: '#b45309', backgroundColor: '#FFFBEB', borderColor: '#FDE68A' }}
+                className="font-display font-light text-zinc-500 text-[20px] leading-none whitespace-nowrap tracking-tight"
                 data-testid="enterprise-tag"
                 title="Clara Enterprise"
               >
