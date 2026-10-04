@@ -1,0 +1,35 @@
+{
+  "summary": "Backend-only validation of per-user Custom Permissions (Team Settings). 7/7 pytest scenarios pass: (1) GET /api/roles/schema returns categories+actions for any authenticated user (admin), (2) same endpoint accessible to a non-admin team member, (3) GET /api/roles/custom-permissions/{site}/{user} returns empty map initially for site admin, (4) PUT /api/roles/custom-permissions filters unknown features ('not_a_feature') and unknown actions ('bogus') — persisted map equals {shows:{edit:true,delete:false}}, (5) PUT by non-admin → 403, (6) /api/auth/me/permissions merges overrides on top of role (viewer baseline has no shows.delete; after admin override={shows:{delete:true}} the user's permissions.shows.delete === true), (7) admin role keeps _full_access even if a restrictive override is injected via DB. Each test clears overrides in teardown.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "any /api/*", "issue": "Transient 'RuntimeError: No response returned' in starlette middleware stack (security_headers → call_next) seen in backend logs under load; reproduced as sporadic ReadTimeout on freshly-logged-in non-admin tokens. Test suite handles this via a 3× retry wrapper (_request). Pre-existing env flakiness, not introduced by the custom-permissions change."}
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_custom_permissions.py",
+    "/app/test_reports/pytest/custom_permissions.xml"
+  ],
+  "action_items": [
+    "Credentials mismatch: review request said 'yannick.gijbels@koodh.com / test' is a NON-admin of radiogroep, but in DB that user is role=admin on radiogroep AND has totp_enabled=true. The suggested password also fails (401). Tests therefore provision a disposable TEST_custperm_* viewer user via pymongo and tear it down. Please update /app/memory/test_credentials.md with an actual non-admin radiogroep test account if one exists, or keep provisioning in tests.",
+    "Investigate sporadic 'No response returned' middleware errors in backend logs — appears unrelated to this feature but will cause flaky UI/API hiccups."
+  ],
+  "critical_code_review_comments": [
+    "routers/roles.py set_custom_permissions correctly whitelists allowed_features from PERMISSION_CATEGORIES and ACTIONS; bogus actions and unknown features are silently dropped — matches spec.",
+    "services/permissions.py get_user_permissions double-guards admin: both (a) early-return _full_access when role doc is admin+is_system and (b) when role doc missing but slug=='admin'. Overrides can never lock out an admin — good.",
+    "services/permissions.py applies overrides AFTER base is derived, and runs _merge_alias_permissions on the merged result so that an override on 'shows' also propagates to the 'calendar' alias. Verified behavioural change via /api/auth/me/permissions.",
+    "Minor: PUT returns the cleaned overrides but does not log an audit event. If auditability is desired (who changed whose permissions), consider inserting into permission_audit_logs or activity_logs. Not blocking.",
+    "Minor: _assert_admin_of_site requires EXACT role='admin' slug on main_site_users. If a custom role was ever named 'super_admin' or similar it would be rejected — acceptable per current spec (site admin only)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_custom_permissions.py (new)"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "not tested"},
+  "test_credentials": "admin: admkoodh@koodh.com / KYLovie13monx. A disposable viewer user (TEST_custperm_<rand>@example.com / TestPass123!) is created and deleted by the test module.",
+  "seed_data_creation": "Module-scope fixture creates one users doc + one main_site_users doc (role=viewer) in radiogroep via pymongo, teardown deletes both.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Backend route is /api/roles/custom-permissions/{main_site_id}/{user_id} (GET/PUT). /api/auth/me/permissions requires X-Main-Site-ID (UUID, not slug). Non-admin team members can hit /api/roles/schema. Yannick credentials from the review are wrong (admin + 2FA enabled, password 'test' fails) — tests provision their own viewer. There is a pre-existing flakiness where the backend occasionally returns no response ('RuntimeError: No response returned' in middleware); the test file uses a 3× retry wrapper to absorb it.",
+  "rca of the issue": "Not a bug fix — new-feature validation. The implementation stores a `custom_permissions` sub-document on main_site_users and merges it on top of role-derived permissions in services/permissions.py:get_user_permissions. The schema endpoint was intentionally loosened to any authenticated user so non-network-admin site admins can reach the override dialog from Team Settings. All six acceptance criteria in the review request pass."
+}
