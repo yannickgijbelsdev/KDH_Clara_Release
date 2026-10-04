@@ -51,7 +51,7 @@ const typeIcons = {
 };
 
 const approvalStatusConfig = {
-  pending: { icon: Clock, color: 'text-yellow-500', bgColor: 'bg-yellow-500/10', label: 'Pending Review' },
+  pending: { icon: Clock, color: 'text-zinc-600', bgColor: 'bg-zinc-100', label: 'Pending Review' },
   approved: { icon: CheckCircle, color: 'text-green-500', bgColor: 'bg-green-500/10', label: 'Approved' },
   rejected: { icon: XCircle, color: 'text-[#7380b6]0', bgColor: 'bg-[#7380b6]/100/10', label: 'Rejected' },
 };
@@ -240,9 +240,9 @@ const AdminApprovalPage = () => {
           <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 mb-1 sm:mb-2">
             Content Approval
           </h1>
-          <p className="text-sm sm:text-base text-zinc-400">
+          <p className="text-sm sm:text-base text-zinc-500">
             {pendingCount > 0 ? (
-              <span className="text-yellow-400">
+              <span>
                 {pendingCount} item{pendingCount !== 1 ? 's' : ''} pending your approval
               </span>
             ) : (
@@ -353,11 +353,7 @@ const AdminApprovalPage = () => {
             return (
               <div
                 key={item.id}
-                className={`bg-white border rounded-xl p-4 sm:p-5 transition-all ${
-                  isPending
-                    ? 'border-yellow-500/40 hover:border-yellow-500'
-                    : 'border-zinc-200 hover:border-zinc-300'
-                }`}
+                className="bg-white border border-zinc-200 hover:border-zinc-300 rounded-xl p-4 sm:p-5 transition-all"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-4 flex-1 min-w-0">
