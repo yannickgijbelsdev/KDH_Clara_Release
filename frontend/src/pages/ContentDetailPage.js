@@ -81,6 +81,7 @@ import RichTextEditor from '../components/RichTextEditor';
 import { claraToast } from '../utils/claraToast';
 import { useClaraAssistant } from '../context/ClaraAssistantContext';
 import ClaraErrorButton from '../components/ClaraErrorButton';
+import { getAvatarUrl } from '../utils/avatar';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -826,26 +827,22 @@ const ContentDetailPage = () => {
             )}
             {content.created_by_name && (
               <span className="inline-flex items-center gap-1" title={`Created by ${content.created_by_name}`}>
-                {content.created_by_avatar ? (
-                  <img src={content.created_by_avatar} alt="" className="w-4 h-4 rounded-full object-cover border border-zinc-200" />
-                ) : (
-                  <span className="w-4 h-4 rounded-full bg-zinc-200 flex items-center justify-center text-[8px] font-bold text-zinc-600">
-                    {content.created_by_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
-                  </span>
-                )}
+                <img
+                  src={getAvatarUrl({ avatar_url: content.created_by_avatar })}
+                  alt=""
+                  className="w-4 h-4 rounded-full object-cover border border-zinc-200 bg-zinc-100"
+                />
                 <span className="text-zinc-700 font-medium">{content.created_by_name}</span>
               </span>
             )}
             {content.last_edited_by_name && content.last_edited_by_name !== content.created_by_name && (
               <span className="inline-flex items-center gap-1" title={`Last edited by ${content.last_edited_by_name}`}>
                 <Pencil className="w-3 h-3 text-zinc-400" />
-                {content.last_edited_by_avatar ? (
-                  <img src={content.last_edited_by_avatar} alt="" className="w-4 h-4 rounded-full object-cover border border-zinc-200" />
-                ) : (
-                  <span className="w-4 h-4 rounded-full bg-zinc-200 flex items-center justify-center text-[8px] font-bold text-zinc-600">
-                    {content.last_edited_by_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
-                  </span>
-                )}
+                <img
+                  src={getAvatarUrl({ avatar_url: content.last_edited_by_avatar })}
+                  alt=""
+                  className="w-4 h-4 rounded-full object-cover border border-zinc-200 bg-zinc-100"
+                />
                 <span className="text-zinc-700 font-medium">{content.last_edited_by_name}</span>
               </span>
             )}
@@ -956,13 +953,11 @@ const ContentDetailPage = () => {
                   <Check className="w-4 h-4 !text-white" strokeWidth={3} />
                 </span>
                 <span className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 whitespace-nowrap bg-zinc-900 text-white text-xs px-2.5 py-1.5 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-center gap-1.5">
-                  {content.approved_by_avatar ? (
-                    <img src={content.approved_by_avatar} alt="" className="w-4 h-4 rounded-full object-cover" />
-                  ) : (
-                    <span className="w-4 h-4 rounded-full bg-zinc-700 flex items-center justify-center text-[8px] font-bold text-zinc-200">
-                      {(content.approved_by_name || '?').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
-                    </span>
-                  )}
+                  <img
+                    src={getAvatarUrl({ avatar_url: content.approved_by_avatar })}
+                    alt=""
+                    className="w-4 h-4 rounded-full object-cover bg-zinc-700"
+                  />
                   Approved by {content.approved_by_name || 'Unknown'}
                 </span>
               </div>
