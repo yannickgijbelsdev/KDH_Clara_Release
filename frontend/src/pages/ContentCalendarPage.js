@@ -573,7 +573,9 @@ const ContentCalendarPage = () => {
                             </span>
                           )}
                           {entry.excerpt && (
-                            <p className="text-zinc-500 text-xs mt-1 line-clamp-2">{entry.excerpt}</p>
+                            <p className="text-zinc-500 text-xs mt-1 line-clamp-2">
+                              {entry.excerpt.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim()}
+                            </p>
                           )}
                         </div>
                       </div>

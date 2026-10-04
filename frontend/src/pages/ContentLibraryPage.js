@@ -936,34 +936,35 @@ const ContentLibraryPage = () => {
                           />
                           Updated {format(parseISO(item.updated_at), 'MMM d, yyyy')}
                         </span>
+
+                        {/* Published destinations — inline next to Updated */}
+                        {item.publish_statuses && item.publish_statuses.length > 0 && (
+                          <span className="flex items-center gap-1 flex-wrap" title="Published destinations">
+                            {item.publish_statuses
+                              .filter(ps => ps.wordpress_site_name && ps.wordpress_site_name !== 'Unknown')
+                              .map((ps, i) => {
+                                const synced = ps.sync_status === 'synced' || ps.sync_status === 'ok';
+                                const failed = ps.sync_status === 'failed' || ps.sync_status === 'error';
+                                return (
+                                  <span
+                                    key={i}
+                                    className={`inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded-full border ${
+                                      synced ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                                      : failed ? 'bg-[#7380b6]/10 border-[#7380b6]/30 text-[#5f6ca3]'
+                                      : 'bg-zinc-50 border-zinc-200 text-zinc-600'
+                                    }`}
+                                  >
+                                    {ps.wordpress_site_name}
+                                  </span>
+                                );
+                              })}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
                   
                   <div className="flex items-center gap-3">
-                    {/* Published destinations — show actual site names */}
-                    {item.publish_statuses && item.publish_statuses.length > 0 && (
-                      <div className="flex items-center gap-1 flex-wrap justify-end max-w-[260px]" title="Published destinations">
-                        {item.publish_statuses
-                          .filter(ps => ps.wordpress_site_name && ps.wordpress_site_name !== 'Unknown')
-                          .map((ps, i) => {
-                            const synced = ps.sync_status === 'synced' || ps.sync_status === 'ok';
-                            const failed = ps.sync_status === 'failed' || ps.sync_status === 'error';
-                            return (
-                              <span
-                                key={i}
-                                className={`inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded-full border ${
-                                  synced ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                                  : failed ? 'bg-[#7380b6]/10 border-[#7380b6]/30 text-[#5f6ca3]'
-                                  : 'bg-zinc-50 border-zinc-200 text-zinc-600'
-                                }`}
-                              >
-                                {ps.wordpress_site_name}
-                              </span>
-                            );
-                          })}
-                      </div>
-                    )}
                     <ChevronRight className="w-5 h-5 text-zinc-600 group-hover:text-[#7380b6] transition-colors" />
                   </div>
                 </div>

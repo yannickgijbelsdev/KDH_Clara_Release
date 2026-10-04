@@ -301,7 +301,7 @@ const TrashPage = () => {
                       size="sm"
                       onClick={() => handleRestore(item)}
                       disabled={isRestoring}
-                      className="bg-green-600 hover:bg-green-700 text-white gap-1"
+                      className="bg-green-600 hover:bg-green-700 !text-white [&_svg]:!text-white gap-1"
                     >
                       {isRestoring ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
