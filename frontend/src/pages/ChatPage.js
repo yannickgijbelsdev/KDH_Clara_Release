@@ -231,6 +231,7 @@ const ChatPage = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showNewChatDialog, setShowNewChatDialog] = useState(false);
   const [showManageDialog, setShowManageDialog] = useState(false);
+  const [showMembersDialog, setShowMembersDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [newChatType, setNewChatType] = useState(null);
   const [selectedMembers, setSelectedMembers] = useState([]);
@@ -844,50 +845,63 @@ const ChatPage = () => {
                     <p className="text-xs text-zinc-500 truncate">{getThreadSubtitle(activeThread)}</p>
                   </div>
                   
-                  {/* Member avatars */}
-                  <div className="hidden sm:flex -space-x-2">
+                  {/* Member avatars — click to see who's in the chat */}
+                  <button
+                    type="button"
+                    onClick={() => setShowMembersDialog(true)}
+                    className="hidden sm:flex -space-x-2 items-center hover:opacity-80 transition-opacity cursor-pointer"
+                    title={`${activeThread.members?.length || 0} members — click to view`}
+                    data-testid="chat-members-button"
+                  >
                     {activeThread.members?.slice(0, 4).map((member) => (
                       <div
                         key={member.id}
-                        className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7380b6]/30 to-violet-500/30 border-2 border-[#18181b] flex items-center justify-center"
-                        title={member.name}
+                        className="w-8 h-8 rounded-full bg-zinc-100 border-2 border-white overflow-hidden flex items-center justify-center shadow-sm"
                       >
-                        {getAvatarUrl(member) ? (
-                          <img src={getAvatarUrl(member)} alt="" className="w-full h-full rounded-full object-cover" />
-                        ) : (
-                          <span className="text-xs font-semibold text-zinc-900">{member.name.charAt(0).toUpperCase()}</span>
-                        )}
+                        <img src={getAvatarUrl(member)} alt={member.name} className="w-full h-full object-cover" />
                       </div>
                     ))}
                     {activeThread.members?.length > 4 && (
-                      <div className="w-8 h-8 rounded-full bg-zinc-200 border-2 border-[#18181b] flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-full bg-zinc-100 border-2 border-white flex items-center justify-center shadow-sm">
                         <span className="text-xs font-semibold text-zinc-600">+{activeThread.members.length - 4}</span>
                       </div>
                     )}
-                  </div>
+                  </button>
 
-                  {/* Settings dropdown for groups */}
-                  {activeThread.type === 'group' && isOwnerOrAdmin() && (
+                  {/* Settings dropdown for groups — all members can leave; owner/admin can manage */}
+                  {activeThread.type === 'group' && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" data-testid="chat-settings-trigger">
                           <Settings className="w-5 h-5 text-zinc-400" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="bg-white border-zinc-200">
-                        <DropdownMenuItem 
-                          onClick={() => setShowManageDialog(true)}
+                        {isOwnerOrAdmin() && (
+                          <DropdownMenuItem
+                            onClick={() => setShowManageDialog(true)}
+                            className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
+                            data-testid="chat-manage-members-item"
+                          >
+                            <UserPlus className="w-4 h-4 mr-2" />
+                            Manage Members
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem
+                          onClick={() => setShowLeaveDialog(true)}
                           className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
+                          data-testid="chat-leave-group-item"
                         >
-                          <UserPlus className="w-4 h-4 mr-2" />
-                          Manage Members
+                          <LogOut className="w-4 h-4 mr-2" />
+                          Leave group
                         </DropdownMenuItem>
                         {getUserRole() === 'owner' && (
                           <>
                             <DropdownMenuSeparator className="bg-zinc-200" />
                             <DropdownMenuItem 
                               onClick={() => setShowDeleteDialog(true)}
-                              className="text-[#7380b6] focus:text-[#7380b6] focus:bg-[#7380b6]/100/10"
+                              className="text-[#7380b6] focus:text-[#7380b6] focus:bg-[#7380b6]/10"
+                              data-testid="chat-delete-group-item"
                             >
                               <Trash2 className="w-4 h-4 mr-2" />
                               Delete Group
@@ -929,29 +943,35 @@ const ChatPage = () => {
                             key={message.id}
                             data-testid={`message-${message.id}`}
                             className={cn(
-                              'flex gap-2 md:gap-3 group',
+                              'flex gap-2 md:gap-3 group items-end w-full',
                               message.user_id === user?.id ? 'flex-row-reverse' : ''
                             )}
                           >
-                            <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-[#7380b6]/20 flex items-center justify-center flex-shrink-0">
-                              <span className="text-xs font-semibold text-[#7380b6]">
-                                {(message.user_name || 'U').charAt(0).toUpperCase()}
-                              </span>
-                            </div>
-                            <div className="relative">
+                            <img
+                              src={getAvatarUrl({ avatar_url: message.user_avatar })}
+                              alt={message.user_name || 'user'}
+                              className="w-7 h-7 md:w-8 md:h-8 rounded-full object-cover bg-zinc-100 flex-shrink-0"
+                            />
+                            <div className={cn(
+                              'relative max-w-[80%] md:max-w-[65%] min-w-0',
+                              message.user_id === user?.id ? 'items-end' : 'items-start'
+                            )}>
                               <div
                                 className={cn(
-                                  'max-w-[80%] md:max-w-[70%] rounded-2xl px-3 md:px-4 py-2',
+                                  'rounded-2xl px-3 md:px-4 py-2 shadow-sm',
                                   message.user_id === user?.id
-                                    ? 'bg-[#7380b6]/20 rounded-tr-none'
-                                    : 'bg-white/5 rounded-tl-none'
+                                    ? 'bg-[#7380b6] !text-white [&_*]:!text-white rounded-br-sm'
+                                    : 'bg-zinc-100 text-zinc-900 rounded-bl-sm'
                                 )}
                               >
                                 {message.user_id !== user?.id && (
-                                  <p className="text-xs font-medium text-[#7380b6] mb-1">{message.user_name}</p>
+                                  <p className="text-xs font-semibold mb-0.5 text-[#5f6ca3]">{message.user_name}</p>
                                 )}
                                 {message.body && (
-                                  <p className="text-sm text-white whitespace-pre-wrap break-words">
+                                  <p className={cn(
+                                    'text-sm whitespace-pre-wrap break-words leading-snug',
+                                    message.user_id === user?.id ? 'text-white' : 'text-zinc-900'
+                                  )}>
                                     <MessageWithEmojis text={message.body} />
                                   </p>
                                 )}
@@ -960,7 +980,10 @@ const ChatPage = () => {
                                   attachment_type={message.attachment_type}
                                   attachment_name={message.attachment_name}
                                 />
-                                <p className="text-xs text-zinc-500 mt-1 text-right">{formatTime(message.created_at)}</p>
+                                <p className={cn(
+                                  'text-[10px] mt-1 text-right',
+                                  message.user_id === user?.id ? '!text-white' : 'text-zinc-400'
+                                )}>{formatTime(message.created_at)}</p>
                               </div>
                               {/* Delete message button - only for own messages */}
                               {message.user_id === user?.id && (
@@ -968,7 +991,7 @@ const ChatPage = () => {
                                   onClick={() => handleDeleteMessage(message.id)}
                                   className={cn(
                                     'absolute top-1 opacity-0 group-hover:opacity-100 transition-opacity',
-                                    'p-1 rounded-full bg-zinc-200 hover:bg-[#7380b6]/100/20 text-zinc-400 hover:text-[#7380b6]',
+                                    'p-1 rounded-full bg-zinc-100 hover:bg-[#7380b6]/20 text-zinc-400 hover:text-[#7380b6]',
                                     message.user_id === user?.id ? 'right-full mr-1' : 'left-full ml-1'
                                   )}
                                   title="Delete message"
@@ -1214,6 +1237,39 @@ const ChatPage = () => {
               </Button>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+
+      {/* View Members Dialog — opened by clicking the avatar strip */}
+      <Dialog open={showMembersDialog} onOpenChange={setShowMembersDialog}>
+        <DialogContent className="bg-white border-zinc-200 text-zinc-900 sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle className="text-zinc-900 flex items-center gap-2">
+              <Users className="w-5 h-5 text-[#7380b6]" />
+              Members ({activeThread?.members?.length || 0})
+            </DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[55vh] overflow-y-auto -mx-1 px-1 space-y-1">
+            {(activeThread?.members || []).map((member) => (
+              <div key={member.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-50" data-testid={`members-dialog-row-${member.id}`}>
+                <img
+                  src={getAvatarUrl(member)}
+                  alt={member.name}
+                  className="w-9 h-9 rounded-full object-cover bg-zinc-100 flex-shrink-0"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-zinc-900 truncate">{member.name}</p>
+                  {member.email && <p className="text-xs text-zinc-400 truncate">{member.email}</p>}
+                </div>
+                {member.role && (
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-zinc-500 bg-zinc-100 border border-zinc-200 px-2 py-0.5 rounded-full flex-shrink-0">
+                    {member.role}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
         </DialogContent>
       </Dialog>
 

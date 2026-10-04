@@ -23,6 +23,33 @@ UPLOAD_DIR = "/app/backend/uploads/chat"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
+# ─── Unread tracking helpers ────────────────────────────────────────────────
+# `chat_reads` collection stores one doc per (user_id, thread_id) pair with the
+# ISO timestamp of the latest message the user has seen. Messages created after
+# that timestamp count as unread for that user. Users with no `chat_reads` row
+# yet are treated as if they have never read the thread (all messages unread).
+
+async def _get_last_read_map(user_id: str, thread_ids: list) -> dict:
+    """Return {thread_id: last_read_at_iso} for the given thread_ids and user."""
+    if not thread_ids:
+        return {}
+    reads = await db.chat_reads.find(
+        {"user_id": user_id, "thread_id": {"$in": thread_ids}},
+        {"_id": 0, "thread_id": 1, "last_read_at": 1},
+    ).to_list(len(thread_ids))
+    return {r["thread_id"]: r.get("last_read_at") for r in reads}
+
+
+async def _count_unread_in_thread(user_id: str, thread_id: str, last_read_at) -> int:
+    """Count messages in `thread_id` newer than `last_read_at` not sent by the user."""
+    msg_filter = {"thread_id": thread_id, "user_id": {"$ne": user_id}}
+    if last_read_at:
+        msg_filter["created_at"] = {"$gt": last_read_at}
+    return await db.chat_messages.count_documents(msg_filter)
+
+
+
+
 async def get_chat_query_filter(request: Request, current_user: dict) -> dict:
     """Helper to build query filter for chat data - uses main_site_id if available, otherwise team_id."""
     main_site_id = await get_main_site_id_from_header(request)
@@ -133,8 +160,61 @@ async def get_chat_threads(
         if last_msg:
             thread["last_message"] = last_msg.get("body", "")[:100]
             thread["last_message_at"] = last_msg.get("created_at")
-    
+
+    # Attach per-thread unread_count in one batched Mongo count per thread
+    thread_ids = [t["id"] for t in threads]
+    reads_map = await _get_last_read_map(user_id, thread_ids)
+    for t in threads:
+        t["unread_count"] = await _count_unread_in_thread(user_id, t["id"], reads_map.get(t["id"]))
+
     return threads
+
+
+@chat_router.get("/unread-count")
+async def get_unread_count(current_user: dict = Depends(get_current_user)):
+    """Total unread messages for the current user across all accessible threads.
+
+    Used by the main dashboard shell to show a red dot on the profile avatar
+    whenever messages arrived while the user was offline.
+    """
+    user_id = current_user.get("id")
+    # Which threads can this user see? Team/show threads for their team + any
+    # group threads they're an explicit member of.
+    thread_cursor = db.chat_threads.find(
+        {
+            "$or": [
+                {"team_id": current_user.get("team_id"), "type": {"$in": ["team", "show"]}},
+                {"member_ids": user_id},
+            ]
+        },
+        {"_id": 0, "id": 1},
+    )
+    threads = await thread_cursor.to_list(500)
+    thread_ids = [t["id"] for t in threads]
+    reads_map = await _get_last_read_map(user_id, thread_ids)
+    total = 0
+    per_thread = []
+    for tid in thread_ids:
+        c = await _count_unread_in_thread(user_id, tid, reads_map.get(tid))
+        total += c
+        if c:
+            per_thread.append({"thread_id": tid, "unread": c})
+    return {"total": total, "threads": per_thread}
+
+
+@chat_router.post("/threads/{thread_id}/read", status_code=status.HTTP_204_NO_CONTENT)
+async def mark_thread_read(thread_id: str, current_user: dict = Depends(get_current_user)):
+    """Mark every message in this thread as read for the current user."""
+    thread = await db.chat_threads.find_one({"id": thread_id}, {"_id": 0, "id": 1})
+    if not thread:
+        raise HTTPException(status_code=404, detail="Thread not found")
+    now_iso = datetime.now(timezone.utc).isoformat()
+    await db.chat_reads.update_one(
+        {"user_id": current_user.get("id"), "thread_id": thread_id},
+        {"$set": {"last_read_at": now_iso}},
+        upsert=True,
+    )
+    return None
 
 
 @chat_router.get("/threads/team", response_model=ChatThreadResponse)
@@ -491,6 +571,53 @@ async def manage_thread_members(
     updated_thread = await db.chat_threads.find_one({"id": thread_id}, {"_id": 0})
     updated_thread["members"] = await get_member_info(updated_thread.get("member_ids", []))
     return updated_thread
+
+
+@chat_router.post("/threads/{thread_id}/leave")
+async def leave_thread(
+    thread_id: str,
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+):
+    """Current user leaves a group thread.
+
+    Rules:
+      * Only group threads can be left (team chats cannot be left; delete-group
+        is the owner-only path for groups).
+      * The sole owner cannot leave — they must transfer ownership first.
+    """
+    user_id = current_user.get("id")
+    query_filter = await get_chat_query_filter(request, current_user)
+    thread = await db.chat_threads.find_one({"id": thread_id, **query_filter})
+    if not thread:
+        raise HTTPException(status_code=404, detail="Thread not found")
+    if thread.get("type") != "group":
+        raise HTTPException(status_code=400, detail="You can only leave group chats")
+    member_ids = thread.get("member_ids", [])
+    if user_id not in member_ids:
+        raise HTTPException(status_code=400, detail="You are not a member of this group")
+    member_roles = thread.get("member_roles", {})
+    if member_roles.get(user_id) == "owner":
+        other_owners = [k for k, v in member_roles.items() if v == "owner" and k != user_id]
+        if not other_owners:
+            raise HTTPException(
+                status_code=400,
+                detail="You're the only owner. Transfer ownership before leaving.",
+            )
+    member_ids = [m for m in member_ids if m != user_id]
+    member_roles.pop(user_id, None)
+    await db.chat_threads.update_one(
+        {"id": thread_id},
+        {
+            "$set": {
+                "member_ids": member_ids,
+                "member_roles": member_roles,
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            }
+        },
+    )
+    return {"left": True}
+
 
 
 @chat_router.get("/threads/{thread_id}", response_model=ChatThreadResponse)
