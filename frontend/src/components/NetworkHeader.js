@@ -297,15 +297,6 @@ export default function NetworkHeader({
 
         {/* User menu */}
         <div className="flex items-center gap-2 flex-shrink-0 ml-auto lg:ml-0">
-          <button
-            onClick={() => window.open('https://docs.clara.koodh.com', '_blank')}
-            className="w-9 h-9 flex items-center justify-center rounded-full border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
-            data-testid="help-icon-btn"
-            title="Help"
-          >
-            <HelpCircle className="w-4 h-4 text-zinc-500" />
-          </button>
-          <div className="h-6 w-px bg-slate-200 mx-1" />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button

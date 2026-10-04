@@ -1380,7 +1380,7 @@ const MainSiteDashboardContent = () => {
           <div className="flex-shrink-0 ml-auto lg:ml-0">
             <button
               onClick={() => { if (!isLicenseBlocked) setSearchExpanded(true); }}
-              className={`w-9 h-9 flex items-center justify-center rounded-full border border-slate-200 bg-white hover:bg-slate-50 transition-all ${isLicenseBlocked ? 'opacity-30 cursor-not-allowed' : ''}`}
+              className={`w-9 h-9 flex items-center justify-center transition-all ${isLicenseBlocked ? 'opacity-30 cursor-not-allowed' : ''}`}
               data-testid="search-icon-btn"
             >
               <Search className="w-4 h-4 text-zinc-500" />
@@ -1455,17 +1455,6 @@ const MainSiteDashboardContent = () => {
             </>
           )}
           <div className="flex items-center gap-2 flex-shrink-0">
-            {/* Help icon */}
-            <button
-              onClick={() => window.open('https://docs.clara.koodh.com', '_blank')}
-              className="w-9 h-9 flex items-center justify-center rounded-full border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
-              data-testid="help-icon-btn"
-              title="Help"
-            >
-              <HelpCircle className="w-4 h-4 text-zinc-500" />
-            </button>
-            {/* Divider */}
-            <div className="h-6 w-px bg-slate-200 mx-1" />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-1.5 hover:bg-slate-50 rounded-full pl-0.5 pr-2 py-0.5 transition-colors" data-testid="user-menu-trigger">
