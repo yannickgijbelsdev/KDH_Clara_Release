@@ -1206,7 +1206,7 @@ const MainSiteDashboardContent = () => {
           <div className="flex items-center shrink-0">
             <button
               onClick={() => navigate(`/${mainSiteSlug}`)}
-              className="hover:opacity-80 transition-opacity flex items-center justify-center mr-1"
+              className="hover:opacity-80 transition-opacity flex items-center justify-center -mr-1"
               data-testid="logo-pill"
               aria-label="Clara"
             >
@@ -1218,7 +1218,7 @@ const MainSiteDashboardContent = () => {
             </span>
             {mainSite?.clara_enterprise && (
               <span
-                className="font-display font-light text-zinc-400 text-[15px] leading-none whitespace-nowrap tracking-tight ml-2"
+                className="font-display font-light text-zinc-400 text-[12px] leading-none whitespace-nowrap tracking-tight ml-1.5"
                 data-testid="enterprise-tag"
                 title="Clara Enterprise"
               >

@@ -167,7 +167,7 @@ export default function NetworkHeader({
         <div className="flex items-center shrink-0">
           <Link
             to="/network"
-            className="hover:opacity-80 transition-opacity flex items-center justify-center mr-1"
+            className="hover:opacity-80 transition-opacity flex items-center justify-center -mr-1"
             data-testid="logo-pill"
             aria-label="Clara"
           >
