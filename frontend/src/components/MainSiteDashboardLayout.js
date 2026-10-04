@@ -24,7 +24,7 @@ import {
   ScrollText, ClipboardCheck, Trash2, Users, ChevronDown, ChevronRight, ChevronLeft,
   UserCog, ArrowLeftRight, FileCheck, Radio, Headphones, Wand2, Play,
   ArrowLeft, Send, Palette, Network, Activity, Shield, Phone, Monitor,
-  KeyRound, FileCode, Video, Ban, Lock, Check, Search, Image, Loader2, Sparkles, Terminal, Plug, Zap, DoorOpen, HelpCircle
+  KeyRound, FileCode, Video, Ban, Lock, Check, Search, Image, Loader2, Sparkles, Terminal, Plug, Zap, DoorOpen, HelpCircle, CornerDownLeft
 } from 'lucide-react';
 import { Button } from './ui/button';
 import RadioplayerIcon from './icons/RadioplayerIcon';
@@ -303,6 +303,7 @@ const MainSiteDashboardContent = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchExpanded, setSearchExpanded] = useState(false);
+  const [searchActiveIdx, setSearchActiveIdx] = useState(0);
   const cliTriggerRef = useRef(null);
   const pillNavRef = useRef(null);
   const flatNavItemsRef = useRef([]);
@@ -373,6 +374,7 @@ const MainSiteDashboardContent = () => {
   useEffect(() => {
     if (!searchQuery || searchQuery.length < 2) {
       setSearchResults([]);
+      setSearchActiveIdx(0);
       return;
     }
     const timer = setTimeout(async () => {
@@ -380,6 +382,7 @@ const MainSiteDashboardContent = () => {
       try {
         const response = await axios.get(`${API}/search`, { params: { q: searchQuery } });
         setSearchResults(response.data.results || []);
+        setSearchActiveIdx(0);
       } catch { setSearchResults([]); }
       setSearchLoading(false);
     }, 300);
@@ -1390,73 +1393,127 @@ const MainSiteDashboardContent = () => {
             </button>
           </div>
 
-          {/* Search Popup Overlay */}
-          {searchExpanded && (
-            <>
-              <div className="fixed inset-0 z-[200]" onClick={() => { setSearchExpanded(false); setSearchOpen(false); setSearchQuery(''); }} />
-              <div className="fixed inset-0 z-[201] flex items-start justify-center pt-[15vh] px-4 pointer-events-none">
-                <div className="w-full max-w-md pointer-events-auto" data-testid="search-popup">
-                  <div className="bg-white rounded-2xl shadow-[0_25px_80px_rgba(0,0,0,0.15)] border border-zinc-200/60 overflow-hidden">
-                    {/* Search input */}
-                    <div className="relative p-3">
-                      <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-                      <input
-                        ref={searchInputRef}
-                        type="text"
-                        value={searchQuery}
-                        onChange={e => { setSearchQuery(e.target.value); setSearchOpen(true); }}
-                        placeholder="Search..."
-                        autoFocus
-                        className="w-full pl-10 pr-10 py-2.5 text-sm bg-transparent border-0 text-zinc-900 placeholder:text-zinc-300 focus:outline-none transition-all"
-                        data-testid="global-search-input"
-                      />
-                      {searchLoading && <Loader2 className="absolute right-16 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 animate-spin" />}
-                      <button
-                        onClick={() => { setSearchExpanded(false); setSearchOpen(false); setSearchQuery(''); }}
-                        className="absolute right-6 top-1/2 -translate-y-1/2 text-zinc-300 hover:text-zinc-500 transition-colors"
-                        data-testid="search-close-btn"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                    {/* Results */}
-                    {searchQuery.length >= 2 && (
-                      <div className="max-h-[50vh] overflow-y-auto" data-testid="search-results-dropdown">
-                        {searchResults.length === 0 && !searchLoading && (
-                          <div className="px-4 py-8 text-center text-sm text-zinc-400">No results found</div>
+          {/* Search Popup Overlay — command-palette style, scoped to current site */}
+          {searchExpanded && (() => {
+            const closeSearch = () => { setSearchExpanded(false); setSearchOpen(false); setSearchQuery(''); setSearchActiveIdx(0); };
+            // Group results by type and build a flat list that mirrors the rendering order
+            const typeMeta = {
+              content: { label: 'Content', icon: FileText, route: (r) => `/${mainSiteSlug}/content/${r.id}` },
+              show:    { label: 'Shows',   icon: Radio,    route: () => `/${mainSiteSlug}/shows` },
+              media:   { label: 'Media',   icon: Image,    route: () => `/${mainSiteSlug}/media` },
+            };
+            const groups = {};
+            searchResults.forEach((r) => { const t = r.type || 'content'; (groups[t] ||= []).push(r); });
+            const groupOrder = Object.keys(groups);
+            const flat = [];
+            groupOrder.forEach((t) => groups[t].forEach((r) => flat.push({ ...r, _type: t })));
+            const openAt = (idx) => {
+              const item = flat[idx];
+              if (!item) return;
+              const meta = typeMeta[item._type] || typeMeta.content;
+              navigate(meta.route(item));
+              closeSearch();
+            };
+            const onKey = (e) => {
+              if (e.key === 'ArrowDown') { e.preventDefault(); setSearchActiveIdx((i) => Math.min(flat.length - 1, i + 1)); }
+              else if (e.key === 'ArrowUp') { e.preventDefault(); setSearchActiveIdx((i) => Math.max(0, i - 1)); }
+              else if (e.key === 'Enter') { e.preventDefault(); openAt(searchActiveIdx); }
+              else if (e.key === 'Escape') { e.preventDefault(); closeSearch(); }
+            };
+            let runningIdx = -1;
+            return (
+              <>
+                <div className="fixed inset-0 z-[200] bg-zinc-900/10 backdrop-blur-[2px]" onClick={closeSearch} />
+                <div className="fixed inset-0 z-[201] flex items-start justify-center pt-[12vh] px-4 pointer-events-none">
+                  <div className="w-full max-w-xl pointer-events-auto" data-testid="search-popup" onKeyDown={onKey}>
+                    <div className="bg-white rounded-2xl shadow-[0_30px_90px_rgba(16,24,40,0.18)] border border-zinc-200/70 overflow-hidden">
+                      {/* Search input row */}
+                      <div className="relative flex items-center gap-3 px-5 py-4 border-b border-zinc-100">
+                        <Search className="w-5 h-5 text-zinc-400 flex-shrink-0" />
+                        <input
+                          ref={searchInputRef}
+                          type="text"
+                          value={searchQuery}
+                          onChange={e => { setSearchQuery(e.target.value); setSearchOpen(true); }}
+                          placeholder={`Search ${mainSite?.name || 'this site'}...`}
+                          autoFocus
+                          className="flex-1 bg-transparent border-0 text-[15px] text-zinc-900 placeholder:text-zinc-400 focus:outline-none"
+                          data-testid="global-search-input"
+                        />
+                        {searchLoading && <Loader2 className="w-4 h-4 text-zinc-300 animate-spin flex-shrink-0" />}
+                        <button
+                          onClick={closeSearch}
+                          className="px-2 py-0.5 text-[11px] font-medium text-zinc-500 bg-zinc-100 rounded-md border border-zinc-200 flex-shrink-0"
+                          data-testid="search-close-btn"
+                        >esc</button>
+                      </div>
+                      {/* Results */}
+                      <div className="max-h-[55vh] overflow-y-auto" data-testid="search-results-dropdown">
+                        {searchQuery.length < 2 && (
+                          <div className="px-5 py-10 text-center text-sm text-zinc-400">Type at least 2 characters to search</div>
                         )}
-                        {searchResults.map((result, idx) => {
-                          const typeIcon = result.type === 'content' ? FileText : result.type === 'show' ? Radio : Image;
-                          const TypeIcon = typeIcon;
-                          const typeLabel = result.type === 'content' ? 'Content' : result.type === 'show' ? 'Show' : 'Media';
-                          const route = result.type === 'content' ? `/${mainSiteSlug}/content/${result.id}` : result.type === 'show' ? `/${mainSiteSlug}/shows` : `/${mainSiteSlug}/media`;
+                        {searchQuery.length >= 2 && flat.length === 0 && !searchLoading && (
+                          <div className="px-5 py-10 text-center text-sm text-zinc-400">No results found</div>
+                        )}
+                        {groupOrder.map((t) => {
+                          const meta = typeMeta[t] || { label: t, icon: FileText };
+                          const Icon = meta.icon;
                           return (
-                            <button
-                              key={`${result.type}-${result.id}-${idx}`}
-                              onClick={() => { navigate(route); setSearchExpanded(false); setSearchOpen(false); setSearchQuery(''); }}
-                              className="w-full px-4 py-3 flex items-center gap-3 hover:bg-zinc-50 transition-colors text-left border-b border-zinc-100 last:border-b-0"
-                              data-testid={`search-result-${result.id}`}
-                            >
-                              <div className="w-9 h-9 rounded-xl bg-zinc-100 flex items-center justify-center flex-shrink-0">
-                                <TypeIcon className="w-4 h-4 text-zinc-400" />
+                            <div key={t} className="py-2">
+                              <div className="px-5 pt-1 pb-1.5 text-[11px] font-semibold text-zinc-400 tracking-wider">
+                                {meta.label.toUpperCase()}
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-zinc-800 truncate">{result.title}</p>
-                                <p className="text-[11px] text-zinc-400 truncate">{typeLabel} - {result.subtitle}</p>
-                              </div>
-                            </button>
+                              {groups[t].map((r) => {
+                                runningIdx += 1;
+                                const idx = runningIdx;
+                                const active = idx === searchActiveIdx;
+                                return (
+                                  <button
+                                    key={`${t}-${r.id}-${idx}`}
+                                    onMouseEnter={() => setSearchActiveIdx(idx)}
+                                    onClick={() => openAt(idx)}
+                                    className={`group w-full px-4 mx-1 rounded-lg py-2.5 flex items-center gap-3 text-left transition-colors ${
+                                      active ? 'bg-[#7380b6]/8' : 'hover:bg-zinc-50'
+                                    }`}
+                                    style={active ? { backgroundColor: 'rgba(115,128,182,0.08)' } : undefined}
+                                    data-testid={`search-result-${r.id}`}
+                                  >
+                                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${active ? 'bg-white border border-[#7380b6]/20' : 'bg-zinc-100'}`}>
+                                      <Icon className={`w-4 h-4 ${active ? 'text-[#5f6ca3]' : 'text-zinc-500'}`} />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-[14px] font-semibold text-zinc-900 truncate">{r.title}</p>
+                                      {r.subtitle && (
+                                        <p className="text-[12px] text-zinc-400 truncate">{r.subtitle}</p>
+                                      )}
+                                    </div>
+                                    {r.status && (
+                                      <span className="text-[11px] font-medium text-zinc-500 capitalize flex-shrink-0">{r.status}</span>
+                                    )}
+                                    <span className={`flex-shrink-0 text-zinc-300 transition-opacity ${active ? 'opacity-100 text-[#5f6ca3]' : 'opacity-0 group-hover:opacity-60'}`}>
+                                      <CornerDownLeft className="w-3.5 h-3.5" />
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </div>
                           );
                         })}
                       </div>
-                    )}
-                    {searchQuery.length < 2 && (
-                      <div className="px-4 py-5 text-center text-xs text-zinc-300">Type at least 2 characters to search</div>
-                    )}
+                      {/* Footer hints */}
+                      {searchQuery.length >= 2 && flat.length > 0 && (
+                        <div className="border-t border-zinc-100 px-5 py-2.5 flex items-center gap-4 text-[11px] text-zinc-400">
+                          <span className="inline-flex items-center gap-1.5"><CornerDownLeft className="w-3 h-3" /> to open</span>
+                          <span className="inline-flex items-center gap-1.5"><span className="font-mono">↑↓</span> to navigate</span>
+                          <span className="ml-auto">in <span className="font-medium text-zinc-500">{mainSite?.name || 'this site'}</span></span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </>
-          )}
+              </>
+            );
+          })()}
           <div className="flex items-center gap-2 flex-shrink-0">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
