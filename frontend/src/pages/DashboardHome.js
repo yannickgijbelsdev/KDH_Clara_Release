@@ -268,7 +268,8 @@ function TimePanel({ now }) {
 
 function OnAirPanel({ activeShows, shows, navigate, mainSiteSlug }) {
   const live = activeShows[0];
-  const presenter = live?.presenters?.[0]?.name || (Array.isArray(live?.presenters) && live.presenters.length ? live.presenters.map(p => p?.name).filter(Boolean).join(' & ') : '');
+  const presenterList = Array.isArray(live?.presenters) ? live.presenters.filter(Boolean) : [];
+  const presenter = presenterList[0]?.name || presenterList.map(p => p?.name).filter(Boolean).join(' & ');
   return (
     <Panel testId="panel-live-show" className="overflow-hidden" delay={0.12}>
       <div className="bg-gradient-to-br from-[#7380b6] to-amber-500 px-5 py-4 text-white">
@@ -277,10 +278,22 @@ function OnAirPanel({ activeShows, shows, navigate, mainSiteSlug }) {
           {live ? (live.title || live.name) : 'No live show'}
         </p>
         {live && presenter && (
-          <p className="text-xs text-white/85 mt-0.5" data-testid="on-air-presenter">{presenter}</p>
+          <div className="flex items-center gap-2 mt-1.5" data-testid="on-air-presenter-row">
+            <div className="flex -space-x-1.5">
+              {presenterList.slice(0, 3).map((p, i) => (
+                <img
+                  key={p?.id || p?.name || i}
+                  src={getAvatarUrl({ avatar_url: p?.avatar_url || p?.avatar })}
+                  alt={p?.name || 'presenter'}
+                  className="w-6 h-6 rounded-full object-cover border-2 border-white/80 bg-white/10"
+                />
+              ))}
+            </div>
+            <p className="text-xs text-white/90 font-medium truncate" data-testid="on-air-presenter">{presenter}</p>
+          </div>
         )}
         {live && (live.start_time || live.end_time) && (
-          <p className="text-[11px] text-white/70 mt-0.5">{live.start_time}–{live.end_time}</p>
+          <p className="text-[11px] text-white/70 mt-1">{live.start_time}–{live.end_time}</p>
         )}
       </div>
       <div className="px-5 py-3 flex items-center justify-between">
