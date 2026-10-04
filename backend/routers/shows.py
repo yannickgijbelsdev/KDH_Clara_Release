@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 import uuid
+import re
 import jwt
 import aiofiles
 import mimetypes
@@ -233,16 +234,23 @@ async def update_show_title(
     
     if "name" in update_dict:
         new_name = update_dict["name"]
-        # Check for duplicates (case-insensitive)
-        if main_site_id:
-            dup_query = {"main_site_id": main_site_id, "name": {"$regex": f"^{new_name}$", "$options": "i"}, "id": {"$ne": title_id}}
-        else:
-            dup_query = {"team_id": team_id, "name": {"$regex": f"^{new_name}$", "$options": "i"}, "id": {"$ne": title_id}}
-        
-        existing = await db.show_titles.find_one(dup_query)
-        if existing:
-            raise HTTPException(status_code=400, detail="A show title with this name already exists")
-        
+        # Only run the duplicate check when the name is actually changing —
+        # saving the title with the same name (e.g. only presenters or RDS
+        # station were edited) must not be blocked.
+        name_changed = (old_name or "").strip().lower() != (new_name or "").strip().lower()
+        if name_changed:
+            # Check for duplicates (case-insensitive, exact match, excluding self).
+            # Escape regex metacharacters so titles like "Rock'n'Roll (90s)" work.
+            safe_name = re.escape(new_name)
+            if main_site_id:
+                dup_query = {"main_site_id": main_site_id, "name": {"$regex": f"^{safe_name}$", "$options": "i"}, "id": {"$ne": title_id}}
+            else:
+                dup_query = {"team_id": team_id, "name": {"$regex": f"^{safe_name}$", "$options": "i"}, "id": {"$ne": title_id}}
+
+            existing = await db.show_titles.find_one(dup_query)
+            if existing:
+                raise HTTPException(status_code=400, detail="A show title with this name already exists")
+
         # Update all shows with the old name to use the new name
         if old_name and new_name and old_name != new_name:
             if main_site_id:
