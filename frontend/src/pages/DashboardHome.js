@@ -184,7 +184,6 @@ export default function DashboardHome() {
           ) : (
             <StatusPanel theme={theme} Icon={Icon} teamMembers={teamMembers} features={features} loading={loading} />
           )}
-          <NavPanel items={quickNav} navigate={navigate} mainSiteSlug={mainSiteSlug} />
           {isRadio ? (
             <MetricsPanel shows={shows} contentCount={contentCount} teamMembers={teamMembers} />
           ) : showFeaturesPanel ? (
@@ -217,7 +216,6 @@ export default function DashboardHome() {
             <div className="flex-1 pointer-events-none" />
 
             <div className="w-[260px] flex-shrink-0 flex flex-col gap-4">
-              <NavPanel items={quickNav} navigate={navigate} mainSiteSlug={mainSiteSlug} />
               {isRadio ? (
                 <MetricsPanel shows={shows} contentCount={contentCount} teamMembers={teamMembers} />
               ) : showFeaturesPanel ? (
