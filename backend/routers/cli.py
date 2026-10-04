@@ -109,10 +109,15 @@ COMMANDS = [
 ]
 
 ALL_FEATURES = [
+    # Core / Radio
     "shows", "calendar", "show_management", "content_library", "media_library",
     "content_approval", "trash", "team_chat", "team_settings", "activity_logs",
     "wordpress", "rds", "call_studio", "rundown", "support_tickets",
-    "stream_monitor", "firewall", "radioplayer",
+    "stream_monitor", "firewall", "radioplayer", "room_bookings",
+    # Advanced / Integrations
+    "zerotier", "xml_imports", "server_api_keys", "vmix_director", "canva_director",
+    "task_boards", "enterprise_assistant", "radio_automation", "api_endpoints",
+    "video_endpoints", "clara_flows", "sites",
 ]
 
 
