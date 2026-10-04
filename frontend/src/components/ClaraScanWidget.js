@@ -1181,7 +1181,7 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
             data-testid="clara-fix-all"
           >
             <Sparkles size={14} />
-            Fix all with Clara Assistant
+            Fix all with Koodh Assistent
           </button>
         )}
         <button onClick={handleDismiss}

@@ -158,7 +158,7 @@ export default function UserTicketsPanel({ open, onClose }) {
                   onClick={() => { onClose(); openClara('support-help'); }}
                   className="p-1.5 rounded-lg hover:bg-[#7380b6]/10 transition-colors"
                   data-testid="header-how-to-clara-btn"
-                  title="How to find the Clara Assistant?"
+                  title="How to find the Koodh Assistent?"
                 >
                   <HelpCircle className="w-4 h-4 text-[#7380b6]" />
                 </button>
@@ -177,7 +177,7 @@ export default function UserTicketsPanel({ open, onClose }) {
                   <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
                     <LifeBuoy className="w-10 h-10 text-zinc-200 mb-3" />
                     <p className="text-sm text-zinc-400">No tickets yet</p>
-                    <p className="text-xs text-zinc-300 mt-1">Use Clara Assistant to create a support ticket</p>
+                    <p className="text-xs text-zinc-300 mt-1">Use Koodh Assistent to create a support ticket</p>
                   </div>
                 ) : (
                   tickets.map(t => {
@@ -208,7 +208,7 @@ export default function UserTicketsPanel({ open, onClose }) {
                         {isClosed && (
                           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
                             <span className="bg-zinc-900 text-white text-[10px] px-3 py-1.5 rounded-lg shadow-lg max-w-[280px] text-center leading-snug">
-                              This ticket is no longer available. If you have the same problem, please make a new ticket via the Clara Assistant.
+                              This ticket is no longer available. If you have the same problem, please make a new ticket via the Koodh Assistent.
                             </span>
                           </div>
                         )}
@@ -269,14 +269,14 @@ export default function UserTicketsPanel({ open, onClose }) {
                 {isClosed ? (
                   /* ── Closed ticket notice ── */
                   <div className="px-3 py-4 border-t border-zinc-100 text-center" data-testid="ticket-closed-notice">
-                    <p className="text-xs text-zinc-400 leading-relaxed">This ticket is no longer available. If you have the same problem, please make a new ticket via the Clara Assistant.</p>
+                    <p className="text-xs text-zinc-400 leading-relaxed">This ticket is no longer available. If you have the same problem, please make a new ticket via the Koodh Assistent.</p>
                     <button
                       onClick={() => { onClose(); openClara('support-help'); }}
                       className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#5f6ca3] bg-[#7380b6]/10 hover:bg-[#7380b6]/15 rounded-lg transition-colors"
                       data-testid="how-to-find-clara-btn"
                     >
                       <HelpCircle className="w-3.5 h-3.5" />
-                      How to find the Clara Assistant?
+                      How to find the Koodh Assistent?
                     </button>
                   </div>
                 ) : (

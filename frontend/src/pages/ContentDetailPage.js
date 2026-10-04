@@ -1977,9 +1977,9 @@ const ContentDetailPage = () => {
                     data-testid="clara-error-help-btn"
                   >
                     <Sparkles className="w-3.5 h-3.5" />
-                    Clara Assistent
+                    Koodh Assistent
                     <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-zinc-900 text-white text-[11px] rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                      The Clara Assistent is there to help you with this fault in Clara
+                      The Koodh Assistent is there to help you with this fault in Clara
                     </span>
                   </button>
                 </motion.div>

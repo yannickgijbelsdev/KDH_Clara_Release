@@ -3,7 +3,7 @@ import { Sparkles } from 'lucide-react';
 import { useClaraAssistant } from '../context/ClaraAssistantContext';
 
 /**
- * Inline Clara Assistent error help button.
+ * Inline Koodh Assistent error help button.
  * Always visible — provides AI-powered troubleshooting for any error state.
  */
 export default function ClaraErrorButton({ errorMessage, errorContext = '', className = '' }) {
@@ -16,7 +16,7 @@ export default function ClaraErrorButton({ errorMessage, errorContext = '', clas
       data-testid="clara-error-btn"
     >
       <Sparkles className="w-3 h-3" />
-      Clara Assistent
+      Koodh Assistent
       <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-zinc-900 text-white text-[11px] rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-lg z-50">
         Ask Clara for help with this issue
       </span>

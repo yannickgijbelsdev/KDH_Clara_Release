@@ -69,8 +69,7 @@ const PersonalSettingsPage = () => {
     <div data-testid="personal-settings-page">
       {/* Header */}
       <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 mb-1 sm:mb-2 flex items-center gap-3">
-          <Settings className="w-8 h-8 text-[#7380b6]0" />
+        <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 mb-1 sm:mb-2">
           Personal Settings
         </h1>
         <p className="text-sm sm:text-base text-zinc-400">

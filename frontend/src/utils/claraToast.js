@@ -5,7 +5,7 @@ import { toast } from 'sonner';
  * Global Clara-enhanced toast utility.
  * 
  * Call `claraToast.init(openClara)` once at app root to enable
- * the Clara Assistent button on ALL error toasts automatically.
+ * the Koodh Assistent button on ALL error toasts automatically.
  */
 
 let _openClara = null;
@@ -25,7 +25,7 @@ export const claraToast = {
   },
 
   /**
-   * Show an error toast with Clara Assistent help button.
+   * Show an error toast with Koodh Assistent help button.
    * If openClara was passed explicitly, uses that; otherwise uses the global ref.
    */
   error(message, openClaraOverride, errorContext = '') {
@@ -34,7 +34,7 @@ export const claraToast = {
       duration: 8000,
       _skipPatch: true,
       action: opener ? {
-        label: 'Clara Assistent',
+        label: 'Koodh Assistent',
         onClick: () => opener('error', {
           errorMessage: typeof message === 'string' ? message : String(message),
           errorContext,
@@ -46,7 +46,7 @@ export const claraToast = {
 
 /**
  * Monkey-patch sonner's toast.error so that ALL existing calls
- * automatically include the Clara Assistent button.
+ * automatically include the Koodh Assistent button.
  */
 function _patchSonnerToast() {
   const originalError = toast.error.bind(toast);
@@ -60,7 +60,7 @@ function _patchSonnerToast() {
 
     // Only add Clara action if there isn't already a custom action
     const claraAction = (!opts?.action && _openClara) ? {
-      label: 'Clara Assistent',
+      label: 'Koodh Assistent',
       onClick: () => _openClara('error', {
         errorMessage: typeof message === 'string' ? message : String(message),
         errorContext: '',

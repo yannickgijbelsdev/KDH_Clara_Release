@@ -347,7 +347,7 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
                           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7380b6] to-amber-500 flex items-center justify-center mb-4">
                             <Sparkles className="w-6 h-6 text-white" />
                           </div>
-                          <h3 className="font-bold text-zinc-900 mb-1">Write with Clara Assistent</h3>
+                          <h3 className="font-bold text-zinc-900 mb-1">Write with Koodh Assistent</h3>
                           <p className="text-xs text-zinc-400">Let AI help you write an SEO-optimized article based on your topic.</p>
                         </button>
                       </div>
@@ -368,11 +368,11 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
                             openClara('seo');
                           }}
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-[#5f6ca3] bg-[#7380b6]/10 hover:bg-[#7380b6]/15 transition-colors"
-                          title="The Clara Assistent is there to help you write better content"
+                          title="The Koodh Assistent is there to help you write better content"
                           data-testid="clara-editor-btn"
                         >
                           <Sparkles className="w-3.5 h-3.5" />
-                          Clara Assistent
+                          Koodh Assistent
                         </button>
                       </div>
                       <p className="text-sm text-zinc-500 mb-6">

@@ -100,7 +100,7 @@ export default function LicenseBlockedOverlay({ siteName }) {
                 data-testid="license-ask-clara-btn"
               >
                 <Sparkles className="w-4 h-4" />
-                Ask Clara Assistant
+                Ask Koodh Assistent
               </Button>
               <p className="text-[11px] text-zinc-400 text-center">
                 Clara can help you check for outstanding invoices, quotes, or messages.

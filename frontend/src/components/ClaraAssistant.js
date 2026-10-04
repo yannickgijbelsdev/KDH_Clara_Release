@@ -264,11 +264,11 @@ export default function ClaraAssistant() {
               {/* Header */}
               <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100 rounded-t-3xl">
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${mode === 'seo' ? 'from-[#7380b6] to-amber-500' : mode === 'license' ? 'from-amber-500 to-[#7380b6]' : 'from-[#7380b6]/0 to-500 to-[#7380b6]'} flex items-center justify-center shadow-lg`}>
-                    <span className="text-white font-black text-lg leading-none">&lt;</span>
+                  <div className="w-10 h-10 rounded-xl bg-white border border-zinc-200 overflow-hidden flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <img src="/koodh-bear-red.png" alt="Koodh" className="w-full h-full object-cover" />
                   </div>
                   <div>
-                    <h2 className="font-bold text-zinc-900 text-base">Clara Assistant</h2>
+                    <h2 className="font-bold text-zinc-900 text-base">Koodh Assistent</h2>
                     <p className="text-xs text-zinc-400">{modeLabel}</p>
                   </div>
                 </div>
