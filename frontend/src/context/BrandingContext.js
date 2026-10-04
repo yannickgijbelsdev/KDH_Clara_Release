@@ -32,19 +32,9 @@ export function BrandingProvider({ children }) {
     fetchBranding();
   }, [fetchBranding]);
 
-  // Update favicon dynamically
-  useEffect(() => {
-    if (branding.favicon_url) {
-      const url = branding.favicon_url.startsWith('/') ? `${API}${branding.favicon_url}` : branding.favicon_url;
-      let link = document.querySelector("link[rel~='icon']");
-      if (!link) {
-        link = document.createElement('link');
-        link.rel = 'icon';
-        document.head.appendChild(link);
-      }
-      link.href = url;
-    }
-  }, [branding.favicon_url]);
+  // Favicon is intentionally kept FIXED to the periwinkle chevron
+  // (public/favicon.ico + favicon.png). The branding.favicon_url is NOT applied
+  // dynamically so that every tab shows the Clara brand icon consistently.
 
   return (
     <BrandingContext.Provider value={{ branding, refreshBranding: fetchBranding }}>
