@@ -757,7 +757,7 @@ const ContentDetailPage = () => {
   return (
     <div data-testid="content-detail-page">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-8">
+      <div className="flex flex-col lg:flex-row lg:items-center gap-4 mb-8">
         <Button
           variant="ghost"
           size="icon"
@@ -851,7 +851,7 @@ const ContentDetailPage = () => {
         
         {/* Publish action buttons — Liveblog + status checks + WordPress + News API side-by-side */}
         {isEditor && (
-          <div className="flex items-center gap-3" data-testid="publish-actions">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap" data-testid="publish-actions">
             {/* Liveblog toggle — modern pill switch */}
             <button
               type="button"
@@ -905,8 +905,8 @@ const ContentDetailPage = () => {
             {/* Status checks — ready + approval, with hover tooltips */}
             {content.status === 'ready' && (
               <div className="relative group" data-testid="ready-check">
-                <span className="w-9 h-9 rounded-full bg-[#7c1ac8] flex items-center justify-center flex-shrink-0 text-white cursor-help">
-                  <Check className="w-4 h-4" strokeWidth={2.5} />
+                <span className="w-9 h-9 rounded-full bg-[#7c1ac8] flex items-center justify-center flex-shrink-0 cursor-help">
+                  <Check className="w-4 h-4 !text-white" strokeWidth={3} />
                 </span>
                 <span className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 whitespace-nowrap bg-zinc-900 text-white text-xs px-2.5 py-1.5 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10">
                   Ready — article is finished and awaiting approval
@@ -916,8 +916,8 @@ const ContentDetailPage = () => {
 
             {content.status === 'ready' && isApproved && (
               <div className="relative group" data-testid="approved-check">
-                <span className="w-9 h-9 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0 text-white cursor-help">
-                  <Check className="w-4 h-4" strokeWidth={2.5} />
+                <span className="w-9 h-9 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0 cursor-help">
+                  <Check className="w-4 h-4 !text-white" strokeWidth={3} />
                 </span>
                 <span className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 whitespace-nowrap bg-zinc-900 text-white text-xs px-2.5 py-1.5 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-center gap-1.5">
                   {content.approved_by_avatar ? (
@@ -934,8 +934,8 @@ const ContentDetailPage = () => {
 
             {content.status === 'ready' && isRejected && (
               <div className="relative group">
-                <span className="w-9 h-9 rounded-full bg-[#7380b6] flex items-center justify-center flex-shrink-0 text-white cursor-help">
-                  <X className="w-4 h-4" strokeWidth={2.5} />
+                <span className="w-9 h-9 rounded-full bg-[#7380b6] flex items-center justify-center flex-shrink-0 cursor-help">
+                  <X className="w-4 h-4 !text-white" strokeWidth={3} />
                 </span>
                 <span className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 whitespace-nowrap bg-zinc-900 text-white text-xs px-2.5 py-1.5 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10">
                   Rejected — needs changes before publishing
@@ -945,8 +945,8 @@ const ContentDetailPage = () => {
 
             {content.status === 'ready' && !isApproved && !isRejected && (
               <div className="relative group">
-                <span className="w-9 h-9 rounded-full bg-amber-400 flex items-center justify-center flex-shrink-0 text-white cursor-help">
-                  <Clock className="w-4 h-4" strokeWidth={2.5} />
+                <span className="w-9 h-9 rounded-full bg-amber-400 flex items-center justify-center flex-shrink-0 cursor-help">
+                  <Clock className="w-4 h-4 !text-white" strokeWidth={3} />
                 </span>
                 <span className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 whitespace-nowrap bg-zinc-900 text-white text-xs px-2.5 py-1.5 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10">
                   Pending approval — admin must review before publishing
@@ -957,13 +957,11 @@ const ContentDetailPage = () => {
             {wpSites.length > 0 && (
               <Button
                 data-testid="publish-wp-btn"
-                onClick={() => !isPublishBlocked && openPublishDialog()}
-                disabled={isPublishBlocked}
+                onClick={() => !isPublishBlocked && !rightsMissing && hasFeaturedImage && openPublishDialog()}
+                disabled={isPublishBlocked || !hasFeaturedImage || rightsMissing}
                 className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white rounded-full px-5"
               >
-                <svg viewBox="0 0 128 128" className="w-5 h-5" fill="currentColor" aria-hidden="true">
-                  <path d="M64 0C28.65 0 0 28.65 0 64c0 35.35 28.65 64 64 64s64-28.65 64-64c0-35.35-28.65-64-64-64zm0 10c29.76 0 54 24.24 54 54s-24.24 54-54 54S10 93.76 10 64 34.24 10 64 10zM23 64c0-5.95 1.3-11.57 3.6-16.62L47.24 102C34.6 95.28 25 83.08 23 64zm41 41c-3.6 0-7.08-.52-10.4-1.47L72.94 60.5l19.75 54.08c.14.3.32.57.5.84C86.9 118.77 75.7 121 64 121zm9-50c-1.7 0-3.4-.14-5.1-.35L83.5 24.43l5.9 15.57c3.54 9.27 5.6 16.8 5.6 22.84 0 7.6-2.66 13.74-7 18.46C84.52 85.24 78.8 78.4 73 69.8c-1.4-2.08-2.3-3.56-3-4.8z"/>
-                </svg>
+                <img src="/wordpress-logo.webp" alt="" aria-hidden="true" className="w-6 h-6 object-contain brightness-0 invert" />
                 {hasPublishedSites ? 'Sync to WordPress' : 'Publish to WordPress'}
               </Button>
             )}
@@ -982,9 +980,7 @@ const ContentDetailPage = () => {
               {claraPublishBusy ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="square" strokeLinejoin="miter" aria-hidden="true">
-                  <polyline points="15,4 7,12 15,20" />
-                </svg>
+                <img src="/clara-chevron.png" alt="" aria-hidden="true" className="w-7 h-7 object-contain brightness-0 invert -ml-1" />
               )}
               {content?.status === 'published' ? 'Sync to News API' : 'Publish to News API'}
             </Button>
@@ -1019,7 +1015,7 @@ const ContentDetailPage = () => {
                   type="button"
                   onClick={() => setShowRightsModal(true)}
                   data-testid="rights-blocked-warning"
-                  className="ml-auto inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold transition"
+                  className="ml-auto inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500 hover:bg-amber-600 !text-white text-xs font-semibold transition [&_svg]:!text-white"
                 >
                   <Copyright className="w-3.5 h-3.5" />
                   Fill in rights

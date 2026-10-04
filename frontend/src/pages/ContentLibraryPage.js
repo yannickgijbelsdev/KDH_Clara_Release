@@ -868,28 +868,27 @@ const ContentLibraryPage = () => {
                         )}
                       </div>
                       
-                      {item.excerpt && (
-                        <p className="text-zinc-400 text-sm line-clamp-1 mb-2">
-                          {item.excerpt}
+                      {(item.excerpt || item.body) && (
+                        <p className="text-zinc-500 text-sm line-clamp-2 mb-2">
+                          {(item.excerpt || item.body || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim().slice(0, 240)}
+                          {(item.excerpt || item.body || '').replace(/<[^>]*>/g, '').length > 240 ? '…' : ''}
                         </p>
                       )}
                       
-                      <div className="flex items-center gap-4 text-xs text-zinc-500">
+                      <div className="flex items-center gap-3 text-xs text-zinc-500 flex-wrap">
                         <span className="flex items-center gap-1">
                           <TypeIcon className="w-3 h-3" />
                           {typeLabels[item.type]}
                         </span>
                         
                         {item.category && (
-                          <span className="flex items-center gap-1 text-[#7380b6]0">
+                          <span className="flex items-center gap-1 text-[#7380b6]">
                             <Folder className="w-3 h-3" />
                             {item.category.name}
                           </span>
                         )}
-                        
-                        {/* Distribution channel badges — News API and/or WordPress.
-                            News API: item.status === 'published' (set by /publish-clara).
-                            WordPress: any synced publish_statuses row. */}
+
+                        {/* Distribution channel badges — News API and/or WordPress */}
                         {item.status === 'published' && (
                           <span
                             data-testid="badge-news-api"
@@ -908,22 +907,34 @@ const ContentLibraryPage = () => {
                         )}
 
                         {item.source && (
-                          <span className="flex items-center gap-1 text-blue-400">
+                          <span className="flex items-center gap-1 text-zinc-500">
                             <Globe className="w-3 h-3" />
                             {item.source}
                           </span>
                         )}
-                        
-                        {item.created_by_name && (
-                          <span className="flex items-center gap-1">
-                            <User className="w-3 h-3" />
-                            {item.created_by_name}
-                          </span>
-                        )}
-                        
-                        <span>
+
+                        <span className="flex items-center gap-1" title={`Created ${format(parseISO(item.created_at), 'MMM d, yyyy — HH:mm')}`}>
+                          <Plus className="w-3 h-3" />
+                          Created {format(parseISO(item.created_at), 'MMM d, yyyy')}
+                        </span>
+
+                        <span className="flex items-center gap-1" title={`Last update ${format(parseISO(item.updated_at), 'MMM d, yyyy — HH:mm')}`}>
+                          <Clock className="w-3 h-3" />
                           Updated {format(parseISO(item.updated_at), 'MMM d, yyyy')}
                         </span>
+
+                        {(item.updated_by_name || item.created_by_name) && (
+                          <span
+                            className="flex items-center gap-1"
+                            title={`Last updated by ${item.updated_by_name || item.created_by_name}`}
+                          >
+                            <img
+                              src={item.updated_by_avatar || item.created_by_avatar || '/koodh-avatar.png'}
+                              alt={item.updated_by_name || item.created_by_name}
+                              className="w-5 h-5 rounded-full object-cover border border-zinc-200"
+                            />
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>

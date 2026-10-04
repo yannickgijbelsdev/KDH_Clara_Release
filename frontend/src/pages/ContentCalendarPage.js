@@ -232,10 +232,64 @@ const ContentCalendarPage = () => {
           item,
         });
       }
+
+      // Draft/pending items — show on their updated_at or created_at date
+      // so the calendar is never empty and editors can see what's in progress.
+      if (
+        (!item.publish_statuses || item.publish_statuses.length === 0) &&
+        !item.original_date &&
+        (item.updated_at || item.created_at)
+      ) {
+        const dateStr = item.updated_at || item.created_at;
+        let parsedDate;
+        try { parsedDate = parseISO(dateStr); } catch { return; }
+
+        entries.push({
+          id: `${item.id}-draft`,
+          contentId: item.id,
+          title: item.title,
+          date: format(parsedDate, 'yyyy-MM-dd'),
+          time: format(parsedDate, 'HH:mm'),
+          status: item.status === 'ready' ? 'ready' : 'draft',
+          siteName: item.source || '—',
+          siteId: null,
+          station: itemStation,
+          wpUrl: null,
+          imageUrl: getBestFeaturedImage(item),
+          excerpt: item.excerpt || '',
+          category: item.category_name || item.category?.name || '',
+          item,
+        });
+      }
     });
 
     return entries;
   }, [contentItems, stations]);
+
+  // Auto-jump to the most recent month that has entries, so the calendar is
+  // never empty when the user lands on it.
+  useEffect(() => {
+    if (!calendarEntries.length) return;
+    const latest = calendarEntries
+      .map((e) => e.date)
+      .sort()
+      .reverse()[0];
+    if (!latest) return;
+    try {
+      const d = parseISO(latest);
+      // Only jump if the current month has zero entries — don't fight manual nav.
+      const currentMonthHasEntries = calendarEntries.some((e) => {
+        const ed = parseISO(e.date);
+        return ed.getMonth() === currentMonth.getMonth() && ed.getFullYear() === currentMonth.getFullYear();
+      });
+      if (!currentMonthHasEntries) {
+        setCurrentMonth(d);
+      }
+    } catch {
+      /* ignore */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [calendarEntries.length]);
 
   // Calendar days grid
   const calendarDays = useMemo(() => {
