@@ -23,12 +23,13 @@ async def get_user_permissions(request: Request, current_user: dict) -> dict:
     # Get the user's role for this main site
     site_access = await db.main_site_users.find_one(
         {"user_id": current_user["id"], "main_site_id": main_site_id},
-        {"_id": 0, "role": 1},
+        {"_id": 0, "role": 1, "custom_permissions": 1},
     )
     if not site_access:
         return {}
 
     role_slug = site_access.get("role", "viewer")
+    overrides = site_access.get("custom_permissions") or {}
 
     # Look up role permissions
     role = await db.roles.find_one(
@@ -39,14 +40,29 @@ async def get_user_permissions(request: Request, current_user: dict) -> dict:
     if not role:
         # Role not found in DB — check if admin slug (always full access)
         if role_slug == "admin":
+            # Admin still gets full access even with overrides (safety: can't lock out an admin).
             return {"_full_access": True}
-        return {}
+        base = {}
+    else:
+        # Admin system role always has full access, regardless of overrides
+        if role.get("is_system") and role.get("slug") == "admin":
+            return {"_full_access": True}
+        base = _merge_alias_permissions(role.get("permissions", {}))
 
-    # Admin system role always has full access
-    if role.get("is_system") and role.get("slug") == "admin":
-        return {"_full_access": True}
+    # Apply per-user custom overrides — only known actions, deep-merged.
+    if overrides:
+        merged = {k: dict(v) if isinstance(v, dict) else v for k, v in base.items()}
+        for feature, actions in overrides.items():
+            if not isinstance(actions, dict):
+                continue
+            if feature not in merged or not isinstance(merged.get(feature), dict):
+                merged[feature] = {}
+            for action, value in actions.items():
+                if action in ("view", "create", "edit", "delete"):
+                    merged[feature][action] = bool(value)
+        base = _merge_alias_permissions(merged)
 
-    return _merge_alias_permissions(role.get("permissions", {}))
+    return base
 
 
 # Features that share permission scope — mirrors the middleware FEATURE_ALIASES.

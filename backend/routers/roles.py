@@ -170,8 +170,13 @@ def require_network_admin(user: dict):
 
 @roles_router.get("/schema")
 async def get_permission_schema(current_user: dict = Depends(get_current_user)):
-    """Get the permission categories and actions schema."""
-    require_network_admin(current_user)
+    """Return the permission categories/actions schema.
+
+    Available to any authenticated user — the dialog that assigns custom
+    per-user overrides is reachable from Team Settings by site admins, not
+    only network admins. Access to the mutating endpoints is still
+    protected by `_assert_admin_of_site`.
+    """
     return {
         "categories": PERMISSION_CATEGORIES,
         "actions": ACTIONS,
@@ -208,8 +213,20 @@ async def list_roles_for_assignment(main_site_id: str, current_user: dict = Depe
 
 @roles_router.get("/{main_site_id}")
 async def list_roles(main_site_id: str, current_user: dict = Depends(get_current_user)):
-    """List all roles for a main site (full details, network admin only)."""
-    require_network_admin(current_user)
+    """List all roles for a main site (full details with per-role permissions).
+
+    Network admins and the main-site admin can both read the full permission
+    matrix — the latter needs it to visualise what the per-user override
+    dialog is building on top of.
+    """
+    if not current_user.get("is_network_admin"):
+        site_access = await db.main_site_users.find_one({
+            "main_site_id": main_site_id,
+            "user_id": current_user["id"],
+            "role": "admin",
+        })
+        if not site_access:
+            raise HTTPException(403, "Admin access required")
 
     roles = await db.roles.find(
         {"main_site_id": main_site_id}, {"_id": 0}
@@ -528,3 +545,103 @@ async def get_permission_audit_stats(
         "top_blocked_users": top_users,
         "top_blocked_features": top_features,
     }
+
+
+# ============== PER-USER CUSTOM PERMISSION OVERRIDES ==============
+# Stored on the `main_site_users` row for the (user_id, main_site_id) pair as
+# `custom_permissions`:
+#
+#     {
+#       feature_id: {
+#         view:   true | false,   # omit a key to inherit from the user's role
+#         create: true | false,
+#         edit:   true | false,
+#         delete: true | false,
+#       },
+#       ...
+#     }
+#
+# The frontend edits this map directly; `get_user_permissions` merges each
+# override on top of the role-derived permissions.
+
+
+async def _assert_admin_of_site(user: dict, main_site_id: str) -> None:
+    """Allow network admins or the main-site admin only."""
+    if user.get("is_network_admin"):
+        return
+    access = await db.main_site_users.find_one(
+        {"user_id": user["id"], "main_site_id": main_site_id, "role": "admin"}
+    )
+    if not access:
+        raise HTTPException(403, "Admin access required")
+
+
+@roles_router.get("/custom-permissions/{main_site_id}/{user_id}")
+async def get_custom_permissions(
+    main_site_id: str,
+    user_id: str,
+    current_user: dict = Depends(get_current_user),
+):
+    """Return the custom-permission overrides stored for a team member."""
+    await _assert_admin_of_site(current_user, main_site_id)
+    access = await db.main_site_users.find_one(
+        {"user_id": user_id, "main_site_id": main_site_id},
+        {"_id": 0, "role": 1, "custom_permissions": 1},
+    )
+    if not access:
+        raise HTTPException(404, "User is not a member of this main site")
+    return {
+        "user_id": user_id,
+        "main_site_id": main_site_id,
+        "role": access.get("role"),
+        "custom_permissions": access.get("custom_permissions") or {},
+    }
+
+
+@roles_router.put("/custom-permissions/{main_site_id}/{user_id}")
+async def set_custom_permissions(
+    main_site_id: str,
+    user_id: str,
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+):
+    """Replace the custom-permission overrides for a team member.
+
+    Body: `{ "custom_permissions": { feature_id: { action: bool, ... }, ... } }`
+    Pass an empty object (or omit a feature) to clear overrides and inherit
+    purely from the role again.
+    """
+    await _assert_admin_of_site(current_user, main_site_id)
+    body = await request.json()
+    overrides = body.get("custom_permissions") or {}
+
+    # Validation — only keep known feature ids and the four known actions.
+    allowed_features = {
+        p["id"]
+        for group in PERMISSION_CATEGORIES
+        for p in group.get("permissions", [])
+    }
+    cleaned: dict = {}
+    for feature, actions in overrides.items():
+        if feature not in allowed_features or not isinstance(actions, dict):
+            continue
+        feature_block: dict = {}
+        for action in ACTIONS:
+            if action in actions:
+                feature_block[action] = bool(actions[action])
+        if feature_block:
+            cleaned[feature] = feature_block
+
+    access = await db.main_site_users.find_one(
+        {"user_id": user_id, "main_site_id": main_site_id},
+        {"_id": 0, "role": 1},
+    )
+    if not access:
+        raise HTTPException(404, "User is not a member of this main site")
+
+    await db.main_site_users.update_one(
+        {"user_id": user_id, "main_site_id": main_site_id},
+        {"$set": {"custom_permissions": cleaned, "updated_at": datetime.now(timezone.utc).isoformat()}},
+    )
+    return {"user_id": user_id, "main_site_id": main_site_id, "custom_permissions": cleaned}
+

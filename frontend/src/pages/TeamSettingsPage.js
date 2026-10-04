@@ -24,6 +24,7 @@ import {
   ArrowLeftRight,
   FileCheck,
   ShieldAlert,
+  ShieldCheck,
   CircleDot,
   ChevronLeft,
   ChevronRight,
@@ -115,6 +116,96 @@ const TeamSettingsPage = () => {
   const [selectedExistingUser, setSelectedExistingUser] = useState(null);
   const [addingExistingUser, setAddingExistingUser] = useState(false);
   const [existingUserRole, setExistingUserRole] = useState('editor');
+
+  // Per-user custom permission overrides
+  const [permissionsDialogOpen, setPermissionsDialogOpen] = useState(false);
+  const [permissionsTarget, setPermissionsTarget] = useState(null);
+  const [permissionsSchema, setPermissionsSchema] = useState(null); // {categories,actions}
+  const [permissionsOverrides, setPermissionsOverrides] = useState({}); // {feature:{action:bool}}
+  const [permissionsRolePerms, setPermissionsRolePerms] = useState({}); // {feature:{action:bool}}
+  const [permissionsLoading, setPermissionsLoading] = useState(false);
+  const [permissionsSaving, setPermissionsSaving] = useState(false);
+
+  const openPermissionsDialog = async (member) => {
+    if (!mainSite?.id) return;
+    setPermissionsTarget(member);
+    setPermissionsDialogOpen(true);
+    setPermissionsLoading(true);
+    try {
+      // Schema (feature catalog) — fetched once
+      let schema = permissionsSchema;
+      if (!schema) {
+        try {
+          const r = await axios.get(`${API}/roles/schema`);
+          schema = r.data;
+          setPermissionsSchema(schema);
+        } catch (_e) {
+          // Fallback: build a flat list from the main role so the dialog still works
+          const flatRole = (availableRoles.find(r => r.slug === member.role) || {}).permissions || {};
+          const featureIds = Object.keys(flatRole);
+          schema = { categories: [{ group: 'All features', permissions: featureIds.map(id => ({ id, label: id })) }], actions: ['view','create','edit','delete'] };
+          setPermissionsSchema(schema);
+        }
+      }
+      // Current overrides for this user
+      const r2 = await axios.get(`${API}/roles/custom-permissions/${mainSite.id}/${member.id}`);
+      setPermissionsOverrides(r2.data.custom_permissions || {});
+      // Role-derived base permissions — fetch the role so we can show inherited state
+      const rolesRes = await axios.get(`${API}/roles/${mainSite.id}/available`);
+      const roleRow = (rolesRes.data.roles || []).find(r => r.slug === r2.data.role);
+      let rolePerms = {};
+      if (roleRow?.id) {
+        try {
+          const roleDetail = await axios.get(`${API}/roles/${mainSite.id}`);
+          const full = (roleDetail.data.roles || []).find(r => r.id === roleRow.id);
+          rolePerms = full?.permissions || {};
+        } catch (_e) {}
+      }
+      setPermissionsRolePerms(rolePerms);
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Could not load permissions');
+      setPermissionsDialogOpen(false);
+    } finally {
+      setPermissionsLoading(false);
+    }
+  };
+
+  const togglePermissionOverride = (feature, action) => {
+    setPermissionsOverrides((prev) => {
+      const next = { ...prev, [feature]: { ...(prev[feature] || {}) } };
+      const current = next[feature][action];
+      const inherited = !!(permissionsRolePerms[feature]?.[action]);
+      // Three-state cycle: inherit → grant → revoke → inherit
+      if (current === undefined) {
+        next[feature][action] = !inherited; // first click flips the inherited value
+      } else if (current === true) {
+        next[feature][action] = false;
+      } else {
+        delete next[feature][action];
+      }
+      if (!Object.keys(next[feature]).length) delete next[feature];
+      return next;
+    });
+  };
+
+  const clearPermissionOverrides = () => setPermissionsOverrides({});
+
+  const savePermissionOverrides = async () => {
+    if (!mainSite?.id || !permissionsTarget) return;
+    setPermissionsSaving(true);
+    try {
+      await axios.put(`${API}/roles/custom-permissions/${mainSite.id}/${permissionsTarget.id}`, {
+        custom_permissions: permissionsOverrides,
+      });
+      toast.success(`Permissions updated for ${permissionsTarget.name}`);
+      setPermissionsDialogOpen(false);
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Failed to save permissions');
+    } finally {
+      setPermissionsSaving(false);
+    }
+  };
+
 
   // Helper: get icon for a role slug
   const getRoleIcon = useCallback((slug) => {
@@ -599,6 +690,15 @@ const TeamSettingsPage = () => {
                             <KeyRound className="w-4 h-4 mr-2" />
                             Change Password
                           </DropdownMenuItem>
+                          <DropdownMenuSeparator className="bg-zinc-200" />
+                          <DropdownMenuItem
+                            onClick={() => openPermissionsDialog(member)}
+                            className="text-zinc-600"
+                            data-testid={`custom-permissions-item-${member.id}`}
+                          >
+                            <ShieldCheck className="w-4 h-4 mr-2" />
+                            Custom permissions
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </>
@@ -681,6 +781,15 @@ const TeamSettingsPage = () => {
                           >
                             <KeyRound className="w-4 h-4 mr-2" />
                             Reset Password
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator className="bg-zinc-200" />
+                          <DropdownMenuItem
+                            onClick={() => openPermissionsDialog(member)}
+                            className="text-zinc-600"
+                            data-testid={`custom-permissions-item-${member.id}`}
+                          >
+                            <ShieldCheck className="w-4 h-4 mr-2" />
+                            Custom permissions
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={async () => {
@@ -1082,6 +1191,126 @@ const TeamSettingsPage = () => {
           }
         }}
       />
+
+      {/* Custom Permissions Dialog — per-user overrides on top of the role */}
+      <Dialog open={permissionsDialogOpen} onOpenChange={setPermissionsDialogOpen}>
+        <DialogContent className="bg-white border-zinc-200 text-zinc-900 sm:max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="text-zinc-900 flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-[#7380b6]" />
+              Custom permissions
+              {permissionsTarget && (
+                <span className="text-zinc-400 font-normal">— {permissionsTarget.name}</span>
+              )}
+            </DialogTitle>
+            <p className="text-sm text-zinc-500 mt-1">
+              Grant or revoke individual actions without changing this user's role. Blank boxes inherit from the role.
+            </p>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto -mx-1 px-1">
+            {permissionsLoading ? (
+              <div className="py-10 flex items-center justify-center text-zinc-400">
+                <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading permissions…
+              </div>
+            ) : (
+              <div className="space-y-5 py-2">
+                {(permissionsSchema?.categories || []).map((group) => (
+                  <div key={group.group}>
+                    <h3 className="text-[11px] font-semibold text-zinc-400 tracking-wider uppercase mb-2">{group.group}</h3>
+                    <div className="rounded-lg border border-zinc-200 overflow-hidden">
+                      <table className="w-full text-sm">
+                        <thead className="bg-zinc-50 text-zinc-500 text-[11px] uppercase tracking-wider">
+                          <tr>
+                            <th className="text-left py-2 px-3 font-semibold">Feature</th>
+                            {(permissionsSchema?.actions || ['view','create','edit','delete']).map((a) => (
+                              <th key={a} className="py-2 px-3 font-semibold text-center capitalize w-24">{a}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(group.permissions || []).map((feat) => (
+                            <tr key={feat.id} className="border-t border-zinc-100">
+                              <td className="py-2 px-3 text-zinc-700 font-medium">{feat.label}</td>
+                              {(permissionsSchema?.actions || ['view','create','edit','delete']).map((a) => {
+                                const inherited = !!(permissionsRolePerms[feat.id]?.[a]);
+                                const override = permissionsOverrides[feat.id]?.[a];
+                                const effective = override === undefined ? inherited : override;
+                                const state = override === undefined ? 'inherit' : (override ? 'grant' : 'revoke');
+                                return (
+                                  <td key={a} className="py-1.5 px-3 text-center">
+                                    <button
+                                      type="button"
+                                      onClick={() => togglePermissionOverride(feat.id, a)}
+                                      data-testid={`perm-cell-${feat.id}-${a}`}
+                                      className={`inline-flex items-center justify-center w-8 h-8 rounded-md border text-xs font-semibold transition-colors ${
+                                        state === 'grant' ? 'bg-[#7380b6] border-[#5f6ca3] text-white' :
+                                        state === 'revoke' ? 'bg-rose-50 border-rose-200 text-rose-500' :
+                                        effective ? 'bg-emerald-50 border-emerald-200 text-emerald-600' :
+                                                    'bg-white border-zinc-200 text-zinc-300'
+                                      }`}
+                                      title={
+                                        state === 'inherit'
+                                          ? `Inheriting from role (${inherited ? 'allowed' : 'denied'})`
+                                          : state === 'grant' ? 'Explicitly granted' : 'Explicitly revoked'
+                                      }
+                                    >
+                                      {state === 'grant' ? '✓' : state === 'revoke' ? '✕' : (inherited ? '✓' : '–')}
+                                    </button>
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ))}
+                {/* Legend */}
+                <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-500 pt-2 border-t border-zinc-100">
+                  <span>Click a cell to cycle: inherit → grant → revoke → inherit.</span>
+                  <span className="inline-flex items-center gap-1"><span className="w-3 h-3 rounded bg-emerald-50 border border-emerald-200" /> inherited allow</span>
+                  <span className="inline-flex items-center gap-1"><span className="w-3 h-3 rounded bg-white border border-zinc-200" /> inherited deny</span>
+                  <span className="inline-flex items-center gap-1"><span className="w-3 h-3 rounded bg-[#7380b6] border border-[#5f6ca3]" /> override: grant</span>
+                  <span className="inline-flex items-center gap-1"><span className="w-3 h-3 rounded bg-rose-50 border border-rose-200" /> override: revoke</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="pt-3 border-t border-zinc-100 flex-shrink-0">
+            <Button
+              variant="outline"
+              onClick={clearPermissionOverrides}
+              disabled={permissionsSaving || !Object.keys(permissionsOverrides || {}).length}
+              className="bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50 rounded-full"
+              data-testid="clear-overrides-btn"
+            >
+              Reset all to role defaults
+            </Button>
+            <div className="flex-1" />
+            <Button
+              variant="outline"
+              onClick={() => setPermissionsDialogOpen(false)}
+              disabled={permissionsSaving}
+              className="bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50 rounded-full"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={savePermissionOverrides}
+              disabled={permissionsSaving || permissionsLoading}
+              className="bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white rounded-full gap-2"
+              data-testid="save-overrides-btn"
+            >
+              {permissionsSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 };
