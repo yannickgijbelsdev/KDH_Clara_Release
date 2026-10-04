@@ -1,0 +1,33 @@
+{
+  "summary": "Validated backend fix for PUT /api/shows/titles/{title_id} duplicate-name guard. All 4 pytest scenarios pass: (1) same-name update with only presenter changes succeeds (200), (2) renaming to another title's exact name returns 400 'already exists', (3) unique rename succeeds and is persisted via GET, (4) case-insensitive duplicate rename still rejected with 400. Original record state restored after each mutating test.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_show_title_update.py",
+    "/app/test_reports/pytest/show_title_update.xml"
+  ],
+  "action_items": [
+    "Note: Review request referenced path '/api/show-titles/{id}' but the actual mounted route is '/api/shows/titles/{id}' (shows_router prefix '/shows'). Test uses the correct path. If a frontend is still calling '/api/show-titles' it will 404 — please confirm the frontend calls '/api/shows/titles'."
+  ],
+  "critical_code_review_comments": [
+    "Fix in routers/shows.py (lines 235-252) correctly short-circuits the duplicate check with name_changed guard before running the Mongo regex query, and re.escape(new_name) prevents regex-metachar crashes. Logic looks correct and matches intent.",
+    "Minor: update_dict is built via {k:v for k,v in model_dump().items() if v is not None} — this means callers cannot clear optional fields by sending null. default_presenter_ids is handled separately below (ok), but other nullable fields may be impossible to blank. Not in scope for this bug."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_show_title_update.py (new)"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "not tested"},
+  "test_credentials": "admkoodh@koodh.com / KYLovie13monx (admin, X-Main-Site: radiogroep)",
+  "seed_data_creation": "None. Tests pick the first two existing show titles, mutate, and restore original name/presenters.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Backend route for show titles is /api/shows/titles (not /api/show-titles). Admin login returns access_token. X-Main-Site slug 'radiogroep' is required for main-site scoped operations. Pytest file at /app/backend/tests/test_show_title_update.py can be re-run as a regression test.",
+  "rca of the issue": "Original bug: duplicate-name check ran unconditionally on PUT, matching 'A show title with this name already exists' even on self when fields other than name were edited. Although the Mongo filter had {'id': {'$ne': title_id}}, the symptom reported by the user still fired — likely because the frontend or server-side normalization produced a different id comparison in some code path, or the regex collided due to unescaped metacharacters. Fix: compare normalized old vs new name first (name_changed guard) and skip the duplicate query entirely when the name is unchanged; also escape regex metachars in new_name. Verified: scenario 1 now returns 200 with the modified default_presenter_ids echoed back; scenarios 2 & 4 still reject renames that collide with other titles (case-insensitive); scenario 3 confirms legitimate rename works and persists."
+}
