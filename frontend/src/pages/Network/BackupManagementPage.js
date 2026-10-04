@@ -52,6 +52,7 @@ const SITE_TYPE_CONFIG = {
   external_host:  { icon: ExternalLink, color: '#06b6d4', label: 'Ext. Host',   bg: '/images/env_external_host.jpg' },
   wp_security:    { icon: Shield,       color: '#ef4444', label: 'WP Security', bg: '/images/env_wp_security.jpg' },
   clara_custom:   { icon: Plug,         color: '#7c1ac8', label: 'Clara Custom', bg: '/images/env_technical.jpg' },
+  custom:         { icon: Plug,         color: '#7c1ac8', label: 'Custom',      bg: '/images/env_technical.jpg' },
 };
 
 const STATUS_CONFIG = {

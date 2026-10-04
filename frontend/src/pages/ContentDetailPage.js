@@ -770,89 +770,6 @@ const ContentDetailPage = () => {
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
             <h1 className="text-2xl sm:text-3xl font-black text-zinc-900">{content.title}</h1>
-            {/* Liveblog toggle — auto-save on change */}
-            {isEditor && (
-              <label
-                className={`inline-flex items-center gap-1.5 cursor-pointer select-none px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider transition border ${
-                  content.is_liveblog
-                    ? 'bg-[#7380b6]/15 text-[#5f6ca3] border-[#7380b6]/30'
-                    : 'bg-white text-zinc-500 border-zinc-300 hover:bg-zinc-50'
-                }`}
-                data-testid="liveblog-toggle"
-                title="Mark this article as a liveblog"
-              >
-                <input
-                  type="checkbox"
-                  checked={!!content.is_liveblog}
-                  onChange={async (e) => {
-                    const checked = e.target.checked;
-                    setContent((prev) => ({ ...prev, is_liveblog: checked }));
-                    try {
-                      const res = await axios.put(`${API}/content/${contentId}`, { is_liveblog: checked });
-                      setContent(res.data);
-                      toast.success(checked ? 'Liveblog mode enabled' : 'Liveblog mode disabled');
-                    } catch (err) {
-                      toast.error(err.response?.data?.detail || 'Could not save liveblog setting');
-                      setContent((prev) => ({ ...prev, is_liveblog: !checked }));
-                    }
-                  }}
-                  className="w-3 h-3 rounded border-zinc-300 text-[#7380b6]0 focus:ring-[#7380b6]"
-                  data-testid="liveblog-toggle-checkbox"
-                />
-                {content.is_liveblog && <span className="w-1.5 h-1.5 rounded-full bg-[#7380b6]/100 animate-pulse" />}
-                Liveblog
-              </label>
-            )}
-            {isEditor && content.is_liveblog && (
-              <button
-                type="button"
-                data-testid="end-liveblog-btn"
-                onClick={() => setEndLiveblogOpen(true)}
-                title="End liveblog"
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border border-zinc-300 bg-white text-zinc-600 hover:bg-zinc-50"
-              >
-                End liveblog
-              </button>
-            )}
-            {/* Ready check (purple) */}
-            {content.status === 'ready' && (
-              <span title="Ready" data-testid="ready-check" style={{ color: '#ffffff' }} className="w-6 h-6 rounded-full bg-[#7c1ac8] flex items-center justify-center flex-shrink-0">
-                <Check className="w-3.5 h-3.5" strokeWidth={2.5} />
-              </span>
-            )}
-            {/* Approval state */}
-            {content.status === 'ready' && isApproved && (
-              <span
-                title={`Approved by ${content.approved_by_name || 'Unknown'}`}
-                data-testid="approved-check"
-                className="inline-flex items-center gap-1 group cursor-default"
-              >
-                <span style={{ color: '#ffffff' }} className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0">
-                  <Check className="w-3.5 h-3.5" strokeWidth={2.5} />
-                </span>
-                {/* Tooltip */}
-                <span className="hidden group-hover:inline-flex items-center gap-1.5 bg-zinc-900 text-white text-xs px-2 py-1 rounded-lg shadow-lg ml-1">
-                  {content.approved_by_avatar ? (
-                    <img src={content.approved_by_avatar} alt="" className="w-4 h-4 rounded-full object-cover" />
-                  ) : (
-                    <span className="w-4 h-4 rounded-full bg-zinc-700 flex items-center justify-center text-[8px] font-bold text-zinc-200">
-                      {(content.approved_by_name || '?').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
-                    </span>
-                  )}
-                  Approved by {content.approved_by_name || 'Unknown'}
-                </span>
-              </span>
-            )}
-            {content.status === 'ready' && isRejected && (
-              <span title="Rejected" style={{ color: '#ffffff' }} className="w-6 h-6 rounded-full bg-[#7380b6]/100 flex items-center justify-center flex-shrink-0">
-                <X className="w-3.5 h-3.5" strokeWidth={2.5} />
-              </span>
-            )}
-            {content.status === 'ready' && !isApproved && !isRejected && (
-              <span title="Pending approval" style={{ color: '#ffffff' }} className="w-6 h-6 rounded-full bg-amber-400 flex items-center justify-center flex-shrink-0">
-                <Clock className="w-3.5 h-3.5" strokeWidth={2.5} />
-              </span>
-            )}
             {/* Non-ready status pill */}
             {content.status !== 'ready' && (
               <span className={`px-2 py-0.5 rounded text-xs font-medium ${statusColors[content.status]}`}>
@@ -932,77 +849,196 @@ const ContentDetailPage = () => {
           </div>
         </div>
         
-        {/* Publish action buttons — WordPress + News API side-by-side */}
+        {/* Publish action buttons — Liveblog + status checks + WordPress + News API side-by-side */}
         {isEditor && (
-          <div className="flex items-start gap-3" data-testid="publish-actions">
-            {wpSites.length > 0 && (
-              <div className="flex flex-col items-end gap-1">
-                <Button
-                  data-testid="publish-wp-btn"
-                  onClick={() => !isPublishBlocked && openPublishDialog()}
-                  disabled={isPublishBlocked}
-                  className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white rounded-full px-5"
-                >
-                  <Upload className="w-4 h-4" />
-                  {hasPublishedSites ? 'Sync to WordPress' : 'Publish to WordPress'}
-                </Button>
-                {isPublishBlocked && (
-                  <span className="text-xs text-amber-500">
-                    Requires admin approval
-                  </span>
-                )}
+          <div className="flex items-center gap-3" data-testid="publish-actions">
+            {/* Liveblog toggle — modern pill switch */}
+            <button
+              type="button"
+              data-testid="liveblog-toggle"
+              onClick={async () => {
+                const checked = !content.is_liveblog;
+                setContent((prev) => ({ ...prev, is_liveblog: checked }));
+                try {
+                  const res = await axios.put(`${API}/content/${contentId}`, { is_liveblog: checked });
+                  setContent(res.data);
+                  toast.success(checked ? 'Liveblog mode enabled' : 'Liveblog mode disabled');
+                } catch (err) {
+                  toast.error(err.response?.data?.detail || 'Could not save liveblog setting');
+                  setContent((prev) => ({ ...prev, is_liveblog: !checked }));
+                }
+              }}
+              className={`group relative inline-flex items-center gap-2 rounded-full px-3 h-9 text-xs font-semibold uppercase tracking-wider transition-all ${
+                content.is_liveblog
+                  ? 'bg-[#7380b6] text-white shadow-sm shadow-[#7380b6]/30'
+                  : 'bg-white text-zinc-500 border border-zinc-300 hover:border-[#7380b6] hover:text-[#7380b6]'
+              }`}
+              title={content.is_liveblog ? 'Liveblog is active — click to turn off' : 'Enable liveblog mode'}
+            >
+              <span
+                className={`inline-flex items-center justify-center w-5 h-5 rounded-full transition-all ${
+                  content.is_liveblog ? 'bg-white' : 'bg-zinc-100 group-hover:bg-[#7380b6]/15'
+                }`}
+              >
+                <span
+                  className={`block w-2 h-2 rounded-full transition-all ${
+                    content.is_liveblog ? 'bg-[#7380b6] animate-pulse' : 'bg-zinc-400 group-hover:bg-[#7380b6]'
+                  }`}
+                />
+              </span>
+              Liveblog
+            </button>
+
+            {/* End liveblog action */}
+            {content.is_liveblog && (
+              <button
+                type="button"
+                data-testid="end-liveblog-btn"
+                onClick={() => setEndLiveblogOpen(true)}
+                title="End liveblog"
+                className="inline-flex items-center h-9 px-3 rounded-full text-xs font-medium border border-zinc-300 bg-white text-zinc-600 hover:bg-zinc-50"
+              >
+                End liveblog
+              </button>
+            )}
+
+            {/* Status checks — ready + approval, with hover tooltips */}
+            {content.status === 'ready' && (
+              <div className="relative group" data-testid="ready-check">
+                <span className="w-9 h-9 rounded-full bg-[#7c1ac8] flex items-center justify-center flex-shrink-0 text-white cursor-help">
+                  <Check className="w-4 h-4" strokeWidth={2.5} />
+                </span>
+                <span className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 whitespace-nowrap bg-zinc-900 text-white text-xs px-2.5 py-1.5 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                  Ready — article is finished and awaiting approval
+                </span>
               </div>
             )}
 
-            {/* News API Publish Button — works on every main site.
-                Same shape/size as the WordPress sync button; green only when synced. */}
-            <div className="flex flex-col items-end gap-1" data-testid="clara-publish-section">
+            {content.status === 'ready' && isApproved && (
+              <div className="relative group" data-testid="approved-check">
+                <span className="w-9 h-9 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0 text-white cursor-help">
+                  <Check className="w-4 h-4" strokeWidth={2.5} />
+                </span>
+                <span className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 whitespace-nowrap bg-zinc-900 text-white text-xs px-2.5 py-1.5 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-center gap-1.5">
+                  {content.approved_by_avatar ? (
+                    <img src={content.approved_by_avatar} alt="" className="w-4 h-4 rounded-full object-cover" />
+                  ) : (
+                    <span className="w-4 h-4 rounded-full bg-zinc-700 flex items-center justify-center text-[8px] font-bold text-zinc-200">
+                      {(content.approved_by_name || '?').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                    </span>
+                  )}
+                  Approved by {content.approved_by_name || 'Unknown'}
+                </span>
+              </div>
+            )}
+
+            {content.status === 'ready' && isRejected && (
+              <div className="relative group">
+                <span className="w-9 h-9 rounded-full bg-[#7380b6] flex items-center justify-center flex-shrink-0 text-white cursor-help">
+                  <X className="w-4 h-4" strokeWidth={2.5} />
+                </span>
+                <span className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 whitespace-nowrap bg-zinc-900 text-white text-xs px-2.5 py-1.5 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                  Rejected — needs changes before publishing
+                </span>
+              </div>
+            )}
+
+            {content.status === 'ready' && !isApproved && !isRejected && (
+              <div className="relative group">
+                <span className="w-9 h-9 rounded-full bg-amber-400 flex items-center justify-center flex-shrink-0 text-white cursor-help">
+                  <Clock className="w-4 h-4" strokeWidth={2.5} />
+                </span>
+                <span className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 whitespace-nowrap bg-zinc-900 text-white text-xs px-2.5 py-1.5 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                  Pending approval — admin must review before publishing
+                </span>
+              </div>
+            )}
+
+            {wpSites.length > 0 && (
               <Button
-                data-testid="publish-clara-btn"
-                onClick={() => publishViaClara()}
-                disabled={newsApiBlocked || claraPublishBusy}
-                className={`gap-2 rounded-full px-5 !text-white [&_svg]:!text-white disabled:!text-white disabled:opacity-60 ${
-                  content?.status === 'published'
-                    ? 'bg-emerald-600 hover:bg-emerald-700 border border-emerald-700'
-                    : 'bg-[#7380b6] hover:bg-[#5f6ca3] border border-[#5f6ca3]'
-                }`}
+                data-testid="publish-wp-btn"
+                onClick={() => !isPublishBlocked && openPublishDialog()}
+                disabled={isPublishBlocked}
+                className="gap-2 bg-[#7380b6] hover:bg-[#5f6ca3] !text-white [&_svg]:!text-white rounded-full px-5"
               >
-                {claraPublishBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                {content?.status === 'published' ? 'Sync to News API' : 'Publish to News API'}
+                <svg viewBox="0 0 128 128" className="w-5 h-5" fill="currentColor" aria-hidden="true">
+                  <path d="M64 0C28.65 0 0 28.65 0 64c0 35.35 28.65 64 64 64s64-28.65 64-64c0-35.35-28.65-64-64-64zm0 10c29.76 0 54 24.24 54 54s-24.24 54-54 54S10 93.76 10 64 34.24 10 64 10zM23 64c0-5.95 1.3-11.57 3.6-16.62L47.24 102C34.6 95.28 25 83.08 23 64zm41 41c-3.6 0-7.08-.52-10.4-1.47L72.94 60.5l19.75 54.08c.14.3.32.57.5.84C86.9 118.77 75.7 121 64 121zm9-50c-1.7 0-3.4-.14-5.1-.35L83.5 24.43l5.9 15.57c3.54 9.27 5.6 16.8 5.6 22.84 0 7.6-2.66 13.74-7 18.46C84.52 85.24 78.8 78.4 73 69.8c-1.4-2.08-2.3-3.56-3-4.8z"/>
+                </svg>
+                {hasPublishedSites ? 'Sync to WordPress' : 'Publish to WordPress'}
               </Button>
-              {content?.status === 'published' && (
-                <button
-                  onClick={() => unpublishViaClara()}
-                  disabled={claraPublishBusy}
-                  className="text-[11px] text-zinc-500 hover:text-[#7380b6]0 underline"
-                  data-testid="unpublish-clara-btn"
-                >
-                  Unpublish from News API
-                </button>
-              )}
-              {isPublishBlocked && (
-                <span className="text-xs text-amber-500">Requires admin approval</span>
-              )}
-            {!isPublishBlocked && !hasFeaturedImage && (
-              <span className="text-xs text-amber-600">
-                Featured image required — see the section above to upload one.
-              </span>
             )}
-            {!isPublishBlocked && hasFeaturedImage && rightsMissing && (
-              <button
-                type="button"
-                onClick={() => setShowRightsModal(true)}
-                data-testid="rights-blocked-warning"
-                className="text-xs text-amber-700 hover:text-amber-900 underline inline-flex items-center gap-1"
-              >
-                <AlertCircle className="w-3 h-3" />
-                {imageRights.missing} image{imageRights.missing !== 1 ? 's' : ''} still missing rights — click to fill in
-              </button>
-            )}
-            </div>
+
+            {/* News API Publish Button */}
+            <Button
+              data-testid="publish-clara-btn"
+              onClick={() => publishViaClara()}
+              disabled={newsApiBlocked || claraPublishBusy}
+              className={`gap-2 rounded-full px-5 !text-white [&_svg]:!text-white disabled:!text-white disabled:opacity-60 ${
+                content?.status === 'published'
+                  ? 'bg-emerald-600 hover:bg-emerald-700 border border-emerald-700'
+                  : 'bg-[#7380b6] hover:bg-[#5f6ca3] border border-[#5f6ca3]'
+              }`}
+            >
+              {claraPublishBusy ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="square" strokeLinejoin="miter" aria-hidden="true">
+                  <polyline points="15,4 7,12 15,20" />
+                </svg>
+              )}
+              {content?.status === 'published' ? 'Sync to News API' : 'Publish to News API'}
+            </Button>
           </div>
         )}
       </div>
+
+      {/* Publish-blocker notification banner */}
+      {isEditor && (isPublishBlocked || (!isPublishBlocked && !hasFeaturedImage) || (!isPublishBlocked && hasFeaturedImage && rightsMissing)) && (
+        <div
+          className="mb-6 flex items-start gap-3 rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3"
+          data-testid="publish-warning-banner"
+        >
+          <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 flex flex-wrap items-center gap-2 text-sm text-amber-900">
+            {isPublishBlocked && (
+              <span>
+                <strong>Admin approval required</strong> — this content is still pending review and cannot be published yet.
+              </span>
+            )}
+            {!isPublishBlocked && !hasFeaturedImage && (
+              <span>
+                <strong>Featured image required</strong> — upload a cover image in the section below before publishing.
+              </span>
+            )}
+            {!isPublishBlocked && hasFeaturedImage && rightsMissing && (
+              <>
+                <span>
+                  <strong>{imageRights.missing} image{imageRights.missing !== 1 ? 's' : ''} missing rights</strong> — publishing to the News API is disabled until every photo has a source and license.
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowRightsModal(true)}
+                  data-testid="rights-blocked-warning"
+                  className="ml-auto inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold transition"
+                >
+                  <Copyright className="w-3.5 h-3.5" />
+                  Fill in rights
+                </button>
+              </>
+            )}
+            {content?.status === 'published' && (
+              <button
+                onClick={() => unpublishViaClara()}
+                disabled={claraPublishBusy}
+                className="text-xs text-zinc-500 hover:text-zinc-800 underline ml-auto"
+                data-testid="unpublish-clara-btn"
+              >
+                Unpublish from News API
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Rejection Notice */}
       {isRejected && content.approval_notes && (

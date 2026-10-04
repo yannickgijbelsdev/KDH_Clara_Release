@@ -18,6 +18,7 @@ const SITE_TYPE_CONFIG = {
   external_host:  { icon: ExternalLink, color: '#06b6d4', label: 'Ext. Host' },
   wp_security:    { icon: Shield,       color: '#ef4444', label: 'WP Security' },
   clara_custom:   { icon: Plug,         color: '#7c1ac8', label: 'Clara Custom' },
+  custom:         { icon: Plug,         color: '#7c1ac8', label: 'Custom' },
 };
 
 const SERVERS_PER_RACK = 5;

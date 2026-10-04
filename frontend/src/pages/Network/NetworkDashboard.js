@@ -484,7 +484,7 @@ export default function NetworkDashboard() {
   ];
   const PACKAGE_COLORS = { orange: 'bg-[#7380b6]/20 border-[#7380b6]/50 text-[#7380b6]0', violet: 'bg-violet-500/20 border-violet-500/50 text-violet-400', blue: 'bg-blue-500/20 border-blue-500/50 text-blue-400', emerald: 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400', cyan: 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400', red: 'bg-[#7380b6]/100/20 border-[#7380b6]/50 text-[#7380b6]' };
   const PACKAGE_ICON_COLORS = { orange: 'text-[#7380b6]0', violet: 'text-violet-400', blue: 'text-blue-400', emerald: 'text-emerald-400', cyan: 'text-cyan-400', red: 'text-[#7380b6]' };
-  const SITE_TYPE_LABELS = { radio: 'Radio', task_scheduler: 'Tasks', server: 'Virtual Datacenter', technical: 'Data Connection', external_host: 'External Host', wp_security: 'WP Security' };
+  const SITE_TYPE_LABELS = { radio: 'Radio', task_scheduler: 'Tasks', server: 'Virtual Datacenter', technical: 'Data Connection', external_host: 'External Host', wp_security: 'WP Security', clara_custom: 'Clara Custom', custom: 'Custom' };
   const SITE_TYPE_BADGE = { radio: 'bg-[#7380b6]/10 text-[#7380b6]0 border-[#7380b6]/20', task_scheduler: 'bg-violet-500/10 text-violet-400 border-violet-500/20', server: 'bg-blue-500/10 text-blue-400 border-blue-500/20', technical: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', external_host: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20', wp_security: 'bg-[#7380b6]/100/10 text-[#7380b6] border-[#7380b6]/20' };
 
   const autoSlug = (name) => name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').slice(0, 50);
