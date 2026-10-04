@@ -894,7 +894,7 @@ const ContentLibraryPage = () => {
                             data-testid="badge-news-api"
                             className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-medium"
                           >
-                            <Send className="w-2.5 h-2.5" /> News API
+                            <img src="/clara-chevron.png" alt="" aria-hidden="true" className="w-3.5 h-3.5 object-contain" /> News API
                           </span>
                         )}
                         {(item.publish_statuses || []).some((ps) => ps.sync_status === 'synced') && (
@@ -902,7 +902,7 @@ const ContentLibraryPage = () => {
                             data-testid="badge-wordpress"
                             className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200 text-[10px] font-medium"
                           >
-                            <Globe className="w-2.5 h-2.5" /> WordPress
+                            <img src="/wordpress-logo.webp" alt="" aria-hidden="true" className="w-3 h-3 object-contain" /> WordPress
                           </span>
                         )}
 
@@ -913,28 +913,29 @@ const ContentLibraryPage = () => {
                           </span>
                         )}
 
-                        <span className="flex items-center gap-1" title={`Created ${format(parseISO(item.created_at), 'MMM d, yyyy — HH:mm')}`}>
-                          <Plus className="w-3 h-3" />
+                        <span
+                          className="flex items-center gap-1.5"
+                          title={`Created by ${item.created_by_name || 'Unknown'} on ${format(parseISO(item.created_at), 'MMM d, yyyy — HH:mm')}`}
+                        >
+                          <img
+                            src={item.created_by_avatar || '/koodh-avatar.png'}
+                            alt={item.created_by_name || 'Unknown'}
+                            className="w-4 h-4 rounded-full object-cover border border-zinc-200"
+                          />
                           Created {format(parseISO(item.created_at), 'MMM d, yyyy')}
                         </span>
 
-                        <span className="flex items-center gap-1" title={`Last update ${format(parseISO(item.updated_at), 'MMM d, yyyy — HH:mm')}`}>
-                          <Clock className="w-3 h-3" />
+                        <span
+                          className="flex items-center gap-1.5"
+                          title={`Last updated by ${item.updated_by_name || item.created_by_name || 'Unknown'} on ${format(parseISO(item.updated_at), 'MMM d, yyyy — HH:mm')}`}
+                        >
+                          <img
+                            src={item.updated_by_avatar || item.created_by_avatar || '/koodh-avatar.png'}
+                            alt={item.updated_by_name || item.created_by_name || 'Unknown'}
+                            className="w-4 h-4 rounded-full object-cover border border-zinc-200"
+                          />
                           Updated {format(parseISO(item.updated_at), 'MMM d, yyyy')}
                         </span>
-
-                        {(item.updated_by_name || item.created_by_name) && (
-                          <span
-                            className="flex items-center gap-1"
-                            title={`Last updated by ${item.updated_by_name || item.created_by_name}`}
-                          >
-                            <img
-                              src={item.updated_by_avatar || item.created_by_avatar || '/koodh-avatar.png'}
-                              alt={item.updated_by_name || item.created_by_name}
-                              className="w-5 h-5 rounded-full object-cover border border-zinc-200"
-                            />
-                          </span>
-                        )}
                       </div>
                     </div>
                   </div>
