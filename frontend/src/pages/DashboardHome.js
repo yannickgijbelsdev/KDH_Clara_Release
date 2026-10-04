@@ -285,7 +285,7 @@ function OnAirPanel({ activeShows, shows, navigate, mainSiteSlug }) {
                   key={p?.id || p?.name || i}
                   src={getAvatarUrl({ avatar_url: p?.avatar_url || p?.avatar })}
                   alt={p?.name || 'presenter'}
-                  className="w-6 h-6 rounded-full object-cover border-2 border-white/80 bg-white/10"
+                  className="w-6 h-6 rounded-full object-cover"
                 />
               ))}
             </div>
