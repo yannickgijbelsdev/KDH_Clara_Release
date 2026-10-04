@@ -141,8 +141,7 @@ const TrashPage = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 mb-1 sm:mb-2 flex items-center gap-3">
-            <Trash2 className="w-8 h-8 text-[#7380b6]0" />
+          <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 mb-1 sm:mb-2">
             Trash
           </h1>
           <p className="text-sm sm:text-base text-zinc-400">
