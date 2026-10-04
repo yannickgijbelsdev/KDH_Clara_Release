@@ -77,10 +77,10 @@ const SITE_TYPE_BACKGROUNDS = {
   technical: '/images/env_technical.jpg',
   wp_security: '/images/env_wp_security.jpg',
   code_studio: '/images/env_code_studio.jpg', // legacy mapping kept for back-compat; will not render
-  // Custom sites get the neutral "clara_rooms" scene — a generic workspace room
-  // distinct from the radio studio used by radio sites.
-  custom: '/images/clara_rooms.jpg',
-  clara_custom: '/images/clara_rooms.jpg',
+  // Custom sites get the neutral "clara_custom_room" scene — a single generic
+  // workspace room distinct from the radio studio used by radio sites.
+  custom: '/images/clara_custom_room.jpg',
+  clara_custom: '/images/clara_custom_room.jpg',
 };
 
 /* Auto-include implicit features that should always show alongside their parent.

@@ -28,8 +28,8 @@ const SITE_TYPE_BACKGROUNDS = {
   task_scheduler: '/images/env_task_scheduler.jpg',
   technical: '/images/env_technical.jpg',
   wp_security: '/images/env_wp_security.jpg',
-  clara_custom: '/images/clara_rooms.jpg',
-  custom: '/images/clara_rooms.jpg',
+  clara_custom: '/images/clara_custom_room.jpg',
+  custom: '/images/clara_custom_room.jpg',
 };
 const WIZARD_THUMBNAILS = {
   radio: '/images/wiz_radio.jpg',
