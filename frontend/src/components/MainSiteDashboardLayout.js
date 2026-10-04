@@ -1210,7 +1210,7 @@ const MainSiteDashboardContent = () => {
               data-testid="logo-pill"
               aria-label="Clara"
             >
-              <img src="/clara-chevron.png" alt="Clara" className="h-7 w-auto object-contain" />
+              <img src="/clara-chevron.png" alt="Clara" className="h-11 w-auto object-contain" />
             </button>
             <div className="h-7 w-px bg-zinc-200" />
             <span className="font-display font-bold text-zinc-900 text-[20px] leading-none whitespace-nowrap tracking-tight">
