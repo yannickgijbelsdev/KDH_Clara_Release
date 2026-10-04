@@ -20,6 +20,10 @@ export const AuthProvider = ({ children }) => {
   const [sessionTimeLeft, setSessionTimeLeft] = useState(null);
   const sessionTimerRef = useRef(null);
   const warningTimerRef = useRef(null);
+  // When switchToUser / exitImpersonation set a fresh user manually, flip this
+  // flag so the token-watching useEffect does not fire a second /auth/me call
+  // (which can race the state swap and briefly nuke the user).
+  const skipNextTokenFetchRef = useRef(false);
 
   // Clear all session timers
   const clearSessionTimers = useCallback(() => {
@@ -136,7 +140,13 @@ export const AuthProvider = ({ children }) => {
       }
 
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      fetchUser();
+      if (skipNextTokenFetchRef.current) {
+        // switchToUser / exitImpersonation already applied the user payload.
+        skipNextTokenFetchRef.current = false;
+        setLoading(false);
+      } else {
+        fetchUser();
+      }
       
       // Restore session expiration from localStorage
       const storedExpiry = localStorage.getItem('session_expires_at');
@@ -152,7 +162,8 @@ export const AuthProvider = ({ children }) => {
     return () => clearSessionTimers();
   }, [token, setupSessionTimers, clearSessionTimers]);
 
-  const fetchUser = async () => {
+  const fetchUser = async (opts = {}) => {
+    const { silent = false } = opts;
     try {
       const response = await axios.get(`${API}/auth/me`, {
         headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
@@ -166,7 +177,17 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Failed to fetch user:', error);
-      logout();
+      const status = error?.response?.status;
+      // Only hard-logout on auth failures. A transient 5xx / network glitch
+      // during impersonation must NOT redirect the admin to the login page.
+      if (status === 401 || status === 403) {
+        logout();
+      } else if (silent) {
+        // Keep whatever user we already have (switchToUser already set it)
+        // so the UI doesn't flash the loading state.
+      } else {
+        logout();
+      }
     } finally {
       setLoading(false);
     }
@@ -262,9 +283,30 @@ export const AuthProvider = ({ children }) => {
   // Admin: Switch to another user's account
   const switchToUser = async (userId) => {
     try {
-      const response = await axios.post(`${API}/admin/switch-user/${userId}`);
+      // Build the switch-user request. In multisite context, include the
+      // X-Main-Site-ID header so the backend scopes the access check to the
+      // site the admin is currently viewing. Falls back to the legacy
+      // team-based lookup when no header is present.
+      let headers = {};
+      try {
+        // Peek at the current main site slug from the URL (first path segment)
+        const seg = window.location.pathname.split('/').filter(Boolean)[0];
+        if (seg && !['network', 'login', 'auth'].includes(seg)) {
+          // Resolve slug → id via a quick lookup (cheap even on cold cache)
+          const r = await axios.get(`${API}/main-sites/by-slug/${seg}`);
+          if (r.data?.id) headers['X-Main-Site-ID'] = r.data.id;
+        }
+      } catch (_e) {
+        // No main site in URL — skip header, backend will fall back to team scope.
+      }
+
+      const response = await axios.post(`${API}/admin/switch-user/${userId}`, undefined, { headers });
       const { token: newToken, user: targetUser, original_user, expires_at } = response.data;
-      
+
+      // Flag the useEffect token-watcher so it does NOT trigger a redundant
+      // fetchUser() — we already have the fresh user payload from the backend.
+      skipNextTokenFetchRef.current = true;
+
       // Store original user info for returning later
       localStorage.setItem('impersonating', JSON.stringify(original_user));
       localStorage.setItem('token', newToken);
@@ -274,12 +316,13 @@ export const AuthProvider = ({ children }) => {
         setupSessionTimers(expires_at);
       }
       axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
-      
+
       setImpersonating(original_user);
       setToken(newToken);
       setUser(targetUser);
       setShowSessionWarning(false);
-      
+      setLoading(false);
+
       return targetUser;
     } catch (error) {
       throw error;
@@ -291,7 +334,9 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await axios.post(`${API}/admin/exit-impersonation`);
       const { token: newToken, user: originalUser, expires_at } = response.data;
-      
+
+      skipNextTokenFetchRef.current = true;
+
       localStorage.removeItem('impersonating');
       localStorage.setItem('token', newToken);
       if (expires_at) {
@@ -300,12 +345,13 @@ export const AuthProvider = ({ children }) => {
         setupSessionTimers(expires_at);
       }
       axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
-      
+
       setImpersonating(null);
       setToken(newToken);
       setUser(originalUser);
       setShowSessionWarning(false);
-      
+      setLoading(false);
+
       return originalUser;
     } catch (error) {
       throw error;
