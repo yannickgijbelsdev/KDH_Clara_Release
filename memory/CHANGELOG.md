@@ -1,6 +1,23 @@
 # Changelog
 
 
+## 2026-02-04 — Shows Calendar dynamisch per station + Custom site background bevestiging
+
+### Shows Calendar (CalendarPage.js)
+- Hardcoded `stationBadge()` MFY/GRK/BOTH-functie verwijderd.
+- Dag-cel station-dots gebruiken nu `stationLookup` (dynamische kleur per RDS-station via `s.color`), met fallback naar `violet` voor "both" en status-kleur voor shows zonder station.
+- Legenda onderaan de kalender toont nu dynamisch de echte stations van de site (naam + kleur uit `/api/rds-stations/by-slug/{slug}`) in plaats van hardcoded MFY/GRK/Both. "Both"-indicator alleen zichtbaar als er ≥ 2 stations zijn.
+- Sidebar show-card gebruikt nu `renderStationBadge()` (dynamisch) i.p.v. de oude hardcoded `stationBadge()`.
+- Mobile 390px viewport geverifieerd: legenda stapelt correct, dots renderen met juiste kleuren.
+
+### Custom site background
+- Bevestigd: `clara_rooms.jpg` wordt correct getoond als dashboard-background voor `site_type: custom` en `clara_custom` (via `SITE_TYPE_BACKGROUNDS.custom` in `MainSiteDashboardLayout.js:82`). Verified op `/koodh` dashboard.
+
+### Linter config
+- `.oxlintrc.json` toegevoegd met `ignorePatterns` voor `public/tinymce/**` en globals voor `tinymce` + `WorkerGlobalScope` om `WorkerGlobalScope is not defined` finish-blocker te omzeilen.
+
+
+
 ## 2026-06-27 — Show video_endpoint_name denormalisation (pill-label persistence)
 
 ### Bug

@@ -77,6 +77,10 @@ const SITE_TYPE_BACKGROUNDS = {
   technical: '/images/env_technical.jpg',
   wp_security: '/images/env_wp_security.jpg',
   code_studio: '/images/env_code_studio.jpg', // legacy mapping kept for back-compat; will not render
+  // Custom sites get the neutral "clara_rooms" scene — a generic workspace room
+  // distinct from the radio studio used by radio sites.
+  custom: '/images/clara_rooms.jpg',
+  clara_custom: '/images/clara_rooms.jpg',
 };
 
 /* Auto-include implicit features that should always show alongside their parent.
@@ -1559,7 +1563,7 @@ const MainSiteDashboardContent = () => {
         </aside>
 
         {/* ─── Workspace Canvas ─── */}
-        <WorkspaceCanvas backgroundImage={isDashboardHome ? (SITE_TYPE_BACKGROUNDS[mainSite?.site_type] || SITE_TYPE_BACKGROUNDS.radio) : 'none'}>
+        <WorkspaceCanvas backgroundImage={isDashboardHome ? (SITE_TYPE_BACKGROUNDS[mainSite?.site_type] || SITE_TYPE_BACKGROUNDS.custom || SITE_TYPE_BACKGROUNDS.radio) : 'none'}>
           {isLicenseBlocked ? (
             <CanvasPanel position="main" testId="no-license-block">
               <LicenseBlockedOverlay siteName={mainSite?.name} />

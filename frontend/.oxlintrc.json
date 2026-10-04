@@ -1,0 +1,7 @@
+{
+  "ignorePatterns": ["public/tinymce/**", "public/**", "build/**", "node_modules/**"],
+  "globals": {
+    "tinymce": "readonly",
+    "WorkerGlobalScope": "readonly"
+  }
+}

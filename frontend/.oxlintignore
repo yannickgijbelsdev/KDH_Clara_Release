@@ -1,3 +1,6 @@
+public/
+public/tinymce/
 public/tinymce/**
 **/tinymce/**
-public/tinymce
+build/
+node_modules/

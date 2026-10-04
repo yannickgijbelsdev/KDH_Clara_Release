@@ -33,21 +33,6 @@ import CreateShowDialog from '../components/CreateShowDialog';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-const stationBadge = (station) => {
-  if (!station || station === 'none') return null;
-  const cfg = {
-    mfy: { label: 'MFY', cls: 'bg-[#7380b6]/20 text-[#7380b6]0 border-[#7380b6]/30' },
-    grk: { label: 'GRK', cls: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' },
-    both: { label: 'BOTH', cls: 'bg-violet-500/20 text-violet-400 border-violet-500/30' },
-  };
-  const c = cfg[station] || { label: station.toUpperCase(), cls: 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30' };
-  return (
-    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${c.cls} leading-none`}>
-      {c.label}
-    </span>
-  );
-};
-
 const statusColors = {
   draft: 'bg-zinc-500',
   scheduled: 'bg-violet-500',
@@ -63,6 +48,7 @@ const statusLabels = {
 const CalendarPage = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [shows, setShows] = useState([]);
+  const [stations, setStations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -72,9 +58,56 @@ const CalendarPage = () => {
   // Helper for context-aware navigation - uses URL param directly
   const navTo = (path) => mainSiteSlug ? `/${mainSiteSlug}${path}` : path;
 
+  // Dynamic station lookup: station code → { label, color, bgCls, textCls }
+  const stationLookup = useMemo(() => {
+    const map = {};
+    (stations || []).forEach((s) => {
+      const code = (s.code || s.name || '').toLowerCase();
+      if (!code) return;
+      map[code] = {
+        label: (s.name || code).toUpperCase(),
+        color: s.color || '#7380b6',
+      };
+    });
+    return map;
+  }, [stations]);
+
+  const renderStationBadge = (station) => {
+    if (!station || station === 'none') return null;
+    const code = station.toLowerCase();
+    const cfg = stationLookup[code];
+    if (cfg) {
+      return (
+        <span
+          className="text-[9px] font-bold px-1.5 py-0.5 rounded border leading-none"
+          style={{
+            backgroundColor: `${cfg.color}22`,
+            color: cfg.color,
+            borderColor: `${cfg.color}55`,
+          }}
+        >
+          {cfg.label}
+        </span>
+      );
+    }
+    if (code === 'both') {
+      return (
+        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded border leading-none bg-violet-500/20 text-violet-500 border-violet-500/30">
+          BOTH
+        </span>
+      );
+    }
+    return (
+      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded border leading-none bg-zinc-500/20 text-zinc-500 border-zinc-500/30">
+        {code.toUpperCase()}
+      </span>
+    );
+  };
+
   // Fetch shows on mount and when window regains focus
   useEffect(() => {
     fetchShows();
+    fetchStations();
     
     // Refetch when window regains focus (user returns to page)
     const handleFocus = () => {
@@ -83,7 +116,8 @@ const CalendarPage = () => {
     
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mainSiteSlug]);
 
   const fetchShows = async () => {
     try {
@@ -93,6 +127,20 @@ const CalendarPage = () => {
       toast.error('Failed to load shows');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchStations = async () => {
+    if (!mainSiteSlug) {
+      setStations([]);
+      return;
+    }
+    try {
+      const r = await axios.get(`${API}/rds-stations/by-slug/${mainSiteSlug}`);
+      setStations(r.data?.stations || []);
+    } catch (e) {
+      // Non-RDS site types won't have stations — just hide the legend.
+      setStations([]);
     }
   };
 
@@ -270,15 +318,20 @@ const CalendarPage = () => {
                     {dayShows.length > 0 && (
                       <div className="flex flex-wrap gap-0.5 justify-center">
                         {dayShows.slice(0, 3).map((show) => {
-                          const stColor = show.rds_station === 'mfy' ? 'bg-[#7380b6]/100' 
-                            : show.rds_station === 'grk' ? 'bg-cyan-400'
-                            : show.rds_station === 'both' ? 'bg-violet-400'
-                            : statusColors[show.status];
+                          const code = (show.rds_station || '').toLowerCase();
+                          const cfg = stationLookup[code];
+                          const dotStyle = cfg ? { backgroundColor: cfg.color } : null;
+                          const fallbackCls = code === 'both'
+                            ? 'bg-violet-400'
+                            : (!code || code === 'none')
+                              ? statusColors[show.status]
+                              : 'bg-zinc-400';
                           return (
                             <div
                               key={show.id}
-                              className={`w-1.5 h-1.5 rounded-full ${stColor}`}
-                              title={`${show.title}${show.rds_station && show.rds_station !== 'none' ? ` (${show.rds_station.toUpperCase()})` : ''}`}
+                              className={`w-1.5 h-1.5 rounded-full ${dotStyle ? '' : fallbackCls}`}
+                              style={dotStyle || undefined}
+                              title={`${show.title}${code && code !== 'none' ? ` (${code.toUpperCase()})` : ''}`}
                             />
                           );
                         })}
@@ -304,20 +357,28 @@ const CalendarPage = () => {
                 <span className="text-xs text-zinc-400 capitalize">{statusLabels[status]}</span>
               </div>
             ))}
-            <span className="text-xs text-zinc-600 mx-1">|</span>
-            <span className="text-xs text-zinc-500">Station:</span>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#7380b6]/100" />
-              <span className="text-xs text-zinc-400">MFY</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-cyan-400" />
-              <span className="text-xs text-zinc-400">GRK</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-violet-400" />
-              <span className="text-xs text-zinc-400">Both</span>
-            </div>
+            {stations && stations.length > 0 && (
+              <>
+                <span className="text-xs text-zinc-600 mx-1">|</span>
+                <span className="text-xs text-zinc-500">Station:</span>
+                {stations.map((s) => {
+                  const code = (s.code || s.name || '').toLowerCase();
+                  const color = s.color || '#7380b6';
+                  return (
+                    <div key={code} className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+                      <span className="text-xs text-zinc-400">{(s.name || code).toUpperCase()}</span>
+                    </div>
+                  );
+                })}
+                {stations.length > 1 && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-violet-400" />
+                    <span className="text-xs text-zinc-400">Both</span>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -383,7 +444,7 @@ const CalendarPage = () => {
                                 <h4 className="text-zinc-900 font-medium group-hover:text-[#5f6ca3] transition-colors line-clamp-1">
                                   {show.title}
                                 </h4>
-                                {stationBadge(show.rds_station)}
+                                {renderStationBadge(show.rds_station)}
                                 {show.is_recurring && (
                                   <Repeat className="w-3.5 h-3.5 text-violet-400 flex-shrink-0" title="Recurring show" />
                                 )}
