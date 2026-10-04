@@ -164,16 +164,16 @@ export default function NetworkHeader({
         </button>
 
         {/* Logo lockup — periwinkle chevron + divider + "Clara" wordmark */}
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center shrink-0">
           <Link
             to="/network"
-            className="hover:opacity-80 transition-opacity flex items-center justify-center"
+            className="hover:opacity-80 transition-opacity flex items-center justify-center mr-1"
             data-testid="logo-pill"
             aria-label="Clara"
           >
             <img src="/clara-chevron.png" alt="Clara" className="h-11 w-auto object-contain" />
           </Link>
-          <div className="h-7 w-px bg-zinc-200" />
+          <div className="h-7 w-px bg-zinc-200 mr-3" />
           <span className="font-display font-bold text-zinc-900 text-[20px] leading-none whitespace-nowrap tracking-tight" data-testid="enterprise-global-label">
             Clara
           </span>

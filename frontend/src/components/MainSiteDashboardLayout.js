@@ -1203,22 +1203,22 @@ const MainSiteDashboardContent = () => {
             <Menu className="w-5 h-5" />
           </button>
           {/* Logo lockup — periwinkle chevron + divider + "Clara" wordmark */}
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center shrink-0">
             <button
               onClick={() => navigate(`/${mainSiteSlug}`)}
-              className="hover:opacity-80 transition-opacity flex items-center justify-center"
+              className="hover:opacity-80 transition-opacity flex items-center justify-center mr-1"
               data-testid="logo-pill"
               aria-label="Clara"
             >
               <img src="/clara-chevron.png" alt="Clara" className="h-11 w-auto object-contain" />
             </button>
-            <div className="h-7 w-px bg-zinc-200" />
+            <div className="h-7 w-px bg-zinc-200 mr-3" />
             <span className="font-display font-bold text-zinc-900 text-[20px] leading-none whitespace-nowrap tracking-tight">
               Clara
             </span>
             {mainSite?.clara_enterprise && (
               <span
-                className="font-display font-light text-zinc-500 text-[20px] leading-none whitespace-nowrap tracking-tight"
+                className="font-display font-light text-zinc-400 text-[15px] leading-none whitespace-nowrap tracking-tight ml-2"
                 data-testid="enterprise-tag"
                 title="Clara Enterprise"
               >
