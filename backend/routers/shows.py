@@ -116,20 +116,31 @@ async def get_presenters_info(presenter_ids: List[str], main_site_id: str = None
         # Then get user details
         presenters = await db.users.find(
             {"id": {"$in": valid_user_ids}},
-            {"_id": 0, "id": 1, "name": 1, "avatar": 1}
+            {"_id": 0, "id": 1, "name": 1, "avatar": 1, "avatar_url": 1}
         ).to_list(100)
     elif team_id:
         presenters = await db.users.find(
             {"id": {"$in": presenter_ids}, "team_id": team_id},
-            {"_id": 0, "id": 1, "name": 1, "avatar": 1}
+            {"_id": 0, "id": 1, "name": 1, "avatar": 1, "avatar_url": 1}
         ).to_list(100)
     else:
         # Just get the users without team filter
         presenters = await db.users.find(
             {"id": {"$in": presenter_ids}},
-            {"_id": 0, "id": 1, "name": 1, "avatar": 1}
+            {"_id": 0, "id": 1, "name": 1, "avatar": 1, "avatar_url": 1}
         ).to_list(100)
-    
+
+    # Normalise each presenter to always carry a resolvable `avatar_url` string
+    # so clients (ShowManagement, calendars, public schedule) can render the
+    # overlapping composite directly without re-querying the user record.
+    for p in presenters:
+        if not p.get("avatar_url"):
+            av = p.get("avatar")
+            if isinstance(av, dict):
+                p["avatar_url"] = av.get("s3_url") or (
+                    f"/uploads/avatars/{av['file_key']}" if av.get("file_key") else ""
+                )
+
     # Preserve order from presenter_ids
     presenter_map = {p["id"]: p for p in presenters}
     return [presenter_map[pid] for pid in presenter_ids if pid in presenter_map]
@@ -820,8 +831,17 @@ async def get_shows(
     if all_presenter_ids:
         presenters = await db.users.find(
             {"id": {"$in": all_presenter_ids}},
-            {"_id": 0, "id": 1, "name": 1, "avatar": 1}
+            {"_id": 0, "id": 1, "name": 1, "avatar": 1, "avatar_url": 1}
         ).to_list(100)
+        # Normalise avatar → avatar_url so the frontend composite can render
+        # overlapping circles without an extra lookup per presenter.
+        for p in presenters:
+            if not p.get("avatar_url"):
+                av = p.get("avatar")
+                if isinstance(av, dict):
+                    p["avatar_url"] = av.get("s3_url") or (
+                        f"/uploads/avatars/{av['file_key']}" if av.get("file_key") else ""
+                    )
         presenters_map = {p["id"]: p for p in presenters}
     
     # Get station assignments from show_titles

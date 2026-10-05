@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { usePermissions } from '../context/PermissionsContext';
 import ImageResizeDialog from '../components/ImageResizeDialog';
 import { isImageFile, isOversized } from '../utils/imageResize';
+import PresenterComposite from '../components/PresenterComposite';
 import {
   Radio,
   Building2,
@@ -430,14 +431,16 @@ const ShowManagementPage = () => {
                     className="flex items-center justify-between p-4 bg-zinc-50 rounded-lg hover:bg-white/60 transition-all duration-200"
                   >
                     <div className="flex items-center gap-4">
-                      {/* Show Image or transparent placeholder */}
-                      <div className="w-16 h-16 rounded-full bg-transparent flex items-center justify-center overflow-hidden flex-shrink-0">
-                        <img
-                          src={title.image ? getImageUrl(title.image) : '/show-placeholder.png'}
-                          alt={title.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
+                      {/* Title image if uploaded, otherwise overlapping
+                          presenter avatars (same composite as the RDS
+                          presenter-image endpoint). */}
+                      <PresenterComposite
+                        presenters={title.default_presenters}
+                        fallbackSrc={title.image ? getImageUrl(title.image) : null}
+                        size={64}
+                        overlap={0.35}
+                        alt={title.name}
+                      />
                       <div>
                         <p className="text-zinc-900 font-medium text-lg">{title.name}</p>
                         <div className="flex flex-wrap items-center gap-4 text-sm text-zinc-500">

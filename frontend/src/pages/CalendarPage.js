@@ -2,6 +2,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
+import PresenterComposite from '../components/PresenterComposite';
 import {
   format,
   startOfMonth,
@@ -428,14 +429,14 @@ const CalendarPage = () => {
                         className="w-full text-left p-3 bg-zinc-50 rounded-lg hover:bg-zinc-200 transition-colors group"
                       >
                         <div className="flex gap-3">
-                          {/* Show Image or transparent placeholder — rounded like Show Management */}
-                          <div className="w-12 h-12 rounded-full bg-transparent overflow-hidden flex-shrink-0 flex items-center justify-center">
-                            <img
-                              src={show.image ? (show.image.s3_url || `${API}/uploads/show_title_images/${show.image.file_key}`) : '/show-placeholder.png'}
-                              alt={show.title}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
+                          {/* Show image if uploaded; otherwise overlapping presenter avatars */}
+                          <PresenterComposite
+                            presenters={show.presenters}
+                            fallbackSrc={show.image ? (show.image.s3_url || `${API}/uploads/show_title_images/${show.image.file_key}`) : null}
+                            size={48}
+                            overlap={0.35}
+                            alt={show.title}
+                          />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between mb-1">
                               <div className="flex items-center gap-2 min-w-0">

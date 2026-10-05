@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { format, parseISO } from 'date-fns';
+import PresenterComposite from '../components/PresenterComposite';
 import {
   ArrowLeft,
   Calendar,
@@ -495,14 +496,14 @@ const ShowDetailPage = () => {
             <ArrowLeft className="w-5 h-5" />
           </Button>
 
-          {/* Show Image — rounded like Show Management, with transparent placeholder */}
-          <div className="w-14 h-14 rounded-full bg-transparent overflow-hidden flex-shrink-0 flex items-center justify-center">
-            <img
-              src={show.image ? (show.image.s3_url || `${API}/uploads/show_title_images/${show.image.file_key}`) : '/show-placeholder.png'}
-              alt={show.title}
-              className="w-full h-full object-cover"
-            />
-          </div>
+          {/* Show image if uploaded; otherwise overlapping presenter avatars */}
+          <PresenterComposite
+            presenters={show.presenters || show.default_presenters}
+            fallbackSrc={show.image ? (show.image.s3_url || `${API}/uploads/show_title_images/${show.image.file_key}`) : null}
+            size={56}
+            overlap={0.35}
+            alt={show.title}
+          />
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
