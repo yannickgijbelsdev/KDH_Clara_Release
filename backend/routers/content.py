@@ -23,6 +23,25 @@ from services.helpers import get_content_with_publish_statuses
 from services.audit import log_action, get_client_ip
 from services.s3_storage import upload_file_to_s3, delete_file_from_s3, is_s3_configured
 from services.main_site_context import get_main_site_id_from_header, get_effective_role
+from services.permissions import get_user_permissions
+
+
+async def _can_approve_content(request: Request, current_user: dict) -> bool:
+    """True when the user is allowed to approve/reject content for the current site.
+
+    Precedence:
+      1. Network admins / site admins / news_admin role → always allowed
+         (backwards-compat with the previous role-only check).
+      2. Otherwise, consult the merged permission map (role + per-user
+         custom overrides) and allow when `content_approval.edit` is True.
+    """
+    effective_role = await get_effective_role(request, current_user)
+    if effective_role in ("admin", "news_admin") or current_user.get("is_network_admin"):
+        return True
+    perms = await get_user_permissions(request, current_user)
+    if perms.get("_full_access"):
+        return True
+    return bool(perms.get("content_approval", {}).get("edit"))
 
 content_router = APIRouter(prefix="/content", tags=["Content Library"])
 
@@ -512,9 +531,8 @@ async def update_content_approval(
     from services.email_service import send_content_approval_notification
     import os
     
-    # Check approval permission using effective role (considers site-specific role)
-    effective_role = await get_effective_role(request, current_user)
-    if effective_role not in ['admin', 'news_admin']:
+    # Check approval permission using effective role + custom per-user overrides
+    if not await _can_approve_content(request, current_user):
         raise HTTPException(status_code=403, detail="Content approval access required")
     
     # Support multisite context
@@ -609,10 +627,9 @@ async def get_pending_approval_content(
     request: Request,
     current_user: dict = Depends(get_current_user)
 ):
-    """Admin/News Admin: Get all content pending approval."""
-    # Check approval permission using effective role
-    effective_role = await get_effective_role(request, current_user)
-    if effective_role not in ['admin', 'news_admin']:
+    """Admin/News Admin or users with content_approval.edit permission: Get all content pending approval."""
+    # Check approval permission using effective role + custom per-user overrides
+    if not await _can_approve_content(request, current_user):
         raise HTTPException(status_code=403, detail="Content approval access required")
     
     # Support multisite context

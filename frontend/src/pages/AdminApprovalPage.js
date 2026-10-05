@@ -100,10 +100,23 @@ const AdminApprovalPage = () => {
       try {
         const response = await axios.get(`${API}/main-sites/my/access`);
         const siteAccess = response.data.main_sites?.find(s => s.slug === mainSiteSlug);
-        // Can approve if network admin, or site admin, or site news_admin
-        const hasApprovalAccess = response.data.is_network_admin || 
-          siteAccess?.role === 'admin' || 
-          siteAccess?.role === 'news_admin';
+        // Can approve if network admin, site admin, site news_admin, OR
+        // the per-site permission map (role + custom overrides) grants
+        // content_approval.edit — this is the custom-permission path.
+        let hasApprovalAccess = !!(
+          response.data.is_network_admin ||
+          siteAccess?.role === 'admin' ||
+          siteAccess?.role === 'news_admin'
+        );
+        if (!hasApprovalAccess) {
+          try {
+            const permsRes = await axios.get(`${API}/auth/me/permissions`);
+            const perms = permsRes.data?.permissions || permsRes.data || {};
+            if (perms._full_access || perms?.content_approval?.edit) {
+              hasApprovalAccess = true;
+            }
+          } catch (_e) { /* fall through — no access */ }
+        }
         setCanApproveForSite(hasApprovalAccess);
       } catch (error) {
         console.error('Failed to check approval permission:', error);

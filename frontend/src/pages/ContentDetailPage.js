@@ -144,8 +144,16 @@ const ContentDetailPage = () => {
         }
         const r = await axios.get(`${API}/main-sites/my/access`);
         const siteAccess = r.data.main_sites?.find((s) => s.slug === mainSiteSlug);
-        const ok = r.data.is_network_admin || siteAccess?.role === 'admin' || siteAccess?.role === 'news_admin';
-        if (!cancelled) setCanApproveForSite(!!ok);
+        let ok = !!(r.data.is_network_admin || siteAccess?.role === 'admin' || siteAccess?.role === 'news_admin');
+        // Honor per-user custom overrides on content_approval.edit
+        if (!ok) {
+          try {
+            const permsRes = await axios.get(`${API}/auth/me/permissions`);
+            const perms = permsRes.data?.permissions || permsRes.data || {};
+            if (perms._full_access || perms?.content_approval?.edit) ok = true;
+          } catch (_e) { /* no override — stays false */ }
+        }
+        if (!cancelled) setCanApproveForSite(ok);
       } catch (_e) {
         if (!cancelled) setCanApproveForSite(false);
       }
