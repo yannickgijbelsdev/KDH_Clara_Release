@@ -26,6 +26,8 @@ import time
 import pytest
 import pyotp
 import requests
+from dotenv import load_dotenv
+load_dotenv("/app/backend/.env")
 from pymongo import MongoClient
 
 # Localhost direct — public ingress is unreliable (reverse-proxy timeouts).
@@ -40,7 +42,7 @@ MAIN_SITE_SLUG = "radiogroep"
 MAIN_SITE_ID = "63154708-3320-444c-932d-aa3642b5090c"
 MEMBER_USER_ID = "6102f41f-3306-4449-bae6-28f64f97d916"
 
-TIMEOUT = 60  # backend can be slow
+TIMEOUT = 180  # backend can be slow
 
 _MONGO_URL = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
 _DB_NAME = os.environ.get("DB_NAME", "radio_show_planner")
@@ -92,7 +94,7 @@ def _preflight_and_downgrade():
     )
     _sync_db.main_site_users.update_one(
         {"user_id": MEMBER_USER_ID, "main_site_id": MAIN_SITE_ID},
-        {"$set": {"role": "editor", "custom_permissions": {}}},
+        {"$set": {"role": "viewer", "custom_permissions": {}}},
     )
     yield snap
     _sync_db.users.update_one(
