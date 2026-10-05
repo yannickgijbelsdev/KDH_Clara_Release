@@ -108,6 +108,12 @@ class PermissionMiddleware(BaseHTTPMiddleware):
         # Check for show management sub-routes (titles, studios need show_management permission)
         if "/shows/titles" in path or "/shows/studios" in path:
             feature = "show_management"
+        # Content approval sub-routes map to the `content_approval` feature,
+        # not the generic `content_library` feature — this lets admins grant
+        # approve/reject rights via custom permissions without opening up the
+        # whole library.
+        elif path.startswith("/api/content/pending-approval") or path.endswith("/approval"):
+            feature = "content_approval"
         # Check for rundown-specific sub-routes (more specific match)
         elif "/rundown" in path:
             feature = "rundown"
@@ -151,15 +157,16 @@ class PermissionMiddleware(BaseHTTPMiddleware):
         if not main_site_id:
             return await call_next(request)
 
-        # Get user's role for this main site
+        # Get user's role AND per-user custom permission overrides for this main site
         site_access = await db.main_site_users.find_one(
             {"user_id": user_id, "main_site_id": main_site_id},
-            {"_id": 0, "role": 1},
+            {"_id": 0, "role": 1, "custom_permissions": 1},
         )
         if not site_access:
             return await call_next(request)
 
         role_slug = site_access.get("role", "viewer")
+        overrides = site_access.get("custom_permissions") or {}
 
         # Admin role always has access
         if role_slug == "admin":
@@ -172,7 +179,26 @@ class PermissionMiddleware(BaseHTTPMiddleware):
             {"_id": 0, "permissions": 1},
         )
 
-        if not role:
+        base_perms = role.get("permissions", {}) if role else {}
+
+        # Merge per-user custom overrides on top of the role permissions —
+        # mirror services/permissions.py so the middleware never diverges from
+        # /auth/me/permissions and the route-level helpers.
+        if overrides:
+            permissions = {k: dict(v) if isinstance(v, dict) else v for k, v in base_perms.items()}
+            for feat_key, action_map in overrides.items():
+                if not isinstance(action_map, dict):
+                    continue
+                if feat_key not in permissions or not isinstance(permissions.get(feat_key), dict):
+                    permissions[feat_key] = {}
+                for act_key, act_val in action_map.items():
+                    if act_key in ("view", "create", "edit", "delete"):
+                        permissions[feat_key][act_key] = bool(act_val)
+        else:
+            permissions = base_perms
+
+        # No role AND no overrides → block mutations, allow reads
+        if not role and not overrides:
             if action != "view":
                 await self._log_denial(user_id, user_email, role_slug, main_site_id, feature, action, path, method, client_ip)
                 return JSONResponse(
@@ -181,7 +207,6 @@ class PermissionMiddleware(BaseHTTPMiddleware):
                 )
             return await call_next(request)
 
-        permissions = role.get("permissions", {})
         feature_perms = permissions.get(feature, {})
 
         # Check primary feature permission
