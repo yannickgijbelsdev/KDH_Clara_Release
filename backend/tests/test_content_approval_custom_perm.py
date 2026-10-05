@@ -269,3 +269,17 @@ def test_admin_can_always_approve(admin_headers, pending_content):
         timeout=TIMEOUT,
     )
     assert r.status_code == 200, f"admin approve: {r.status_code} {r.text}"
+
+
+
+def test_content_approval_override_does_not_grant_library_edit(admin_token, admin_headers, member_headers, pending_content):
+    """Granting content_approval.edit must not implicitly grant content_library.edit.
+    yannick trying to edit the title/body of a content item must still 403."""
+    _set_override(admin_token, {"content_approval": {"view": True, "edit": True}})
+    r = requests.put(
+        f"{API}/content/{pending_content}",
+        json={"title": "TEST_should_be_blocked", "body": "nope"},
+        headers=member_headers,
+        timeout=TIMEOUT,
+    )
+    assert r.status_code == 403, f"expected 403 on content edit, got {r.status_code} {r.text}"

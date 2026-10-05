@@ -112,7 +112,7 @@ class PermissionMiddleware(BaseHTTPMiddleware):
         # not the generic `content_library` feature — this lets admins grant
         # approve/reject rights via custom permissions without opening up the
         # whole library.
-        elif path.startswith("/api/content/pending-approval") or path.endswith("/approval"):
+        elif path.startswith("/api/content/pending-approval") or path.startswith("/api/content/admin/pending-approval") or path.endswith("/approval"):
             feature = "content_approval"
         # Check for rundown-specific sub-routes (more specific match)
         elif "/rundown" in path:
