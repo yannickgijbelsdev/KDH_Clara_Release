@@ -1,3 +1,5 @@
+/* eslint-disable */
+/* oxlint-disable */
 tinymce.Resource.add('tinymce.html-i18n.help-keynav.da',
 '<h1>Start tastaturnavigation</h1>\n' +
   '\n' +

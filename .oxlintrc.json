@@ -15,6 +15,7 @@
     "react-hooks/preserve-manual-memoization": "off",
     "react-hooks/refs": "off",
     "react-hooks/immutability": "off",
-    "emergent/no-undef": "off"
+    "emergent/no-undef": "off",
+    "no-undef": "off"
   }
 }

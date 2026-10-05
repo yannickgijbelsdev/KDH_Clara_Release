@@ -1,3 +1,5 @@
+/* eslint-disable */
+/* oxlint-disable */
 tinymce.Resource.add('tinymce.html-i18n.help-keynav.ru',
 '<h1>Начните управление с помощью клавиатуры</h1>\n' +
   '\n' +

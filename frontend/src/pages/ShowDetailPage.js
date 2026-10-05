@@ -13,6 +13,7 @@ import {
   Save,
   X,
   Printer,
+  Download,
   Wifi,
   WifiOff,
   Repeat,
@@ -422,7 +423,13 @@ const ShowDetailPage = () => {
 
   const handlePrintView = () => {
     // Use production URL for print/export
-    window.open(`https://clara.koodh.com/api/shows/${showId}/rundown/print?token=${token}`, '_blank');
+    window.open(`https://clr.koodh.com/api/shows/${showId}/rundown/print?token=${token}`, '_blank');
+  };
+
+  const handleExportPDF = () => {
+    // Open the same rundown HTML view with auto-print flag so the user lands on the
+    // browser's "Save as PDF" dialog immediately — no extra click required.
+    window.open(`https://clr.koodh.com/api/shows/${showId}/rundown/print?token=${token}&pdf=1`, '_blank');
   };
 
   // Image upload handlers
@@ -567,7 +574,7 @@ const ShowDetailPage = () => {
               Recurrence
             </Button>
           )}
-          {/* Export/Print — modern pill */}
+          {/* Export (HTML overview) — modern pill */}
           <Button
             data-testid="print-rundown-btn"
             onClick={handlePrintView}
@@ -577,6 +584,17 @@ const ShowDetailPage = () => {
           >
             <Printer className="w-4 h-4" />
             Export
+          </Button>
+          {/* Export PDF — opens same view with auto-print for Save-as-PDF */}
+          <Button
+            data-testid="export-pdf-rundown-btn"
+            onClick={handleExportPDF}
+            variant="outline"
+            size="sm"
+            className="gap-2 h-9 px-4 rounded-full border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50"
+          >
+            <Download className="w-4 h-4" />
+            PDF
           </Button>
           <VideoEndpointInline show={show} setShow={setShow} isEditor={isEditor} />
           {/* Modern status pill with dot */}

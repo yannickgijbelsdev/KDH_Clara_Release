@@ -1,3 +1,5 @@
+/* eslint-disable */
+/* oxlint-disable */
 tinymce.Resource.add('tinymce.html-i18n.help-keynav.eu',
 '<h1>Hasi teklatuaren nabigazioa</h1>\n' +
   '\n' +

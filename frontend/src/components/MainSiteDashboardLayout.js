@@ -312,6 +312,7 @@ const MainSiteDashboardContent = () => {
   const [showVoiceCall, setShowVoiceCall] = useState(false);
   const [firewallActive, setFirewallActive] = useState(false);
   const [hasStations, setHasStations] = useState(false);
+  const [chatUnreadCount, setChatUnreadCount] = useState(0);
   const { voiceCallRequested, clearVoiceCallRequest } = useClaraAssistant();
 
   // Handle voice call request from ClaraAssistant
@@ -323,6 +324,39 @@ const MainSiteDashboardContent = () => {
       clearVoiceCallRequest();
     }
   }, [voiceCallRequested, mainSite?.clara_enterprise, clearVoiceCallRequest]);
+
+  // Poll Team Chat unread counts so the profile avatar badge + dashboard notification
+  // reflect new messages even when the user hasn't opened the chat yet.
+  // Dispatches a window event so DashboardHome (and anywhere else) can listen too.
+  useEffect(() => {
+    let cancelled = false;
+    const fetchUnread = async () => {
+      try {
+        const res = await axios.get(`${API}/chat/unread-count`);
+        if (cancelled) return;
+        const total = res.data?.total || 0;
+        setChatUnreadCount(total);
+        try {
+          window.dispatchEvent(new CustomEvent('clara:chat-unread', {
+            detail: { total, threads: res.data?.threads || [] }
+          }));
+        } catch (_) {}
+      } catch (_) {
+        /* silent — chat may not be enabled for this site */
+      }
+    };
+    fetchUnread();
+    const iv = setInterval(fetchUnread, 20000);
+    const onFocus = () => fetchUnread();
+    window.addEventListener('focus', onFocus);
+    window.addEventListener('clara:refresh-chat-unread', fetchUnread);
+    return () => {
+      cancelled = true;
+      clearInterval(iv);
+      window.removeEventListener('focus', onFocus);
+      window.removeEventListener('clara:refresh-chat-unread', fetchUnread);
+    };
+  }, []);
   
   // Get user's menu preference (grouped or flat)
   const useGroupedMenu = user?.preferences?.grouped_menu ?? true;
@@ -1517,14 +1551,25 @@ const MainSiteDashboardContent = () => {
           <div className="flex items-center gap-2 flex-shrink-0">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-1.5 hover:bg-slate-50 rounded-full pl-0.5 pr-2 py-0.5 transition-colors" data-testid="user-menu-trigger">
-                  {getAvatarUrl(user) ? (
-                    <img src={getAvatarUrl(user)} alt={user?.name} className="w-9 h-9 rounded-full object-cover" />
-                  ) : (
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#7380b6] to-[#5f6ca3] flex items-center justify-center text-white font-semibold text-sm">
-                      {user?.name?.charAt(0).toUpperCase()}
-                    </div>
-                  )}
+                <button className="flex items-center gap-1.5 hover:bg-slate-50 rounded-full pl-0.5 pr-2 py-0.5 transition-colors relative" data-testid="user-menu-trigger">
+                  <div className="relative">
+                    {getAvatarUrl(user) ? (
+                      <img src={getAvatarUrl(user)} alt={user?.name} className="w-9 h-9 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#7380b6] to-[#5f6ca3] flex items-center justify-center text-white font-semibold text-sm">
+                        {user?.name?.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    {chatUnreadCount > 0 && (
+                      <span
+                        data-testid="avatar-chat-unread-badge"
+                        className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#7380b6] text-white text-[10px] font-semibold flex items-center justify-center ring-2 ring-white shadow-sm"
+                        title={`${chatUnreadCount} unread chat message${chatUnreadCount > 1 ? 's' : ''}`}
+                      >
+                        {chatUnreadCount > 9 ? '9+' : chatUnreadCount}
+                      </span>
+                    )}
+                  </div>
                   <ChevronDown className="w-4 h-4 text-zinc-400" />
                 </button>
               </DropdownMenuTrigger>

@@ -1,3 +1,5 @@
+/* eslint-disable */
+/* oxlint-disable */
 /**
  * TinyMCE version 8.3.2 (2026-01-14)
  */

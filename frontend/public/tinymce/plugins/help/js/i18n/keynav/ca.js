@@ -1,3 +1,5 @@
+/* eslint-disable */
+/* oxlint-disable */
 tinymce.Resource.add('tinymce.html-i18n.help-keynav.ca',
 '<h1>Inici de la navegació amb el teclat</h1>\n' +
   '\n' +

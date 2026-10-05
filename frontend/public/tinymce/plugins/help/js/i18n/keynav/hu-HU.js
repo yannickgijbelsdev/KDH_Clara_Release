@@ -1,3 +1,5 @@
+/* eslint-disable */
+/* oxlint-disable */
 tinymce.Resource.add('tinymce.html-i18n.help-keynav.hu-HU',
 '<h1>Billentyűzetes navigáció indítása</h1>\n' +
   '\n' +

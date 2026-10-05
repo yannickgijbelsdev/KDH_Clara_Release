@@ -1,3 +1,5 @@
+/* eslint-disable */
+/* oxlint-disable */
 tinymce.Resource.add('tinymce.html-i18n.help-keynav.fa',
 '<h1>شروع پیمایش صفحه‌کلید</h1>\n' +
   '\n' +

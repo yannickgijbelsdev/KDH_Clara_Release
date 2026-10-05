@@ -1,3 +1,5 @@
+/* eslint-disable */
+/* oxlint-disable */
 tinymce.Resource.add('tinymce.html-i18n.help-keynav.zh-CN',
 '<h1>开始键盘导航</h1>\n' +
   '\n' +

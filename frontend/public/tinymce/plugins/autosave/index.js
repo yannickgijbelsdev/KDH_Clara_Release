@@ -1,3 +1,5 @@
+/* eslint-disable */
+/* oxlint-disable */
 // Exports the "autosave" plugin for usage with module loaders
 // Usage:
 //   CommonJS:

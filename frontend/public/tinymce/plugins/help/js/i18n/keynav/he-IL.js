@@ -1,3 +1,5 @@
+/* eslint-disable */
+/* oxlint-disable */
 tinymce.Resource.add('tinymce.html-i18n.help-keynav.he-IL',
 '<h1>התחל ניווט במקלדת</h1>\n' +
   '\n' +

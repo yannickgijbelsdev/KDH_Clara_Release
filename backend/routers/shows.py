@@ -1807,9 +1807,13 @@ async def delete_rundown_item(
 @shows_router.get("/{show_id}/rundown/print", response_class=HTMLResponse)
 async def get_show_rundown_print_view(
     show_id: str,
-    token: Optional[str] = None
+    token: Optional[str] = None,
+    pdf: Optional[int] = 0
 ):
-    """Get print-friendly HTML view of a show's rundown. Supports token in query param."""
+    """Get print-friendly HTML view of a show's rundown. Supports token in query param.
+    When ?pdf=1 is passed, the page auto-triggers window.print() on load so the user
+    lands directly on the browser's "Save as PDF" dialog.
+    """
     if token:
         try:
             payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
@@ -1830,7 +1834,22 @@ async def get_show_rundown_print_view(
     )
     if not show:
         raise HTTPException(status_code=404, detail="Show not found")
-    
+
+    # Fetch presenters for this show (fallback to the parent show_title's defaults)
+    presenter_ids = show.get("presenter_ids") or []
+    if not presenter_ids:
+        title_doc = await db.show_titles.find_one(
+            {"name": show.get("title"), "team_id": current_user.get('team_id')},
+            {"_id": 0, "default_presenter_ids": 1}
+        )
+        if title_doc:
+            presenter_ids = title_doc.get("default_presenter_ids", [])
+    presenters = await get_presenters_info(
+        presenter_ids,
+        main_site_id=show.get("main_site_id"),
+        team_id=current_user.get('team_id'),
+    ) if presenter_ids else []
+
     items = await db.rundown_items.find(
         {"show_id": show_id},
         {"_id": 0}
@@ -1858,27 +1877,93 @@ async def get_show_rundown_print_view(
         "scheduled": "Scheduled",
         "completed": "Completed"
     }
-    
+
+    # Build cumulative start timestamps per item using show.start_time + accumulated duration
+    def _parse_hms(s):
+        """Parse 'HH:MM' or 'HH:MM:SS' or 'MM:SS' into seconds."""
+        if not s:
+            return 0
+        try:
+            parts = [int(p) for p in str(s).split(":")]
+            if len(parts) == 2:
+                # Could be HH:MM (time of day) or MM:SS (duration). Caller decides.
+                return parts[0] * 60 + parts[1]
+            if len(parts) == 3:
+                return parts[0] * 3600 + parts[1] * 60 + parts[2]
+        except Exception:
+            return 0
+        return 0
+
+    def _hhmm_to_seconds(s):
+        if not s:
+            return None
+        try:
+            parts = [int(p) for p in str(s).split(":")]
+            if len(parts) >= 2:
+                return parts[0] * 3600 + parts[1] * 60
+        except Exception:
+            return None
+        return None
+
+    def _fmt_hhmm(secs):
+        secs = secs % (24 * 3600)
+        h = secs // 3600
+        m = (secs % 3600) // 60
+        return f"{h:02d}:{m:02d}"
+
+    show_start_s = _hhmm_to_seconds(show.get("start_time")) or 0
+    cursor_s = show_start_s
+
     items_html = ""
     for idx, item in enumerate(items, 1):
         media_html = ""
         if item.get("media"):
             media_links = ", ".join([f'{m["title"]} ({m["kind"]})' for m in item["media"]])
-            media_html = f'<div class="media-attachments">📎 {media_links}</div>'
-        
+            media_html = f'<div class="media-attachments">{media_links}</div>'
+
         notes_html = item.get("notes", "").replace("\n", "<br>") if item.get("notes") else "-"
-        
+        start_hhmm = _fmt_hhmm(cursor_s)
+        duration_raw = item.get("duration") or ""
+        duration_s = _parse_hms(duration_raw) if ":" in str(duration_raw) else 0
+        if duration_s:
+            cursor_s += duration_s
+        duration_display = duration_raw or "-"
+
         items_html += f'''
         <tr>
             <td class="order">{idx}</td>
-            <td class="type"><span class="type-badge">{item.get("type", "-").upper()}</span></td>
+            <td class="start-time">{start_hhmm}</td>
+            <td class="type"><span class="type-badge">{(item.get("type") or "-").upper()}</span></td>
             <td class="title">{item.get("title", "-")}</td>
-            <td class="duration">{item.get("duration") or "-"}</td>
+            <td class="duration">{duration_display}</td>
             <td class="notes">{notes_html}{media_html}</td>
         </tr>
         '''
-    
-    html = generate_print_html(show, items_html, now, status_labels)
+
+    # Presenter chips html
+    presenter_chips = ""
+    for p in presenters:
+        avatar_url = p.get("avatar_url") or ""
+        initial = (p.get("name") or "?")[:1].upper()
+        if avatar_url:
+            if avatar_url.startswith("/uploads/"):
+                avatar_url = f"https://clr.koodh.com{avatar_url}"
+            avatar_el = f'<img src="{avatar_url}" alt="{p.get("name","")}" />'
+        else:
+            avatar_el = f'<div class="presenter-initial">{initial}</div>'
+        presenter_chips += f'<div class="presenter-chip">{avatar_el}<span>{p.get("name","Presenter")}</span></div>'
+
+    if not presenter_chips:
+        presenter_chips = '<div class="presenter-empty">No presenters assigned</div>'
+
+    html = generate_print_html(
+        show=show,
+        items_html=items_html,
+        now=now,
+        status_labels=status_labels,
+        presenter_chips=presenter_chips,
+        auto_print=bool(pdf),
+    )
     return HTMLResponse(content=html)
 
 
@@ -2135,77 +2220,261 @@ async def detach_media_from_rundown_item(
         raise HTTPException(status_code=404, detail="Attachment not found")
 
 
-def generate_print_html(show: dict, items_html: str, now: str, status_labels: dict) -> str:
-    """Generate print-friendly HTML for rundown."""
+def generate_print_html(
+    show: dict,
+    items_html: str,
+    now: str,
+    status_labels: dict,
+    presenter_chips: str = "",
+    auto_print: bool = False,
+) -> str:
+    """Generate print-friendly HTML for rundown — Clara-blue overview style."""
+    # Format date nicely (DD MMM YYYY) if ISO
+    raw_date = show.get("date", "")
+    date_display = raw_date
+    try:
+        if raw_date:
+            dt = datetime.fromisoformat(str(raw_date))
+            date_display = dt.strftime("%A %d %B %Y")
+    except Exception:
+        pass
+
+    status_key = show.get("status", "draft")
+    status_label = status_labels.get(status_key, "Draft")
+    auto_print_js = (
+        '<script>window.addEventListener("load", () => setTimeout(() => window.print(), 300));</script>'
+        if auto_print else ''
+    )
     return f'''
     <!DOCTYPE html>
-    <html lang="en">
+    <html lang="nl">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Rundown - {show.get("title", "Untitled")}</title>
+        <title>Rundown — {show.get("title", "Untitled")}</title>
+        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
         <style>
             * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-            body {{
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                font-size: 12pt; line-height: 1.5; color: #1a1a1a; background: white; padding: 20mm;
+            :root {{
+                --clara-blue: #7380b6;
+                --clara-blue-dark: #5f6ca3;
+                --clara-blue-soft: #eef0f8;
+                --clara-ink: #1a1f36;
+                --clara-muted: #6b7280;
+                --clara-line: #e5e7eb;
             }}
-            .header {{ border-bottom: 3px solid #e11d48; padding-bottom: 20px; margin-bottom: 30px; }}
-            .show-title {{ font-size: 24pt; font-weight: bold; margin-bottom: 8px; }}
-            .show-meta {{ display: flex; gap: 30px; font-size: 11pt; color: #444; }}
-            .show-meta span {{ display: flex; align-items: center; gap: 6px; }}
-            .status-badge {{ display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 10pt; font-weight: 600; text-transform: uppercase; }}
+            html, body {{ background: #f5f6f8; }}
+            body {{
+                font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                font-size: 11pt; line-height: 1.55; color: var(--clara-ink); padding: 24px;
+            }}
+            .page {{
+                max-width: 900px; margin: 0 auto; background: white;
+                border-radius: 20px; padding: 40px 44px;
+                box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 20px 40px rgba(15,23,42,.08);
+            }}
+            .toolbar {{
+                max-width: 900px; margin: 0 auto 16px; display: flex; gap: 8px; justify-content: flex-end;
+            }}
+            .btn {{
+                display: inline-flex; align-items: center; gap: 6px;
+                background: var(--clara-blue); color: white; border: none;
+                padding: 9px 18px; border-radius: 999px; font-family: inherit;
+                font-size: 13px; font-weight: 500; cursor: pointer;
+                box-shadow: 0 4px 12px rgba(115,128,182,.3);
+            }}
+            .btn:hover {{ background: var(--clara-blue-dark); }}
+            .btn.ghost {{
+                background: white; color: var(--clara-ink);
+                box-shadow: 0 1px 2px rgba(15,23,42,.06); border: 1px solid var(--clara-line);
+            }}
+            .btn.ghost:hover {{ background: var(--clara-blue-soft); color: var(--clara-blue-dark); }}
+
+            .brand {{
+                display: flex; align-items: center; justify-content: space-between;
+                padding-bottom: 20px; border-bottom: 1px solid var(--clara-line); margin-bottom: 28px;
+            }}
+            .brand-left {{ display: flex; align-items: center; gap: 14px; }}
+            .brand img {{ height: 36px; width: auto; object-fit: contain; }}
+            .brand-wordmark {{ font-size: 18px; font-weight: 700; letter-spacing: -0.01em; color: var(--clara-ink); }}
+            .brand-wordmark .light {{ font-weight: 300; color: var(--clara-blue); margin-left: 4px; }}
+            .brand-date {{ font-size: 12px; color: var(--clara-muted); font-weight: 500; }}
+
+            .hero {{ margin-bottom: 32px; }}
+            .hero-eyebrow {{
+                display: inline-block; font-size: 11px; letter-spacing: 0.08em;
+                font-weight: 600; text-transform: uppercase; color: var(--clara-blue);
+                background: var(--clara-blue-soft); padding: 5px 12px; border-radius: 999px;
+                margin-bottom: 14px;
+            }}
+            .show-title {{
+                font-size: 32pt; font-weight: 700; letter-spacing: -0.02em;
+                color: var(--clara-ink); line-height: 1.1; margin-bottom: 18px;
+            }}
+            .meta-grid {{
+                display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 20px; margin-top: 20px;
+            }}
+            .meta-cell .label {{
+                font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+                color: var(--clara-muted); font-weight: 600; margin-bottom: 4px;
+            }}
+            .meta-cell .value {{ font-size: 14px; font-weight: 500; color: var(--clara-ink); }}
+            .status-badge {{
+                display: inline-block; padding: 4px 12px; border-radius: 999px;
+                font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+            }}
             .status-draft {{ background: #f4f4f5; color: #71717a; }}
-            .status-scheduled {{ background: #fef3c7; color: #d97706; }}
+            .status-scheduled {{ background: var(--clara-blue-soft); color: var(--clara-blue-dark); }}
             .status-completed {{ background: #dcfce7; color: #16a34a; }}
-            .rundown-table {{ width: 100%; border-collapse: collapse; margin-top: 20px; }}
-            .rundown-table th {{ background: #f8fafc; padding: 12px 10px; text-align: left; font-weight: 600; font-size: 10pt; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; border-bottom: 2px solid #e2e8f0; }}
-            .rundown-table td {{ padding: 12px 10px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }}
+
+            .presenters {{ margin-top: 24px; }}
+            .presenters-label {{
+                font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+                color: var(--clara-muted); font-weight: 600; margin-bottom: 10px;
+            }}
+            .presenters-row {{ display: flex; flex-wrap: wrap; gap: 10px; }}
+            .presenter-chip {{
+                display: inline-flex; align-items: center; gap: 8px;
+                padding: 5px 14px 5px 5px; background: var(--clara-blue-soft);
+                border-radius: 999px; font-size: 13px; font-weight: 500; color: var(--clara-ink);
+            }}
+            .presenter-chip img {{
+                width: 28px; height: 28px; border-radius: 50%; object-fit: cover;
+                border: 2px solid white;
+            }}
+            .presenter-initial {{
+                width: 28px; height: 28px; border-radius: 50%;
+                background: linear-gradient(135deg, var(--clara-blue), var(--clara-blue-dark));
+                color: white; display: flex; align-items: center; justify-content: center;
+                font-size: 12px; font-weight: 600;
+            }}
+            .presenter-empty {{ color: var(--clara-muted); font-style: italic; font-size: 13px; }}
+
+            .section-title {{
+                font-size: 16px; font-weight: 700; color: var(--clara-ink);
+                margin-top: 32px; margin-bottom: 14px;
+                display: flex; align-items: center; gap: 10px;
+            }}
+            .section-title::before {{
+                content: ''; width: 3px; height: 18px; background: var(--clara-blue); border-radius: 2px;
+            }}
+
+            .rundown-table {{ width: 100%; border-collapse: collapse; }}
+            .rundown-table thead th {{
+                background: var(--clara-blue-soft); padding: 11px 10px; text-align: left;
+                font-weight: 600; font-size: 10px; text-transform: uppercase;
+                letter-spacing: 0.06em; color: var(--clara-blue-dark);
+                border-bottom: 2px solid var(--clara-blue);
+            }}
+            .rundown-table thead th:first-child {{ border-top-left-radius: 10px; }}
+            .rundown-table thead th:last-child {{ border-top-right-radius: 10px; }}
+            .rundown-table td {{
+                padding: 14px 10px; border-bottom: 1px solid var(--clara-line);
+                vertical-align: top; font-size: 11pt;
+            }}
             .rundown-table tr:last-child td {{ border-bottom: none; }}
-            .order {{ width: 40px; text-align: center; font-weight: 600; color: #e11d48; }}
-            .type {{ width: 80px; }}
-            .type-badge {{ display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 9pt; font-weight: 600; background: #fce7f3; color: #be185d; }}
-            .title {{ width: 180px; font-weight: 500; }}
-            .duration {{ width: 80px; text-align: center; color: #64748b; }}
-            .notes {{ font-size: 11pt; color: #475569; }}
-            .media-attachments {{ margin-top: 8px; font-size: 10pt; color: #0891b2; }}
-            .footer {{ margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 10pt; color: #94a3b8; display: flex; justify-content: space-between; }}
+            .rundown-table tr:nth-child(even) td {{ background: #fafbfc; }}
+            .order {{ width: 36px; text-align: center; font-weight: 600; color: var(--clara-blue); }}
+            .start-time {{
+                width: 68px; font-family: 'JetBrains Mono', ui-monospace, monospace;
+                font-size: 10.5pt; color: var(--clara-blue-dark); font-weight: 600;
+            }}
+            .type {{ width: 90px; }}
+            .type-badge {{
+                display: inline-block; padding: 3px 9px; border-radius: 6px; font-size: 9pt;
+                font-weight: 600; background: var(--clara-blue-soft); color: var(--clara-blue-dark);
+                text-transform: uppercase; letter-spacing: 0.04em;
+            }}
+            .title {{ width: 190px; font-weight: 600; color: var(--clara-ink); }}
+            .duration {{ width: 80px; text-align: center; color: var(--clara-muted); font-weight: 500; }}
+            .notes {{ font-size: 10.5pt; color: #4b5563; }}
+            .media-attachments {{ margin-top: 6px; font-size: 10pt; color: var(--clara-blue); font-weight: 500; }}
+
+            .footer {{
+                margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--clara-line);
+                font-size: 11px; color: var(--clara-muted);
+                display: flex; justify-content: space-between; align-items: center;
+            }}
+            .footer-brand {{ font-weight: 600; color: var(--clara-blue); }}
             @media print {{
-                body {{ padding: 10mm; }}
-                .header {{ page-break-after: avoid; }}
+                body {{ padding: 0; background: white; }}
+                .toolbar {{ display: none; }}
+                .page {{ box-shadow: none; border-radius: 0; max-width: 100%; padding: 15mm; }}
+                .brand {{ page-break-after: avoid; }}
+                .hero {{ page-break-after: avoid; }}
                 .rundown-table {{ page-break-inside: auto; }}
                 .rundown-table tr {{ page-break-inside: avoid; page-break-after: auto; }}
-                @page {{ size: A4; margin: 15mm; }}
-                .no-print {{ display: none; }}
+                @page {{ size: A4; margin: 10mm; }}
+                tr:nth-child(even) td {{ background: #fafbfc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
+                .type-badge, .status-badge, .hero-eyebrow, .presenter-chip,
+                .rundown-table thead th {{ -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
             }}
-            .no-print {{ margin-bottom: 20px; }}
-            .print-button {{ background: #e11d48; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 500; }}
-            .print-button:hover {{ background: #be123c; }}
         </style>
+        {auto_print_js}
     </head>
     <body>
-        <div class="no-print">
-            <button class="print-button" onclick="window.print()">🖨️ Print Rundown</button>
+        <div class="toolbar">
+            <button class="btn ghost" onclick="window.close()">Close</button>
+            <button class="btn" onclick="window.print()">Print / Save PDF</button>
         </div>
-        <div class="header">
-            <h1 class="show-title">{show.get("title", "Untitled Show")}</h1>
-            <div class="show-meta">
-                <span>📅 {show.get("date", "-")}</span>
-                <span>🕐 {show.get("start_time", "-")} - {show.get("end_time", "-")}</span>
-                <span class="status-badge status-{show.get("status", "draft")}">{status_labels.get(show.get("status", "draft"), "Draft")}</span>
+        <div class="page">
+            <!-- Brand header -->
+            <div class="brand">
+                <div class="brand-left">
+                    <img src="https://clr.koodh.com/koodh_clara_logo.png" alt="Clara" onerror="this.style.display='none'" />
+                    <div class="brand-wordmark">Clara<span class="light">Rundown</span></div>
+                </div>
+                <div class="brand-date">Generated {now}</div>
             </div>
-        </div>
-        <table class="rundown-table">
-            <thead>
-                <tr><th>#</th><th>Type</th><th>Title</th><th>Duration</th><th>Notes / Script</th></tr>
-            </thead>
-            <tbody>
-                {items_html if items_html else '<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:40px;">No rundown items</td></tr>'}
-            </tbody>
-        </table>
-        <div class="footer">
-            <span>Generated: {now}</span>
-            <span>Radio Show Planner</span>
+
+            <!-- Hero -->
+            <div class="hero">
+                <span class="hero-eyebrow">Show Rundown</span>
+                <h1 class="show-title">{show.get("title", "Untitled Show")}</h1>
+                <div class="meta-grid">
+                    <div class="meta-cell">
+                        <div class="label">Date</div>
+                        <div class="value">{date_display or "-"}</div>
+                    </div>
+                    <div class="meta-cell">
+                        <div class="label">Airtime</div>
+                        <div class="value">{show.get("start_time","-")} – {show.get("end_time","-")}</div>
+                    </div>
+                    <div class="meta-cell">
+                        <div class="label">Status</div>
+                        <div class="value"><span class="status-badge status-{status_key}">{status_label}</span></div>
+                    </div>
+                </div>
+
+                <div class="presenters">
+                    <div class="presenters-label">Presenters</div>
+                    <div class="presenters-row">{presenter_chips}</div>
+                </div>
+            </div>
+
+            <!-- Rundown items -->
+            <div class="section-title">Rundown items</div>
+            <table class="rundown-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Start</th>
+                        <th>Type</th>
+                        <th>Title</th>
+                        <th>Duration</th>
+                        <th>Notes / Script</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {items_html if items_html else '<tr><td colspan="6" style="text-align:center;color:#9ca3af;padding:40px;font-style:italic;">No rundown items</td></tr>'}
+                </tbody>
+            </table>
+
+            <div class="footer">
+                <span>Generated {now}</span>
+                <span class="footer-brand">Clara · clr.koodh.com</span>
+            </div>
         </div>
     </body>
     </html>

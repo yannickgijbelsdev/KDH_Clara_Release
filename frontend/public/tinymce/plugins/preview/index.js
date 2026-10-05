@@ -1,3 +1,5 @@
+/* eslint-disable */
+/* oxlint-disable */
 // Exports the "preview" plugin for usage with module loaders
 // Usage:
 //   CommonJS:

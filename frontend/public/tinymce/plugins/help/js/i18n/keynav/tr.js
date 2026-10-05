@@ -1,3 +1,5 @@
+/* eslint-disable */
+/* oxlint-disable */
 tinymce.Resource.add('tinymce.html-i18n.help-keynav.tr',
 '<h1>Klavyeyle gezintiyi başlatma</h1>\n' +
   '\n' +

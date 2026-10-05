@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Radio, Users, FileText, Calendar, ArrowRight, Search, Mic,
   HardDrive, Network, LayoutGrid, Shield, ExternalLink, Plug,
-  Layers, Server, CheckCircle, Monitor, Wifi, WifiOff
+  Layers, Server, CheckCircle, Monitor, Wifi, WifiOff, MessageCircle
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useMainSite } from '../context/MainSiteContext';
@@ -46,6 +46,26 @@ export default function DashboardHome() {
   const [contentCount, setContentCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [ztMembers, setZtMembers] = useState(null);
+  const [chatUnread, setChatUnread] = useState(0);
+
+  // Listen for team-chat unread updates emitted by MainSiteDashboardLayout polling
+  useEffect(() => {
+    const onUnread = (e) => setChatUnread(e.detail?.total || 0);
+    window.addEventListener('clara:chat-unread', onUnread);
+    // Prime from a one-off fetch in case layout hasn't polled yet
+    (async () => {
+      try {
+        const res = await fetch(`${API}/api/chat/unread-count`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const d = await res.json();
+          setChatUnread(d?.total || 0);
+        }
+      } catch (_) {}
+    })();
+    return () => window.removeEventListener('clara:chat-unread', onUnread);
+  }, [token]);
 
   const siteType = mainSite?.site_type || 'radio';
   const isRadio = siteType === 'radio';
@@ -198,6 +218,12 @@ export default function DashboardHome() {
 
           {/* Row 1: Welcome (full width) */}
           <div className="flex-shrink-0">
+            {chatUnread > 0 && (
+              <ChatUnreadNotice
+                count={chatUnread}
+                onOpen={() => navigate(`/${mainSiteSlug}/chat`)}
+              />
+            )}
             <WelcomePanel greeting={greeting} firstName={firstName} mainSite={mainSite} loading={loading} teamMembers={teamMembers} activeShows={activeShows} contentCount={contentCount} isRadio={isRadio} />
           </div>
 
@@ -237,6 +263,39 @@ export default function DashboardHome() {
 /* ════════════════════════════════════════════
    Individual panel components
    ════════════════════════════════════════════ */
+
+function ChatUnreadNotice({ count, onOpen }) {
+  return (
+    <motion.div
+      data-testid="dashboard-chat-unread-notice"
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      className="mb-3 flex items-center justify-between gap-4 px-5 py-3 rounded-[18px] bg-white/90 backdrop-blur-xl border border-[#7380b6]/30 shadow-[0_4px_18px_rgba(115,128,182,0.15)]"
+    >
+      <div className="flex items-center gap-3">
+        <div className="relative w-9 h-9 rounded-full bg-gradient-to-br from-[#7380b6] to-[#5f6ca3] flex items-center justify-center text-white shadow-sm">
+          <MessageCircle className="w-4 h-4" />
+          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-semibold flex items-center justify-center ring-2 ring-white">
+            {count > 9 ? '9+' : count}
+          </span>
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-zinc-900">New team chat message{count > 1 ? 's' : ''}</p>
+          <p className="text-xs text-zinc-500">You have {count} unread message{count > 1 ? 's' : ''} waiting in team chat.</p>
+        </div>
+      </div>
+      <button
+        onClick={onOpen}
+        data-testid="dashboard-chat-unread-open-btn"
+        className="inline-flex items-center gap-1.5 px-4 h-9 rounded-full bg-[#7380b6] hover:bg-[#5f6ca3] text-white text-sm font-medium transition-colors shadow-sm whitespace-nowrap"
+      >
+        Open chat
+        <ArrowRight className="w-4 h-4" />
+      </button>
+    </motion.div>
+  );
+}
 
 function WelcomePanel({ greeting, firstName, mainSite, loading, teamMembers, activeShows, contentCount, isRadio }) {
   return (

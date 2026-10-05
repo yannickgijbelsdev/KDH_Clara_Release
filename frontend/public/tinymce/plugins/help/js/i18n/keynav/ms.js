@@ -1,3 +1,5 @@
+/* eslint-disable */
+/* oxlint-disable */
 tinymce.Resource.add('tinymce.html-i18n.help-keynav.ms',
 '<h1>Mulakan navigasi papan kekunci</h1>\n' +
   '\n' +

@@ -1,3 +1,5 @@
+/* eslint-disable */
+/* oxlint-disable */
 tinymce.Resource.add('tinymce.html-i18n.help-keynav.hr',
 '<h1>Početak navigacije na tipkovnici</h1>\n' +
   '\n' +

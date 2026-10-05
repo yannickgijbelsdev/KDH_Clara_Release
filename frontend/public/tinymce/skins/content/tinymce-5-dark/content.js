@@ -1,3 +1,5 @@
+/* eslint-disable */
+/* oxlint-disable */
 /* This file is bundled with the code from the following third party libraries */
 
 /**

@@ -1,3 +1,5 @@
+/* eslint-disable */
+/* oxlint-disable */
 // Exports the "media" plugin for usage with module loaders
 // Usage:
 //   CommonJS:

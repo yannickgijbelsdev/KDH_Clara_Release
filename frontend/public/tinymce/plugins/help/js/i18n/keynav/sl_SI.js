@@ -1,3 +1,5 @@
+/* eslint-disable */
+/* oxlint-disable */
 tinymce.Resource.add('tinymce.html-i18n.help-keynav.sl_SI',
 '<h1>Začetek krmarjenja s tipkovnico</h1>\n' +
   '\n' +

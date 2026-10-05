@@ -225,3 +225,39 @@ Tests:
 - Verified by screenshot: login page, dashboard header + "New Server" CTA, loader bar.
 - Testing agent run queued (iteration_173).
 
+
+
+## 2026-10-05 — Transparent placeholders · Rundown Export redesign · Team Chat unread notifications
+
+### What shipped
+- **Transparent fallback images**: Content Library rows now render the universally-transparent `/show-placeholder.png` (RGBA 0,0,0,0) in place of the old grey `TypeIcon` box. Shows, calendar sidebars and show-management titles were already routed through `<PresenterComposite>` which also falls back to the same transparent asset.
+- **Rundown Export URL migrated** from `clara.koodh.com` → `clr.koodh.com` for both the HTML export and the new PDF action (`ShowDetailPage.js :: handlePrintView / handleExportPDF`).
+- **Rundown Export redesign** (`backend/routers/shows.py :: generate_print_html`):
+  - Clara wordmark + Koodh×Clara logo top-left, "Generated …" timestamp top-right.
+  - Hero block: eyebrow pill → Show title → Date / Airtime / Status meta grid → Presenter chips (avatar + name, falls back to initial on blue-gradient).
+  - Rundown items table with cumulative Start-time column (computed from `show.start_time` + each item's duration), Clara-blue column headers, zebra rows, pill-shaped type badges, media attachment line in blue.
+  - Full `Outfit` typography, Clara-blue (`#7380b6`) palette, periwinkle pill action buttons ("Close" / "Print / Save PDF"), rounded 20px card on neutral background.
+  - `?pdf=1` query auto-triggers `window.print()` on load so the PDF button lands users directly on the Save-as-PDF dialog.
+  - Footer "Clara · clr.koodh.com".
+- **ShowDetailPage header**: new `PDF` pill next to `Export` (`data-testid="export-pdf-rundown-btn"`).
+- **Team Chat unread notifications** (the P0 missed from the previous session):
+  - `MainSiteDashboardLayout.js` polls `GET /api/chat/unread-count` every 20 s + on window focus and dispatches `clara:chat-unread` CustomEvent with `{total, threads}`.
+  - Profile avatar in top-right now carries a periwinkle unread badge (`data-testid="avatar-chat-unread-badge"`) with the unread count (`9+` when >9), ring-white, shadow.
+  - `DashboardHome.js` listens for the same event and primes once on mount; when `total > 0` it shows a dismissable notice above the welcome panel (`data-testid="dashboard-chat-unread-notice"`) with a "Open chat" CTA that routes to `/{mainSite}/chat`.
+
+### Verification
+- Rundown HTML endpoint tested via localhost → 11.9 KB response, 28 Clara-blue/presenter-chip style hits; visually confirmed via Playwright screenshot (logo, hero, presenters, items table, footer all rendering correctly).
+- Dashboard: created a temporary `group`-type thread with admkoodh as `member_ids` and 2 messages from another user → verified avatar badge "2" + notice "You have 2 unread messages" visible on dashboard; cleaned up after.
+- Mobile 390x844 verified for dashboard layout; existing nav overflow unchanged (pre-existing).
+
+### Files touched
+- `/app/backend/routers/shows.py` — rewrote `generate_print_html` + `get_show_rundown_print_view` (presenters, cumulative start-times, `pdf` param)
+- `/app/frontend/src/pages/ShowDetailPage.js` — URL swap + new PDF button
+- `/app/frontend/src/pages/ContentLibraryPage.js` — transparent fallback image
+- `/app/frontend/src/components/MainSiteDashboardLayout.js` — chat unread polling + avatar badge
+- `/app/frontend/src/pages/DashboardHome.js` — dashboard unread notice component
+
+### Status
+- Backend: ✅ reloads clean, endpoint returns 200 with new HTML template.
+- Frontend: ✅ renders without new console errors (pre-existing DialogContent warning unchanged).
+- Testing: manual Playwright smoke + rendered HTML preview.

@@ -1,3 +1,5 @@
+/* eslint-disable */
+/* oxlint-disable */
 tinymce.Resource.add('tinymce.html-i18n.help-keynav.pt_PT',
 '<h1>Iniciar navegação com teclado</h1>\n' +
   '\n' +

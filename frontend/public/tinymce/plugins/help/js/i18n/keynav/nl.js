@@ -1,3 +1,5 @@
+/* eslint-disable */
+/* oxlint-disable */
 tinymce.Resource.add('tinymce.html-i18n.help-keynav.nl',
 '<h1>Toetsenbordnavigatie starten</h1>\n' +
   '\n' +
