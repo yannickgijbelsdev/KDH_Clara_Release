@@ -1804,42 +1804,21 @@ async def delete_rundown_item(
 
 # ============== SHOW RUNDOWN PRINT VIEW ==============
 
-@shows_router.get("/{show_id}/rundown/print", response_class=HTMLResponse)
-async def get_show_rundown_print_view(
-    show_id: str,
-    token: Optional[str] = None,
-    pdf: Optional[int] = 0
-):
-    """Get print-friendly HTML view of a show's rundown. Supports token in query param.
-    When ?pdf=1 is passed, the page auto-triggers window.print() on load so the user
-    lands directly on the browser's "Save as PDF" dialog.
-    """
-    if token:
-        try:
-            payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-            user_id = payload.get("user_id")
-            current_user = await db.users.find_one({"id": user_id}, {"_id": 0, "password_hash": 0})
-            if not current_user:
-                raise HTTPException(status_code=401, detail="Invalid token")
-        except jwt.ExpiredSignatureError:
-            raise HTTPException(status_code=401, detail="Token expired")
-        except jwt.InvalidTokenError:
-            raise HTTPException(status_code=401, detail="Invalid token")
-    else:
-        raise HTTPException(status_code=401, detail="Authentication required")
-    
-    show = await db.shows.find_one(
-        {"id": show_id, "team_id": current_user.get('team_id')},
-        {"_id": 0}
-    )
-    if not show:
-        raise HTTPException(status_code=404, detail="Show not found")
 
-    # Fetch presenters for this show (fallback to the parent show_title's defaults)
+async def _build_rundown_html(show: dict, pdf: bool = False, is_public: bool = False) -> str:
+    """Shared helper that builds the Clara-styled rundown HTML for a given show doc.
+
+    Used by both the authenticated print endpoint and the public share-link
+    endpoint — the only difference is the "SHOW RUNDOWN" eyebrow label and
+    the subtle "Shared view" footer badge when `is_public=True`.
+    """
+    team_id = show.get("team_id")
+
+    # Fetch presenters (fallback to the parent show_title's defaults)
     presenter_ids = show.get("presenter_ids") or []
     if not presenter_ids:
         title_doc = await db.show_titles.find_one(
-            {"name": show.get("title"), "team_id": current_user.get('team_id')},
+            {"name": show.get("title"), "team_id": team_id},
             {"_id": 0, "default_presenter_ids": 1}
         )
         if title_doc:
@@ -1847,20 +1826,19 @@ async def get_show_rundown_print_view(
     presenters = await get_presenters_info(
         presenter_ids,
         main_site_id=show.get("main_site_id"),
-        team_id=current_user.get('team_id'),
+        team_id=team_id,
     ) if presenter_ids else []
 
     items = await db.rundown_items.find(
-        {"show_id": show_id},
+        {"show_id": show["id"]},
         {"_id": 0}
     ).sort("order", 1).to_list(1000)
-    
+
     for item in items:
         media_attachments = await db.rundown_item_media.find(
             {"rundown_item_id": item["id"]},
             {"_id": 0}
         ).to_list(100)
-        
         item["media"] = []
         for attachment in media_attachments:
             asset = await db.media_assets.find_one(
@@ -1869,24 +1847,16 @@ async def get_show_rundown_print_view(
             )
             if asset:
                 item["media"].append(asset)
-    
-    now = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
-    
-    status_labels = {
-        "draft": "Draft",
-        "scheduled": "Scheduled",
-        "completed": "Completed"
-    }
 
-    # Build cumulative start timestamps per item using show.start_time + accumulated duration
+    now = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
+    status_labels = {"draft": "Draft", "scheduled": "Scheduled", "completed": "Completed"}
+
     def _parse_hms(s):
-        """Parse 'HH:MM' or 'HH:MM:SS' or 'MM:SS' into seconds."""
         if not s:
             return 0
         try:
             parts = [int(p) for p in str(s).split(":")]
             if len(parts) == 2:
-                # Could be HH:MM (time of day) or MM:SS (duration). Caller decides.
                 return parts[0] * 60 + parts[1]
             if len(parts) == 3:
                 return parts[0] * 3600 + parts[1] * 60 + parts[2]
@@ -1920,7 +1890,6 @@ async def get_show_rundown_print_view(
         if item.get("media"):
             media_links = ", ".join([f'{m["title"]} ({m["kind"]})' for m in item["media"]])
             media_html = f'<div class="media-attachments">{media_links}</div>'
-
         notes_html = item.get("notes", "").replace("\n", "<br>") if item.get("notes") else "-"
         start_hhmm = _fmt_hhmm(cursor_s)
         duration_raw = item.get("duration") or ""
@@ -1928,7 +1897,6 @@ async def get_show_rundown_print_view(
         if duration_s:
             cursor_s += duration_s
         duration_display = duration_raw or "-"
-
         items_html += f'''
         <tr>
             <td class="order">{idx}</td>
@@ -1952,19 +1920,121 @@ async def get_show_rundown_print_view(
         else:
             avatar_el = f'<div class="presenter-initial">{initial}</div>'
         presenter_chips += f'<div class="presenter-chip">{avatar_el}<span>{p.get("name","Presenter")}</span></div>'
-
     if not presenter_chips:
         presenter_chips = '<div class="presenter-empty">No presenters assigned</div>'
 
-    html = generate_print_html(
+    return generate_print_html(
         show=show,
         items_html=items_html,
         now=now,
         status_labels=status_labels,
         presenter_chips=presenter_chips,
         auto_print=bool(pdf),
+        is_public=bool(is_public),
     )
+
+
+@shows_router.get("/{show_id}/rundown/print", response_class=HTMLResponse)
+async def get_show_rundown_print_view(
+    show_id: str,
+    token: Optional[str] = None,
+    pdf: Optional[int] = 0
+):
+    """Get print-friendly HTML view of a show's rundown. Supports token in query param.
+    When ?pdf=1 is passed, the page auto-triggers window.print() on load so the user
+    lands directly on the browser's "Save as PDF" dialog.
+    """
+    if token:
+        try:
+            payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+            user_id = payload.get("user_id")
+            current_user = await db.users.find_one({"id": user_id}, {"_id": 0, "password_hash": 0})
+            if not current_user:
+                raise HTTPException(status_code=401, detail="Invalid token")
+        except jwt.ExpiredSignatureError:
+            raise HTTPException(status_code=401, detail="Token expired")
+        except jwt.InvalidTokenError:
+            raise HTTPException(status_code=401, detail="Invalid token")
+    else:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    show = await db.shows.find_one(
+        {"id": show_id, "team_id": current_user.get('team_id')},
+        {"_id": 0}
+    )
+    if not show:
+        raise HTTPException(status_code=404, detail="Show not found")
+
+    html = await _build_rundown_html(show, pdf=bool(pdf), is_public=False)
     return HTMLResponse(content=html)
+
+
+# ---- Public share-link endpoints ----
+
+@shows_router.post("/{show_id}/rundown-share")
+async def create_rundown_share_link(
+    show_id: str,
+    current_user: dict = Depends(require_editor_or_admin),
+):
+    """Generate (or reuse) a public share token for this show's rundown. Guests
+    hitting `/api/public/rundown/{token}` get the Clara-styled HTML view with
+    no auth required."""
+    show = await db.shows.find_one(
+        {"id": show_id, "team_id": current_user.get('team_id')},
+        {"_id": 0, "id": 1, "rundown_share_token": 1}
+    )
+    if not show:
+        raise HTTPException(status_code=404, detail="Show not found")
+
+    token_val = show.get("rundown_share_token")
+    if not token_val:
+        token_val = uuid.uuid4().hex + uuid.uuid4().hex  # 64 chars, hard to guess
+        await db.shows.update_one(
+            {"id": show_id},
+            {"$set": {
+                "rundown_share_token": token_val,
+                "rundown_share_created_at": datetime.now(timezone.utc).isoformat(),
+            }}
+        )
+    return {
+        "share_token": token_val,
+        "public_url": f"https://clr.koodh.com/api/public/rundown/{token_val}",
+    }
+
+
+@shows_router.delete("/{show_id}/rundown-share", status_code=status.HTTP_204_NO_CONTENT)
+async def revoke_rundown_share_link(
+    show_id: str,
+    current_user: dict = Depends(require_editor_or_admin),
+):
+    """Revoke the public share token so guests can no longer open the rundown."""
+    result = await db.shows.update_one(
+        {"id": show_id, "team_id": current_user.get('team_id')},
+        {"$unset": {"rundown_share_token": "", "rundown_share_created_at": ""}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Show not found")
+    return None
+
+
+@shows_router.get("/{show_id}/rundown-share")
+async def get_rundown_share_link(
+    show_id: str,
+    current_user: dict = Depends(get_current_user),
+):
+    """Return the existing share token (if any) without creating a new one.
+    Lets the Show Detail header know whether to show "Share" or "Copy link"."""
+    show = await db.shows.find_one(
+        {"id": show_id, "team_id": current_user.get('team_id')},
+        {"_id": 0, "rundown_share_token": 1}
+    )
+    if not show:
+        raise HTTPException(status_code=404, detail="Show not found")
+    token_val = show.get("rundown_share_token")
+    return {
+        "share_token": token_val,
+        "public_url": f"https://clr.koodh.com/api/public/rundown/{token_val}" if token_val else None,
+    }
 
 
 # ============== RUNDOWN-CONTENT ATTACHMENT ==============
@@ -2227,6 +2297,7 @@ def generate_print_html(
     status_labels: dict,
     presenter_chips: str = "",
     auto_print: bool = False,
+    is_public: bool = False,
 ) -> str:
     """Generate print-friendly HTML for rundown — Clara-blue overview style."""
     # Format date nicely (DD MMM YYYY) if ISO
@@ -2245,6 +2316,8 @@ def generate_print_html(
         '<script>window.addEventListener("load", () => setTimeout(() => window.print(), 300));</script>'
         if auto_print else ''
     )
+    eyebrow_label = "Shared rundown" if is_public else "Show Rundown"
+    footer_tag = "Shared via Clara · clr.koodh.com" if is_public else "Clara · clr.koodh.com"
     return f'''
     <!DOCTYPE html>
     <html lang="nl">
@@ -2430,7 +2503,7 @@ def generate_print_html(
 
             <!-- Hero -->
             <div class="hero">
-                <span class="hero-eyebrow">Show Rundown</span>
+                <span class="hero-eyebrow">{eyebrow_label}</span>
                 <h1 class="show-title">{show.get("title", "Untitled Show")}</h1>
                 <div class="meta-grid">
                     <div class="meta-cell">
@@ -2473,7 +2546,7 @@ def generate_print_html(
 
             <div class="footer">
                 <span>Generated {now}</span>
-                <span class="footer-brand">Clara · clr.koodh.com</span>
+                <span class="footer-brand">{footer_tag}</span>
             </div>
         </div>
     </body>

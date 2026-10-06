@@ -530,3 +530,35 @@ async def get_public_schedule_day(station: str, day: str, request: Request):
         return {"error": f"Invalid day. Use one of {', '.join(WEEKDAYS_NL)}"}
     week = await get_shows_for_week(main_site_id, station)
     return week.get(day_lower, [])
+
+
+
+# ───────────────────────────────────────────────────────────────────────────
+# Public rundown share link — guests can view a rundown via a secret token
+# without any Clara login. The token is created from the authenticated Show
+# Detail page (`POST /api/shows/{id}/rundown-share`) and revoked with
+# `DELETE /api/shows/{id}/rundown-share`.
+# ───────────────────────────────────────────────────────────────────────────
+
+from fastapi.responses import HTMLResponse  # noqa: E402  (routed late to avoid circular import)
+
+
+@public_schedule_router.get("/rundown/{share_token}", response_class=HTMLResponse)
+async def get_public_rundown(share_token: str, pdf: int = 0):
+    """Render the Clara-styled rundown HTML for guests holding a share token.
+    No authentication required; the token itself is the capability."""
+    if not share_token or len(share_token) < 16:
+        raise HTTPException(status_code=404, detail="Invalid share link")
+
+    show = await db.shows.find_one(
+        {"rundown_share_token": share_token},
+        {"_id": 0}
+    )
+    if not show:
+        raise HTTPException(status_code=404, detail="Rundown not found or link revoked")
+
+    # Lazy-import so this router stays independent of the show router module.
+    from routers.shows import _build_rundown_html
+
+    html = await _build_rundown_html(show, pdf=bool(pdf), is_public=True)
+    return HTMLResponse(content=html)

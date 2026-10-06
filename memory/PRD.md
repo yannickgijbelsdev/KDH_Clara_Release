@@ -280,3 +280,26 @@ Also fixed two mis-aligned keyword arguments in `backend/routers/shows.py` (`cre
 - `Social Club` (Yannick Gijbels, has avatar) → header shows real avatar `/api/uploads/avatars/6102f41f...png` on both desktop (1920) and mobile (390).
 - `Genkluistert` (Mike Cnudde, no avatar) → header falls back to Koodh bear (correct behaviour until admin uploads Mike's avatar in Team Settings).
 - Show Management list, Calendar sidebar and Show Detail header all use the same component path.
+
+## 2026-10-06 — Public Rundown Share Link
+
+### What shipped
+Guests can now open a rundown without a Clara account via a secret share token.
+
+**Backend** (`/app/backend/routers/shows.py` + `/app/backend/routers/public_schedule.py`):
+- Refactored HTML builder into `_build_rundown_html(show, pdf, is_public)` so the authenticated print view and the public view share one source of truth.
+- `POST /api/shows/{show_id}/rundown-share` — editor/admin only, idempotent, returns `{share_token, public_url}`. Token is 64-char hex, stored on `shows.rundown_share_token` with a `rundown_share_created_at` timestamp.
+- `GET /api/shows/{show_id}/rundown-share` — reads current token (null if none).
+- `DELETE /api/shows/{show_id}/rundown-share` — revokes.
+- `GET /api/public/rundown/{share_token}` — public, no auth. Renders the same Clara-blue HTML but with eyebrow "Shared rundown" and footer "Shared via Clara · clr.koodh.com". Supports `?pdf=1` auto-print. 404s if token is revoked or wrong.
+- Paths deliberately use `rundown-share` (not `rundown/share`) to avoid being shadowed by `/{show_id}/rundown/{item_id}`.
+
+**Frontend** (`/app/frontend/src/pages/ShowDetailPage.js`):
+- New **Share** pill in the show header (next to Export / PDF) with `data-testid="share-rundown-btn"`.
+- Dropdown menu offers "Copy public link" (`share-copy-link-item`) and "Revoke public link" (`share-revoke-item`, red).
+- "Copy" calls `POST /rundown-share`, writes the public URL to clipboard, and shows a toast with the URL. If the Clipboard API is blocked, a `window.prompt` lets the user copy it manually.
+
+### Verified
+- Full e2e via localhost: POST → token created, idempotent re-POST returns same token, GET reads it, public endpoint returns 11.9 KB HTML with "Shared rundown" eyebrow, DELETE → 204, subsequent public GET → 404.
+- UI: Share dropdown renders correctly with both menu items, next to Export / PDF.
+

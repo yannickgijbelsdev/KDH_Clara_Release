@@ -14,6 +14,7 @@ import {
   X,
   Printer,
   Download,
+  Share2,
   Wifi,
   WifiOff,
   Repeat,
@@ -61,6 +62,13 @@ import {
   TooltipTrigger,
 } from '../components/ui/tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '../components/ui/dropdown-menu';
 import { Calendar as CalendarPicker } from '../components/ui/calendar';
 import { toast } from 'sonner';
 import { useMainSite } from '../context/MainSiteContext';
@@ -432,6 +440,33 @@ const ShowDetailPage = () => {
     window.open(`https://clr.koodh.com/api/shows/${showId}/rundown/print?token=${token}&pdf=1`, '_blank');
   };
 
+  const handleShareLink = async () => {
+    try {
+      // Idempotent — if a token exists we get it back, otherwise one is created.
+      const res = await axios.post(`${API}/shows/${showId}/rundown-share`);
+      const url = res.data?.public_url;
+      if (!url) throw new Error('No share URL returned');
+      try {
+        await navigator.clipboard.writeText(url);
+        toast.success('Share link copied to clipboard', { description: url });
+      } catch (_) {
+        // Clipboard blocked (http origin, iframe, etc.) — fall back to a prompt.
+        window.prompt('Copy this public rundown link:', url);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to create share link');
+    }
+  };
+
+  const handleRevokeShare = async () => {
+    try {
+      await axios.delete(`${API}/shows/${showId}/rundown-share`);
+      toast.success('Public share link revoked');
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to revoke link');
+    }
+  };
+
   // Image upload handlers
   const handleImageUpload = async (file) => {
     if (!file) return;
@@ -596,6 +631,39 @@ const ShowDetailPage = () => {
             <Download className="w-4 h-4" />
             PDF
           </Button>
+          {/* Share — public rundown link for guests (no login needed) */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                data-testid="share-rundown-btn"
+                variant="outline"
+                size="sm"
+                className="gap-2 h-9 px-4 rounded-full border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50"
+              >
+                <Share2 className="w-4 h-4" />
+                Share
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 bg-white border border-slate-200 shadow-lg rounded-2xl">
+              <DropdownMenuItem
+                data-testid="share-copy-link-item"
+                onClick={handleShareLink}
+                className="text-zinc-700 focus:text-zinc-900 focus:bg-black/5 cursor-pointer"
+              >
+                <Share2 className="w-4 h-4 mr-2" />
+                Copy public link
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="bg-black/[0.06]" />
+              <DropdownMenuItem
+                data-testid="share-revoke-item"
+                onClick={handleRevokeShare}
+                className="text-rose-600 focus:text-rose-700 focus:bg-rose-50 cursor-pointer"
+              >
+                <X className="w-4 h-4 mr-2" />
+                Revoke public link
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <VideoEndpointInline show={show} setShow={setShow} isEditor={isEditor} />
           {/* Modern status pill with dot */}
           <span className={`inline-flex items-center gap-2 h-9 px-4 rounded-full text-sm font-medium ${
