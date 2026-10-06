@@ -261,3 +261,22 @@ Tests:
 - Backend: ✅ reloads clean, endpoint returns 200 with new HTML template.
 - Frontend: ✅ renders without new console errors (pre-existing DialogContent warning unchanged).
 - Testing: manual Playwright smoke + rendered HTML preview.
+
+
+## 2026-10-06 — PresenterComposite priority fix (Team Settings avatars win)
+
+### Problem
+Previous version of `PresenterComposite.jsx` short-circuited to the legacy manually-uploaded title image whenever `fallbackSrc` was passed, so shows kept rendering old uploaded images instead of the presenters' avatars from Team Settings. User flagged: *"Het principe met de presenter image werkt nog niet, dat je kijkt wie de presenters zijn en dan de avatar/images van die personen in team settings neemt."*
+
+### Fix
+Flipped the resolution order inside `/app/frontend/src/components/PresenterComposite.jsx`:
+1. **Presenters first** — if `presenters[]` is non-empty, render the overlapping-avatar composite using `getAvatarUrl(p)` (which falls back to Koodh bear for presenters without an uploaded photo).
+2. **Legacy title image** — only when there are zero presenters AND a `fallbackSrc` is set.
+3. **Transparent placeholder** — otherwise.
+
+Also fixed two mis-aligned keyword arguments in `backend/routers/shows.py` (`create_show`): `get_presenters_info(..., team_id)` was being treated as `main_site_id`. Now both branches (recurring + single) call with explicit `main_site_id=` and `team_id=` keywords.
+
+### Verified
+- `Social Club` (Yannick Gijbels, has avatar) → header shows real avatar `/api/uploads/avatars/6102f41f...png` on both desktop (1920) and mobile (390).
+- `Genkluistert` (Mike Cnudde, no avatar) → header falls back to Koodh bear (correct behaviour until admin uploads Mike's avatar in Team Settings).
+- Show Management list, Calendar sidebar and Show Detail header all use the same component path.

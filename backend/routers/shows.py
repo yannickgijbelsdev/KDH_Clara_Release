@@ -997,7 +997,7 @@ async def create_show(
         
         # Add presenter info to response
         if parent_doc.get("presenter_ids"):
-            parent_doc["presenters"] = await get_presenters_info(parent_doc["presenter_ids"], team_id)
+            parent_doc["presenters"] = await get_presenters_info(parent_doc["presenter_ids"], main_site_id=main_site_id, team_id=team_id)
         
         # Log show creation
         await log_action(
@@ -1050,7 +1050,7 @@ async def create_show(
         
         # Add presenter info to response
         if show_doc.get("presenter_ids"):
-            show_doc["presenters"] = await get_presenters_info(show_doc["presenter_ids"], team_id)
+            show_doc["presenters"] = await get_presenters_info(show_doc["presenter_ids"], main_site_id=main_site_id, team_id=team_id)
         
         # Log show creation
         await log_action(
