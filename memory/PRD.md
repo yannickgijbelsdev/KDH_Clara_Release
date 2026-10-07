@@ -340,3 +340,21 @@ Users got **"File too large. Max 10MB"** when uploading phone photos as their av
 - Transparent 3000×3000 PNG → stored as 2 KB PNG, alpha channel preserved (`.png`, `image/png`).
 - Previous 10 MB error path is gone.
 - Testdata (Mike's test avatar) opgeruimd via DELETE endpoint.
+
+
+## 2026-10-07 — Public schedule: presenter avatars actually visible on grk.fm
+
+### Problems found
+1. **Local avatars never surfaced** — 3 presenters (Yannick, Hadewig, Chiel) had their avatars uploaded before S3 was configured, so `avatar.s3_url = None` and `_resolve_presenter_image_url` (S3-only policy) returned empty for every show they presented. `grk.fm/programmering` therefore rendered a placeholder in those rows.
+2. **Priority inverted vs. Clara dashboard** — the public schedule still preferred the legacy show-title image over the presenter avatar. `PresenterComposite.jsx` had already been flipped (presenters win) but the public API hadn't.
+3. **No way to render multi-presenter composites** — the payload only exposed a single `presenter_image_url`.
+
+### Fix
+1. One-shot migration: uploaded all 3 remaining local-only avatars to S3 and updated their `avatar.s3_url` + `avatar.file_key`. Local files removed afterwards.
+2. `/app/backend/routers/public_schedule.py :: _resolve_presenter_image_url` — flipped priority so the **presenter avatar wins** over the show-title image.
+3. New helper `_resolve_presenter_avatars(presenter_ids)` returns `[{id, name, avatar_url}]` with an empty string per presenter without a photo. `_build_show_payload` now surfaces this as `presenter_avatars[]` on every schedule response so grk.fm (and any other consumer) can render overlapping circles — matching `PresenterComposite.jsx`.
+
+### Verified
+- `GET /api/public/schedule/radiogroep/grk/week` now returns `presenter_image_url = <Hadewig/Johan avatar S3 URL>` for their shows (previously fell back to title image).
+- `presenter_avatars[]` present on every show payload: shows with avatarless presenters list them with `avatar_url: ""`.
+- `GET /api/rds/grk/presenter-composite.png`: 634×512 PNG with 2 real avatars when both presenters have photos, half-transparent when only one does. End-to-end tested with Yannick+Mike and Hadewig+Johan combos.

@@ -107,37 +107,27 @@ async def _validate_station_for_site(main_site_id: str, station: str) -> None:
 async def _resolve_presenter_image_url(presenter_ids: list, title_image_url: str = "") -> str:
     """Pick the best image URL for the on-air presenter slot.
 
-    POLICY: **S3 only**. Local `/api/uploads/...` URLs are deliberately
-    skipped — the homepage, player and external programmering need
-    direct, cache-friendly, CDN-able URLs. Show Management uploads land
-    on S3 already; if no S3 source exists for either the show or the
-    presenter we return "" so the consumer renders a placeholder rather
-    than a broken Clara-internal link.
+    POLICY: **Presenters' Team-Settings avatars always win** over a legacy
+    manually-uploaded show-title image (matches `PresenterComposite.jsx` on
+    the Clara dashboard — product rule).
 
     Priority:
-    1. Show-title image's `s3_url` (uploaded via Show Management).
-    2. First presenter avatar's `s3_url`.
+    1. First presenter avatar's S3 URL (uploaded via Team Settings).
+    2. Show-title image's S3 URL (legacy, uploaded via Show Management).
+    3. "" so the consumer renders a transparent placeholder.
+
+    S3-only — local `/api/uploads/...` URLs are deliberately skipped so grk.fm
+    and the player get cache-friendly CDN URLs.
     """
     def _clean(u: str) -> str:
-        """Reject corrupt URLs containing the literal "None" scope segment.
-
-        Legacy uploads done before team/main_site context existed landed on
-        S3 with a literal Python ``None`` stringified into the path
-        (e.g. ``show_titles/None/...``). Those records point at orphaned
-        files (the wrong presenter's photo) and must never be served.
-        """
+        """Reject corrupt URLs containing the literal "None" scope segment."""
         if not u:
             return ""
         if "/None/" in u or "/None_" in u:
             return ""
         return u
 
-    # 1. Show-title S3 image always wins (Show Management is the source of truth)
-    cleaned_title = _clean(title_image_url)
-    if cleaned_title and (cleaned_title.startswith("http://") or cleaned_title.startswith("https://")):
-        return cleaned_title
-
-    # 2. Presenter avatar — S3 only
+    # 1. Presenter avatar — S3 only
     if presenter_ids:
         presenters = await db.users.find(
             {"id": {"$in": presenter_ids}},
@@ -163,7 +153,63 @@ async def _resolve_presenter_image_url(presenter_ids: list, title_image_url: str
                 cleaned = _clean(img.get("s3_url") or "")
                 if cleaned:
                     return cleaned
+
+    # 2. Show-title S3 image as fallback (legacy manual uploads)
+    cleaned_title = _clean(title_image_url)
+    if cleaned_title and (cleaned_title.startswith("http://") or cleaned_title.startswith("https://")):
+        return cleaned_title
+
     return ""
+
+
+async def _resolve_presenter_avatars(presenter_ids: list) -> list:
+    """Return a list of per-presenter avatar entries so the consumer can
+    render an overlapping-circles composite (grk.fm uses this for the
+    programmering page). Each entry is:
+        {"id": str, "name": str, "avatar_url": str | ""}
+
+    `avatar_url` is empty when the presenter has no S3 photo yet — the
+    consumer should render a transparent placeholder slot (mirrors the
+    `PresenterComposite.jsx` behaviour)."""
+    if not presenter_ids:
+        return []
+
+    def _clean(u: str) -> str:
+        if not u:
+            return ""
+        if "/None/" in u or "/None_" in u:
+            return ""
+        return u
+
+    rows = await db.users.find(
+        {"id": {"$in": presenter_ids}},
+        {"_id": 0, "id": 1, "name": 1, "avatar": 1, "avatar_url": 1, "image": 1, "image_url": 1, "photo_url": 1},
+    ).to_list(100)
+    by_id = {r.get("id"): r for r in rows if r.get("id")}
+
+    out = []
+    for pid in presenter_ids:
+        p = by_id.get(pid) or {}
+        url = ""
+        avatar = p.get("avatar")
+        if isinstance(avatar, dict):
+            url = _clean(avatar.get("s3_url") or "")
+        if not url:
+            for k in ("avatar_url", "image_url", "photo_url"):
+                v = _clean(p.get(k) or "")
+                if v.startswith("https://") and "your-objectstorage.com" in v:
+                    url = v
+                    break
+        if not url:
+            img = p.get("image")
+            if isinstance(img, dict):
+                url = _clean(img.get("s3_url") or "")
+        out.append({
+            "id": pid,
+            "name": p.get("name", ""),
+            "avatar_url": url,
+        })
+    return out
 
 
 # Legacy alias kept for any internal caller that still expects the old name.
@@ -195,6 +241,7 @@ async def _build_show_payload(show: dict, title_info: dict) -> dict:
             image_url = raw_url
 
     presenter_image_url = await _resolve_presenter_image_url(presenter_ids, title_image_url=image_url)
+    presenter_avatars = await _resolve_presenter_avatars(presenter_ids)
 
     video_payload = None
     if show.get("has_video"):
@@ -238,6 +285,7 @@ async def _build_show_payload(show: dict, title_info: dict) -> dict:
         "presenter_names": presenter_names,
         "presenter_ids": presenter_ids,
         "presenter_image_url": presenter_image_url,
+        "presenter_avatars": presenter_avatars,
         "image": image_url,
         "rds_station": title_info.get("rds_station", "none"),
         "has_video": bool(show.get("has_video")),
