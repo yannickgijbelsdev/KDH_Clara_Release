@@ -781,7 +781,14 @@ def _empty_image_response():
 
 async def _resolve_presenter_image_for_station(station: str) -> str:
     """S3 URL of the first presenter avatar on the currently live `station`
-    show, or empty string if none. Used by `/presenter-image.jpg`."""
+    show, or empty string if none. Used by `/presenter-image.jpg`.
+
+    Treats a `/avatars/shared/...` S3 URL on a user who **does** have a
+    `team_id` as a stale legacy upload (Team Settings now writes to
+    `/avatars/{team_id}/...`). Such URLs are deliberately ignored so grk.fm
+    doesn't keep rendering an avatar that was removed from Team Settings UI
+    but whose DB record still carries the pre-team-scope URL.
+    """
     cached = await db.rds_cached_rundowns.find_one(
         {"is_active": True, "rds_station": {"$in": [station, "both"]}},
         {"_id": 0, "show_id": 1},
@@ -794,18 +801,32 @@ async def _resolve_presenter_image_for_station(station: str) -> str:
         return ""
     users = await db.users.find(
         {"id": {"$in": presenter_ids}},
-        {"_id": 0, "id": 1, "avatar": 1, "avatar_url": 1},
+        {"_id": 0, "id": 1, "avatar": 1, "avatar_url": 1, "team_id": 1, "main_site_id": 1},
     ).to_list(10)
     by_id = {u.get("id"): u for u in users if u.get("id")}
+
+    def _is_stale(user: dict, url: str) -> bool:
+        """A `/avatars/shared/...` URL on a user who now has a team_id or
+        main_site_id is a leftover from before team-scoping — must not be
+        served because the Team Settings UI assumes `/avatars/{scope}/...`."""
+        if not url or "/avatars/shared/" not in url:
+            return False
+        return bool(user.get("team_id") or user.get("main_site_id"))
+
     for pid in presenter_ids:
         u = by_id.get(pid) or {}
         avatar = u.get("avatar")
         if isinstance(avatar, dict):
             url = avatar.get("s3_url") or ""
-            if url and "/None/" not in url and "/None_" not in url:
+            if url and "/None/" not in url and "/None_" not in url and not _is_stale(u, url):
                 return url
         legacy = u.get("avatar_url") or ""
-        if legacy.startswith("https://") and "your-objectstorage.com" in legacy and "/None/" not in legacy:
+        if (
+            legacy.startswith("https://")
+            and "your-objectstorage.com" in legacy
+            and "/None/" not in legacy
+            and not _is_stale(u, legacy)
+        ):
             return legacy
     return ""
 
@@ -1301,9 +1322,14 @@ async def get_station_presenter_composite(station: str):
     url_by_id: dict[str, str | None] = {pid: None for pid in presenter_ids}
     async for u in db.users.find(
         {"id": {"$in": presenter_ids}},
-        {"_id": 0, "id": 1, "avatar_url": 1, "avatar": 1},
+        {"_id": 0, "id": 1, "avatar_url": 1, "avatar": 1, "team_id": 1, "main_site_id": 1},
     ):
-        url_by_id[u["id"]] = _extract_avatar_url(u) or None
+        url = _extract_avatar_url(u) or None
+        # Drop stale `/avatars/shared/...` URLs for users who now belong to a
+        # team/main-site — those are leftovers from before team-scoping.
+        if url and "/avatars/shared/" in url and (u.get("team_id") or u.get("main_site_id")):
+            url = None
+        url_by_id[u["id"]] = url
     ordered_urls: list[str | None] = [url_by_id.get(pid) for pid in presenter_ids]
 
     # If literally no presenter has an avatar, return the fully transparent

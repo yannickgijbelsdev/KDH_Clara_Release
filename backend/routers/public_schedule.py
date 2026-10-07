@@ -127,11 +127,20 @@ async def _resolve_presenter_image_url(presenter_ids: list, title_image_url: str
             return ""
         return u
 
+    def _not_stale(user: dict, url: str) -> bool:
+        """A `/avatars/shared/...` URL on a user who **does** have a
+        team_id/main_site_id is a leftover from before team-scoping and
+        must be ignored — Team Settings now writes avatars to
+        `/avatars/{team_id}/...`."""
+        if "/avatars/shared/" not in url:
+            return True
+        return not (user.get("team_id") or user.get("main_site_id"))
+
     # 1. Presenter avatar — S3 only
     if presenter_ids:
         presenters = await db.users.find(
             {"id": {"$in": presenter_ids}},
-            {"_id": 0, "id": 1, "avatar": 1, "avatar_url": 1, "image": 1, "image_url": 1, "photo_url": 1},
+            {"_id": 0, "id": 1, "avatar": 1, "avatar_url": 1, "image": 1, "image_url": 1, "photo_url": 1, "team_id": 1, "main_site_id": 1},
         ).to_list(10)
         by_id = {p.get("id"): p for p in presenters if p.get("id")}
         for pid in presenter_ids:
@@ -141,17 +150,17 @@ async def _resolve_presenter_image_url(presenter_ids: list, title_image_url: str
             avatar = p.get("avatar")
             if isinstance(avatar, dict):
                 cleaned = _clean(avatar.get("s3_url") or "")
-                if cleaned:
+                if cleaned and _not_stale(p, cleaned):
                     return cleaned
             # Flat legacy fields — accept only if they're absolute S3 URLs
             for k in ("avatar_url", "image_url", "photo_url"):
                 v = _clean(p.get(k) or "")
-                if v.startswith("https://") and "your-objectstorage.com" in v:
+                if v.startswith("https://") and "your-objectstorage.com" in v and _not_stale(p, v):
                     return v
             img = p.get("image")
             if isinstance(img, dict):
                 cleaned = _clean(img.get("s3_url") or "")
-                if cleaned:
+                if cleaned and _not_stale(p, cleaned):
                     return cleaned
 
     # 2. Show-title S3 image as fallback (legacy manual uploads)
@@ -181,9 +190,14 @@ async def _resolve_presenter_avatars(presenter_ids: list) -> list:
             return ""
         return u
 
+    def _not_stale(user: dict, url: str) -> bool:
+        if "/avatars/shared/" not in url:
+            return True
+        return not (user.get("team_id") or user.get("main_site_id"))
+
     rows = await db.users.find(
         {"id": {"$in": presenter_ids}},
-        {"_id": 0, "id": 1, "name": 1, "avatar": 1, "avatar_url": 1, "image": 1, "image_url": 1, "photo_url": 1},
+        {"_id": 0, "id": 1, "name": 1, "avatar": 1, "avatar_url": 1, "image": 1, "image_url": 1, "photo_url": 1, "team_id": 1, "main_site_id": 1},
     ).to_list(100)
     by_id = {r.get("id"): r for r in rows if r.get("id")}
 
@@ -193,17 +207,21 @@ async def _resolve_presenter_avatars(presenter_ids: list) -> list:
         url = ""
         avatar = p.get("avatar")
         if isinstance(avatar, dict):
-            url = _clean(avatar.get("s3_url") or "")
+            candidate = _clean(avatar.get("s3_url") or "")
+            if candidate and _not_stale(p, candidate):
+                url = candidate
         if not url:
             for k in ("avatar_url", "image_url", "photo_url"):
                 v = _clean(p.get(k) or "")
-                if v.startswith("https://") and "your-objectstorage.com" in v:
+                if v.startswith("https://") and "your-objectstorage.com" in v and _not_stale(p, v):
                     url = v
                     break
         if not url:
             img = p.get("image")
             if isinstance(img, dict):
-                url = _clean(img.get("s3_url") or "")
+                candidate = _clean(img.get("s3_url") or "")
+                if candidate and _not_stale(p, candidate):
+                    url = candidate
         out.append({
             "id": pid,
             "name": p.get("name", ""),

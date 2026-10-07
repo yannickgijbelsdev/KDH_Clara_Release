@@ -358,3 +358,27 @@ Users got **"File too large. Max 10MB"** when uploading phone photos as their av
 - `GET /api/public/schedule/radiogroep/grk/week` now returns `presenter_image_url = <Hadewig/Johan avatar S3 URL>` for their shows (previously fell back to title image).
 - `presenter_avatars[]` present on every show payload: shows with avatarless presenters list them with `avatar_url: ""`.
 - `GET /api/rds/grk/presenter-composite.png`: 634×512 PNG with 2 real avatars when both presenters have photos, half-transparent when only one does. End-to-end tested with Yannick+Mike and Hadewig+Johan combos.
+
+
+## 2026-10-07 — grk.fm homepage: reject stale `/avatars/shared/` leftovers
+
+### Problem
+grk.fm homepage still rendered Bart Valee's old avatar in the "ZONET GEDRAAID" chip, even though Team Settings showed no avatar for him. Root cause: Bart's user doc on prod carries an `avatar.s3_url` pointing at `/avatars/shared/a419357e..._5283389a.png` — a leftover from before team-scoping existed. Current uploads land on `/avatars/{team_id}/...`, so a shared-scope URL on a user who now has a `team_id` is by definition stale.
+
+### Fix
+Added a `_not_stale(user, url)` guard in three places:
+- `/app/backend/routers/rds.py :: _resolve_presenter_image_for_station` (feeds `/api/rds/{station}/presenter-image.jpg|url.txt|json`)
+- `/app/backend/routers/rds.py :: get_station_presenter_composite` (feeds `/api/rds/{station}/presenter-composite.png`)
+- `/app/backend/routers/public_schedule.py` — both `_resolve_presenter_image_url` and `_resolve_presenter_avatars`
+
+Rule: if `avatar.s3_url` contains `/avatars/shared/` **and** the user has a `team_id` or `main_site_id`, ignore it → return empty, which cascades to a transparent placeholder (matches `PresenterComposite.jsx` behaviour).
+
+### Verified
+- Seeded Bart (team_id'd) with a `/avatars/shared/...` URL and made him go live:
+  - `presenter-image.jpg` → 67-byte transparent 1×1 PNG (no redirect) ✓
+  - `presenter-image-url.txt` → empty ✓
+  - `presenter-composite.png` → 1366×808 transparent placeholder ✓
+- Replaced Bart's URL with a `/avatars/{team_id}/...` one (= what Team Settings now uploads):
+  - All three endpoints correctly return the new team-scoped URL ✓
+  - Public schedule week endpoint lists it in `presenter_image_url` and `presenter_avatars[]` ✓
+- Testdata opgeruimd.
