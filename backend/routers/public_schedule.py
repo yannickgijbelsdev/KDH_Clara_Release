@@ -50,6 +50,24 @@ logger = logging.getLogger(__name__)
 public_schedule_router = APIRouter(prefix="/public", tags=["Public Schedule"])
 
 
+def _public_base_url(request) -> str:
+    """Build an absolute origin URL that external consumers can actually
+    reach. Behind a reverse proxy, `request.base_url` carries the upstream
+    internal hostname (e.g. `cluster-5.preview.emergentcf.cloud`) which is
+    useless for CDN'd `<img src>` references. Prefer `X-Forwarded-Host`
+    and `X-Forwarded-Proto` so we emit `https://clr.koodh.com/...` when
+    grk.fm hits `clr.koodh.com`, and fall back to the request's own host
+    header for local/dev requests."""
+    headers = request.headers
+    host = headers.get("x-forwarded-host") or headers.get("host") or ""
+    proto = headers.get("x-forwarded-proto") or request.url.scheme or "https"
+    if not host:
+        return str(request.base_url).rstrip("/")
+    # `x-forwarded-host` can be a comma-separated chain — keep the first.
+    host = host.split(",")[0].strip()
+    return f"{proto}://{host}"
+
+
 def _absolute_url(url: str) -> str:
     """Turn `/api/uploads/...` style relative paths into absolute URLs so
     that external consumers (WordPress plugin, FM player, schedule widget)
@@ -235,7 +253,7 @@ async def _first_presenter_image(presenter_ids: list, title_image_fallback: str 
     return await _resolve_presenter_image_url(presenter_ids, title_image_url=title_image_fallback)
 
 
-async def _build_show_payload(show: dict, title_info: dict) -> dict:
+async def _build_show_payload(show: dict, title_info: dict, request_base: str = "") -> dict:
     """Produce the public-facing show dict used by all schedule endpoints.
 
     Encapsulates the presenter / image / video enrichment that was
@@ -269,7 +287,13 @@ async def _build_show_payload(show: dict, title_info: dict) -> dict:
     has_any_real_avatar = any((a.get("avatar_url") or "") for a in presenter_avatars)
     if len(presenter_ids) >= 2 and has_any_real_avatar:
         composite_path = f"/api/rds/show/{show.get('id')}/presenter-composite.png"
-        presenter_image_url = _absolute_url(composite_path)
+        # Prefer the request's own origin (grk.fm fetches via clr.koodh.com → use
+        # clr.koodh.com). Falls back to SHARE_BASE_URL (via _absolute_url) when
+        # the caller didn't pass a base, so cron jobs and background renders still work.
+        if request_base:
+            presenter_image_url = f"{request_base.rstrip('/')}{composite_path}"
+        else:
+            presenter_image_url = _absolute_url(composite_path)
 
     video_payload = None
     if show.get("has_video"):
@@ -336,6 +360,7 @@ async def get_shows_in_range(
     station: str,
     start_date,
     end_date,
+    request_base: str = "",
 ) -> list:
     """Flat, chronologically sorted list of shows between two dates (inclusive).
 
@@ -362,13 +387,13 @@ async def get_shows_in_range(
         rds_station = title_info.get("rds_station", "none")
         if not _station_match(rds_station, station):
             continue
-        out.append(await _build_show_payload(show, title_info))
+        out.append(await _build_show_payload(show, title_info, request_base=request_base))
 
     out.sort(key=lambda s: (s.get("date", ""), s.get("start_time", "00:00")))
     return out
 
 
-async def get_shows_for_week(main_site_id: str, station: str, anchor_date=None) -> dict:
+async def get_shows_for_week(main_site_id: str, station: str, anchor_date=None, request_base: str = "") -> dict:
     """All shows for the calendar week (Mon..Sun) grouped by Dutch weekday.
 
     When `anchor_date` is supplied, returns the week **containing** that
@@ -379,7 +404,7 @@ async def get_shows_for_week(main_site_id: str, station: str, anchor_date=None) 
     today = (anchor_date or now_brussels().date())
     monday = today - timedelta(days=today.weekday())
     sunday = monday + timedelta(days=6)
-    shows = await get_shows_in_range(main_site_id, station, monday, sunday)
+    shows = await get_shows_in_range(main_site_id, station, monday, sunday, request_base=request_base)
 
     result = {day: [] for day in WEEKDAYS_NL}
     for s in shows:
@@ -393,15 +418,15 @@ async def get_shows_for_week(main_site_id: str, station: str, anchor_date=None) 
     return result
 
 
-async def get_shows_for_today(main_site_id: str, station: str) -> list:
-    week = await get_shows_for_week(main_site_id, station)
+async def get_shows_for_today(main_site_id: str, station: str, request_base: str = "") -> list:
+    week = await get_shows_for_week(main_site_id, station, request_base=request_base)
     return week.get(WEEKDAY_NAMES_NL[now_brussels().weekday()], [])
 
 
 # ─── Slug-scoped public endpoints (recommended) ─────────────────────────────
 
 @public_schedule_router.get("/schedule/{site_slug}/{station}/day/{day}")
-async def schedule_by_slug_and_day(site_slug: str, station: str, day: str):
+async def schedule_by_slug_and_day(site_slug: str, station: str, day: str, request: Request):
     """Public per-day schedule for one site + station.
 
     Path params:
@@ -417,21 +442,21 @@ async def schedule_by_slug_and_day(site_slug: str, station: str, day: str):
         raise HTTPException(status_code=400, detail=f"Invalid day. Use one of {', '.join(WEEKDAYS_NL)}")
     main_site_id = await _resolve_site_id_from_slug(site_slug)
     await _validate_station_for_site(main_site_id, station)
-    week = await get_shows_for_week(main_site_id, station)
+    week = await get_shows_for_week(main_site_id, station, request_base=_public_base_url(request))
     return {"site_slug": site_slug, "station": station, "day": day_lower, "shows": week.get(day_lower, [])}
 
 
 @public_schedule_router.get("/schedule/{site_slug}/{station}/today")
-async def schedule_by_slug_today(site_slug: str, station: str):
+async def schedule_by_slug_today(site_slug: str, station: str, request: Request):
     """Public schedule for today, scoped by site slug + station."""
     main_site_id = await _resolve_site_id_from_slug(site_slug)
     await _validate_station_for_site(main_site_id, station)
-    shows = await get_shows_for_today(main_site_id, station)
+    shows = await get_shows_for_today(main_site_id, station, request_base=_public_base_url(request))
     return {"site_slug": site_slug, "station": station, "day": WEEKDAY_NAMES_NL[now_brussels().weekday()], "shows": shows}
 
 
 @public_schedule_router.get("/schedule/{site_slug}/{station}/week")
-async def schedule_by_slug_week(site_slug: str, station: str, date: str | None = None):
+async def schedule_by_slug_week(site_slug: str, station: str, request: Request, date: str | None = None):
     """Public weekly schedule for one site + station, grouped per Dutch weekday.
 
     Optional `?date=YYYY-MM-DD` returns the week **containing** that date,
@@ -446,7 +471,7 @@ async def schedule_by_slug_week(site_slug: str, station: str, date: str | None =
         except ValueError:
             raise HTTPException(status_code=400, detail="date must be YYYY-MM-DD")
         _assert_within_window(anchor)
-    return {"site_slug": site_slug, "station": station, "week": await get_shows_for_week(main_site_id, station, anchor_date=anchor)}
+    return {"site_slug": site_slug, "station": station, "week": await get_shows_for_week(main_site_id, station, anchor_date=anchor, request_base=_public_base_url(request))}
 
 
 # ─── Date-based lookup (±4 weeks, per date) ─────────────────────────────────
@@ -468,7 +493,7 @@ def _assert_within_window(d) -> None:
 
 
 @public_schedule_router.get("/schedule/{site_slug}/{station}/date/{iso_date}")
-async def schedule_by_slug_and_date(site_slug: str, station: str, iso_date: str):
+async def schedule_by_slug_and_date(site_slug: str, station: str, iso_date: str, request: Request):
     """Per-date schedule — pick any calendar date within ±4 weeks of today.
 
     `iso_date` is `YYYY-MM-DD`. Returns the shows for that exact date.
@@ -480,7 +505,7 @@ async def schedule_by_slug_and_date(site_slug: str, station: str, iso_date: str)
     _assert_within_window(target)
     main_site_id = await _resolve_site_id_from_slug(site_slug)
     await _validate_station_for_site(main_site_id, station)
-    shows = await get_shows_in_range(main_site_id, station, target, target)
+    shows = await get_shows_in_range(main_site_id, station, target, target, request_base=_public_base_url(request))
     return {
         "site_slug": site_slug,
         "station": station,
@@ -494,6 +519,7 @@ async def schedule_by_slug_and_date(site_slug: str, station: str, iso_date: str)
 async def schedule_by_slug_range(
     site_slug: str,
     station: str,
+    request: Request,
     from_: str | None = Query(default=None, alias="from"),
     to: str | None = None,
 ):
@@ -522,7 +548,7 @@ async def schedule_by_slug_range(
 
     main_site_id = await _resolve_site_id_from_slug(site_slug)
     await _validate_station_for_site(main_site_id, station)
-    shows = await get_shows_in_range(main_site_id, station, start, end)
+    shows = await get_shows_in_range(main_site_id, station, start, end, request_base=_public_base_url(request))
 
     # Group per date — produce every day in the range, even empty ones,
     # so the client can render a continuous timeline/scroller.
@@ -562,7 +588,7 @@ async def get_public_schedule(station: str, request: Request):
         await _validate_station_for_site(main_site_id, station)
     except HTTPException as e:
         return {"error": e.detail}
-    return await get_shows_for_week(main_site_id, station)
+    return await get_shows_for_week(main_site_id, station, request_base=_public_base_url(request))
 
 
 @public_schedule_router.get("/schedule/{station}/today")
@@ -575,7 +601,7 @@ async def get_public_schedule_today(station: str, request: Request):
         await _validate_station_for_site(main_site_id, station)
     except HTTPException as e:
         return {"error": e.detail}
-    shows = await get_shows_for_today(main_site_id, station)
+    shows = await get_shows_for_today(main_site_id, station, request_base=_public_base_url(request))
     return [
         {
             "name": s.get("title"),
@@ -604,7 +630,7 @@ async def get_public_schedule_day(station: str, day: str, request: Request):
     day_lower = day.lower()
     if day_lower not in WEEKDAYS_NL:
         return {"error": f"Invalid day. Use one of {', '.join(WEEKDAYS_NL)}"}
-    week = await get_shows_for_week(main_site_id, station)
+    week = await get_shows_for_week(main_site_id, station, request_base=_public_base_url(request))
     return week.get(day_lower, [])
 
 

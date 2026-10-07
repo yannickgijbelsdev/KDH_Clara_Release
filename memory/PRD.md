@@ -399,3 +399,26 @@ Rule: if `avatar.s3_url` contains `/avatars/shared/` **and** the user has a `tea
 - Week endpoint now returns `presenter_image_url = https://clara.koodh.com/api/rds/show/{id}/presenter-composite.png` for that row.
 - Direct GET of the composite PNG → 634×512 RGBA PNG with both presenters side-by-side, transparent background. Screenshot preview confirmed.
 - Reverted test data.
+
+
+## 2026-10-07 — grk.fm fixes: composite URL + presenter-first hero
+
+### Problems found on prod
+1. **grk.fm/programmering showed no multi-presenter faces** — my previous `presenter_image_url` auto-upgrade used `SHARE_BASE_URL=https://clara.koodh.com`, but prod serves the API on `clr.koodh.com`. Fetching `clara.koodh.com/api/rds/show/.../presenter-composite.png` returned 404 → broken image tags.
+2. **grk.fm homepage hero was dark/empty** — `/api/rds/grk/image.jpg` redirected to a stale `/show_titles/shared/...` S3 URL that returns 403 Forbidden (orphaned legacy upload). weserv.nl proxy then 404'd.
+
+### Fixes
+
+**A. Request-aware composite URL** (`/app/backend/routers/public_schedule.py`):
+- New `_public_base_url(request)` helper reads `X-Forwarded-Host` + `X-Forwarded-Proto` first, falling back to the `Host` header, so URLs are emitted with the hostname that **grk.fm actually hit** (`clr.koodh.com`) — not the upstream pod hostname nor the stale `SHARE_BASE_URL` env.
+- Threaded a `request_base` param through `_build_show_payload`, `get_shows_in_range`, `get_shows_for_week`, `get_shows_for_today`.
+- All 7 public endpoints (`/day/{day}`, `/today`, `/week`, `/date/{iso}`, `/range`, plus the 3 legacy header-scoped variants) now pass the real public origin.
+
+**B. Hero image.jpg — presenters-first priority** (`/app/backend/routers/rds.py :: get_station_show_image_redirect`):
+- Flipped order: **composite PNG wins** when the live show has any presenter with a non-stale avatar. Only when no presenters are compositable does it fall back to the legacy title image. Matches Clara's "Team-Settings avatars always win" product rule and avoids 403s from orphaned `/show_titles/shared/...` keys.
+- `_station_has_presenters` now also rejects stale `/avatars/shared/` URLs on team-scoped users (same guard as the other three composite paths).
+
+### Verified (preview)
+- Seeded Class-x this week with 2 avatar-ed presenters → `/api/public/schedule/radiogroep/grk/week` now returns `presenter_image_url = https://api-turbo.preview.emergentagent.com/api/rds/show/{id}/presenter-composite.png` (public hostname, not upstream pod).
+- `GET /api/rds/grk/image.jpg` with a live 2-presenter show → 302 → `/api/rds/grk/presenter-composite.png` (260 KB, 634×512 RGBA with both faces) — no more S3 403.
+- Testdata opgeruimd.

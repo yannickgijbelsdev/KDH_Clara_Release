@@ -1214,25 +1214,28 @@ async def get_station_show_image_redirect(station: str):
     Used by MagicRDS, grk.fm/mfy.fm players and similar systems that
     embed `<img src=".../image.jpg">` directly.
 
-    Priority:
-      1. Per-show / show_title / cached image (via `_resolve_show_image_for_station`).
-      2. Presenter-composite of the current show's presenters. Overlapping
-         circular avatars — feels like the presenters are standing together.
+    Priority (matches `PresenterComposite.jsx` on the Clara dashboard —
+    presenters' Team-Settings avatars always win over the legacy
+    manually-uploaded show-title image):
+      1. Presenter composite PNG — when the live show has at least one
+         presenter with an avatar.
+      2. Per-show / show_title / cached image (via `_resolve_show_image_for_station`).
       3. Transparent placeholder (kept as HTTP 200 to overwrite stale
          browser-cached photos; see history note about Hadewig sticking).
     """
     from fastapi.responses import RedirectResponse
 
+    # 1. Presenters first — composite wins when any live presenter has a photo.
+    composite_available = await _station_has_presenters(station)
+    if composite_available:
+        return RedirectResponse(url=f"/api/rds/{station}/presenter-composite.png", status_code=302)
+
+    # 2. Fall back to the legacy title image.
     image_data, _ = await _resolve_show_image_for_station(station)
     image_url = _image_url_from(image_data)
     if image_url:
         return RedirectResponse(url=image_url, status_code=302)
-    # Fallback: build presenter composite on the fly. Redirect to the
-    # composite endpoint so browsers/CDNs can cache it independently and
-    # we don't do the PIL work twice for the same station on this route.
-    composite_available = await _station_has_presenters(station)
-    if composite_available:
-        return RedirectResponse(url=f"/api/rds/{station}/presenter-composite.png", status_code=302)
+
     return _placeholder_image_response()
 
 
@@ -1258,7 +1261,7 @@ def _extract_avatar_url(user: dict) -> str | None:
 
 async def _station_has_presenters(station: str) -> bool:
     """Return True when the currently live show on `station` has at least
-    one presenter with an avatar we can composite."""
+    one presenter with a non-stale avatar we can composite."""
     cached = await db.rds_cached_rundowns.find_one(
         {"is_active": True, "rds_station": {"$in": [station, "both"]}},
         {"_id": 0, "show_id": 1},
@@ -1270,9 +1273,13 @@ async def _station_has_presenters(station: str) -> bool:
         return False
     async for u in db.users.find(
         {"id": {"$in": show["presenter_ids"]}},
-        {"_id": 0, "avatar_url": 1, "avatar": 1},
+        {"_id": 0, "avatar_url": 1, "avatar": 1, "team_id": 1, "main_site_id": 1},
     ):
-        if _extract_avatar_url(u):
+        url = _extract_avatar_url(u)
+        if url and "/avatars/shared/" in url and (u.get("team_id") or u.get("main_site_id")):
+            # Stale legacy upload — treat as if the user had no avatar.
+            continue
+        if url:
             return True
     return False
 
