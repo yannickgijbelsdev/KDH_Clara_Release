@@ -321,3 +321,22 @@ Guests can now open a rundown without a Clara account via a secret share token.
 - 3 presenters (1 with avatar, 2 without) → 884×512 RGBA PNG with 2 transparent slots after Yannick's photo.
 - 0 presenters-with-avatar → 1366×808 transparent placeholder (unchanged behaviour).
 - Test data seeded + cleaned via Mongo.
+
+
+## 2026-10-07 — Avatar upload: no size cap + server-side compression
+
+### Problem
+Users got **"File too large. Max 10MB"** when uploading phone photos as their avatar. Even after removing the hard limit, the downstream Clara Global Protect scanner enforced its own 15 MB image ceiling → still blocked.
+
+### Fix (`/app/backend/routers/users.py :: upload_avatar`)
+- Removed the `MAX_AVATAR_SIZE` 10 MB guard entirely.
+- Added server-side PIL compression (max 512×512, Lanczos resize). Transparent inputs → PNG optimize, opaque → JPEG q=85 progressive.
+- Opt-in HEIC/HEIF support via `pillow_heif` if the package is installed.
+- Reordered: **compress first, scan after** — so the Global Protect size check runs against the small compressed output, not the raw upload. A 20 MB phone photo now sails through.
+- Storage key uses the compressed extension (`.jpg` / `.png`) so served MIME type matches the actual bytes.
+
+### Verified
+- 20.3 MB JPEG upload → stored as 154 KB JPEG (`/avatars/shared/..._xxxx.jpg`), S3 upload successful.
+- Transparent 3000×3000 PNG → stored as 2 KB PNG, alpha channel preserved (`.png`, `image/png`).
+- Previous 10 MB error path is gone.
+- Testdata (Mike's test avatar) opgeruimd via DELETE endpoint.

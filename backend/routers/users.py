@@ -438,17 +438,59 @@ async def upload_avatar(
     content_type = file.content_type or mimetypes.guess_type(file.filename)[0]
     if content_type not in ALLOWED_IMAGE_TYPES:
         raise HTTPException(status_code=400, detail="Invalid image type. Allowed: JPEG, PNG, GIF, WebP, HEIC")
-    
-    # Read and validate file size
+
+    # Read file (no hard size limit — we compress server-side below so even
+    # phone photos > 10 MB upload fine).
     content = await file.read()
-    
-    # Clara Global Protect: scan before upload
+
+    # Server-side compression — avatars don't need to be bigger than 512px.
+    # Preserves PNG + alpha channel when present, otherwise outputs JPEG q=85.
+    # We compress BEFORE Clara Global Protect so a 20 MB phone photo doesn't
+    # trip the Global Protect size limit — only the shrunken (~100 KB) output
+    # is handed to the scanner.
+    # Any decoding failure gracefully falls back to the original bytes so the
+    # upload still succeeds for exotic formats.
+    file_ext_override = None
+    try:
+        from PIL import Image
+        from io import BytesIO
+        # Opt-in HEIC/HEIF support if the pillow-heif plugin is installed.
+        try:
+            import pillow_heif  # type: ignore
+            pillow_heif.register_heif_opener()
+        except Exception:
+            pass
+
+        img = Image.open(BytesIO(content))
+        img.load()
+        has_alpha = (img.mode in ("RGBA", "LA")) or (img.mode == "P" and "transparency" in img.info)
+
+        # Downscale to a 512×512 bounding box while keeping aspect ratio.
+        img.thumbnail((512, 512), Image.LANCZOS)
+
+        out = BytesIO()
+        if has_alpha:
+            img = img.convert("RGBA")
+            img.save(out, format="PNG", optimize=True)
+            content = out.getvalue()
+            content_type = "image/png"
+            file_ext_override = ".png"
+        else:
+            img = img.convert("RGB")
+            img.save(out, format="JPEG", quality=85, optimize=True, progressive=True)
+            content = out.getvalue()
+            content_type = "image/jpeg"
+            file_ext_override = ".jpg"
+    except Exception:
+        # Keep the original bytes if PIL couldn't decode — Global Protect
+        # below will still enforce its own ceiling.
+        pass
+
+    # Clara Global Protect: scan AFTER compression so size limit applies to
+    # the small output, not the raw upload.
     from services.global_protect import check_and_raise
     await check_and_raise(content, file.filename, content_type,
         user_id=current_user.get("id"), user_name=current_user.get("name"))
-    
-    if len(content) > MAX_AVATAR_SIZE:
-        raise HTTPException(status_code=400, detail="File too large. Max 10MB")
     
     # Delete old avatar if exists
     if user.get('avatar'):
@@ -463,8 +505,8 @@ async def upload_avatar(
             if old_path.exists():
                 old_path.unlink()
     
-    # Generate storage key and upload
-    file_ext = Path(file.filename).suffix or '.jpg'
+    # Generate storage key and upload — prefer compressed-output extension
+    file_ext = file_ext_override or Path(file.filename).suffix or '.jpg'
     scope_segment = current_user.get('team_id') or current_user.get('main_site_id') or 'shared'
     storage_key = f"avatars/{scope_segment}/{user_id}_{uuid.uuid4().hex[:8]}{file_ext}"
     s3_url = None
