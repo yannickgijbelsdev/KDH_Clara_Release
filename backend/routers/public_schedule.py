@@ -261,6 +261,16 @@ async def _build_show_payload(show: dict, title_info: dict) -> dict:
     presenter_image_url = await _resolve_presenter_image_url(presenter_ids, title_image_url=image_url)
     presenter_avatars = await _resolve_presenter_avatars(presenter_ids)
 
+    # For shows with 2+ presenters that have at least one real avatar, swap the
+    # single presenter_image_url for the public composite PNG endpoint so grk.fm
+    # and other consumers automatically render overlapping circles without
+    # having to iterate `presenter_avatars[]`. Single-presenter shows keep the
+    # direct S3 URL (faster, cacheable at CDN).
+    has_any_real_avatar = any((a.get("avatar_url") or "") for a in presenter_avatars)
+    if len(presenter_ids) >= 2 and has_any_real_avatar:
+        composite_path = f"/api/rds/show/{show.get('id')}/presenter-composite.png"
+        presenter_image_url = _absolute_url(composite_path)
+
     video_payload = None
     if show.get("has_video"):
         override = (show.get("video_embed_override") or "").strip()

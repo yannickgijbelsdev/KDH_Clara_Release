@@ -1292,28 +1292,15 @@ def _placeholder_image_response():
     return _empty_image_response()
 
 
-@rds_router.get("/{station}/presenter-composite.png")
-async def get_station_presenter_composite(station: str):
-    """Public endpoint: PIL-composited overlapping circular avatars of the
-    presenters on the currently live show. Every presenter gets a slot — if
-    they have no avatar in Team Settings, their slot is left fully transparent
-    so the layout still shows how many presenters are on the show.
-
-    Falls back to the packaged transparent placeholder when the live show has
-    no presenters at all."""
+async def _build_presenter_composite_response(presenter_ids: list[str]):
+    """Build a Response with the PIL-composited overlapping-circles PNG for
+    an arbitrary list of presenter_ids. Shared by the live-station endpoint
+    and the per-show public endpoint consumed by grk.fm."""
     from fastapi.responses import Response
     from io import BytesIO
     import httpx
     from PIL import Image, ImageDraw
 
-    cached = await db.rds_cached_rundowns.find_one(
-        {"is_active": True, "rds_station": {"$in": [station, "both"]}},
-        {"_id": 0, "show_id": 1},
-    )
-    if not cached:
-        return _placeholder_image_response()
-    show = await db.shows.find_one({"id": cached.get("show_id")}, {"_id": 0, "presenter_ids": 1})
-    presenter_ids = (show or {}).get("presenter_ids") or []
     if not presenter_ids:
         return _placeholder_image_response()
 
@@ -1349,13 +1336,11 @@ async def get_station_presenter_composite(station: str):
     UPLOADS_ROOT = Path(__file__).parent.parent / "uploads"
 
     async def _load_avatar(url: str):
-        # Relative /uploads/... paths → read from disk (fastest, no self-HTTP).
         if url.startswith("/uploads/"):
             path = UPLOADS_ROOT / url[len("/uploads/"):]
             if path.exists():
                 return Image.open(path).convert("RGBA")
             return None
-        # Absolute URL → HTTP fetch.
         try:
             r = await client.get(url)
             r.raise_for_status()
@@ -1368,13 +1353,10 @@ async def get_station_presenter_composite(station: str):
             x = i * (avatar_size - overlap)
             y = (canvas_h - avatar_size) // 2
             if not url:
-                # Presenter without avatar → leave the slot transparent so the
-                # layout still reflects multi-presenter shows.
                 continue
             avatar = await _load_avatar(url)
             if avatar is None:
                 continue
-            # Center-crop to a square then resize.
             side = min(avatar.size)
             left = (avatar.width - side) // 2
             top = (avatar.height - side) // 2
@@ -1392,6 +1374,46 @@ async def get_station_presenter_composite(station: str):
         media_type="image/png",
         headers={"Cache-Control": "public, max-age=60"},
     )
+
+
+@rds_router.get("/{station}/presenter-composite.png")
+async def get_station_presenter_composite(station: str):
+    """Public endpoint: PIL-composited overlapping circular avatars of the
+    presenters on the currently live show. Every presenter gets a slot — if
+    they have no avatar in Team Settings, their slot is left fully transparent
+    so the layout still shows how many presenters are on the show.
+
+    Falls back to the packaged transparent placeholder when the live show has
+    no presenters at all."""
+    cached = await db.rds_cached_rundowns.find_one(
+        {"is_active": True, "rds_station": {"$in": [station, "both"]}},
+        {"_id": 0, "show_id": 1},
+    )
+    if not cached:
+        return _placeholder_image_response()
+    show = await db.shows.find_one({"id": cached.get("show_id")}, {"_id": 0, "presenter_ids": 1})
+    presenter_ids = (show or {}).get("presenter_ids") or []
+    return await _build_presenter_composite_response(presenter_ids)
+
+
+@rds_router.get("/show/{show_id}/presenter-composite.png")
+async def get_show_presenter_composite(show_id: str):
+    """Public endpoint: same overlapping-circles composite PNG but for an
+    arbitrary show (not just the currently live one). Used by grk.fm's
+    programmering page so every schedule row renders a multi-presenter
+    picture without the external site having to iterate `presenter_avatars[]`.
+    """
+    show = await db.shows.find_one({"id": show_id}, {"_id": 0, "presenter_ids": 1, "title": 1, "team_id": 1})
+    presenter_ids = (show or {}).get("presenter_ids") or []
+    # Fall back to the show-title defaults when the episode itself has none
+    if not presenter_ids and show:
+        title_doc = await db.show_titles.find_one(
+            {"name": show.get("title"), "team_id": show.get("team_id")},
+            {"_id": 0, "default_presenter_ids": 1}
+        )
+        if title_doc:
+            presenter_ids = title_doc.get("default_presenter_ids", []) or []
+    return await _build_presenter_composite_response(presenter_ids)
 
 
 @rds_router.get("/{station}/image-url.txt")

@@ -382,3 +382,20 @@ Rule: if `avatar.s3_url` contains `/avatars/shared/` **and** the user has a `tea
   - All three endpoints correctly return the new team-scoped URL ✓
   - Public schedule week endpoint lists it in `presenter_image_url` and `presenter_avatars[]` ✓
 - Testdata opgeruimd.
+
+
+## 2026-10-07 — Multi-presenter composite PNG endpoint + auto-use in public schedule
+
+### Problem
+`presenter_image_url` in `/api/public/schedule/.../week` only ever returned a single flat URL — one presenter's avatar or the show-title image. For a show like "Class-x met Bart Valee & Mike Cnudde", grk.fm had no way to render both faces without doing its own loop over `presenter_avatars[]`. Programma's page therefore still showed a single face.
+
+### Fix
+1. **Extracted** the composite PNG rendering out of `/api/rds/{station}/presenter-composite.png` into a shared `_build_presenter_composite_response(presenter_ids)` helper.
+2. **New endpoint** `GET /api/rds/show/{show_id}/presenter-composite.png` — renders the same overlapping-circles PNG for *any* show by id (not just the live one). Falls back to show-title defaults if the specific episode has no `presenter_ids`.
+3. **Public schedule auto-upgrade**: `_build_show_payload` now checks if a show has 2+ presenters AND at least one of them has a real avatar — when so, it swaps `presenter_image_url` from the single-presenter S3 URL to the new composite URL `{SHARE_BASE_URL}/api/rds/show/{show_id}/presenter-composite.png`. Single-presenter shows keep the direct CDN URL (faster, cacheable at the edge).
+
+### Verified
+- Seeded a Class-x episode this week with 2 presenters (Hadewig + Johan, both with avatars).
+- Week endpoint now returns `presenter_image_url = https://clara.koodh.com/api/rds/show/{id}/presenter-composite.png` for that row.
+- Direct GET of the composite PNG → 634×512 RGBA PNG with both presenters side-by-side, transparent background. Screenshot preview confirmed.
+- Reverted test data.
