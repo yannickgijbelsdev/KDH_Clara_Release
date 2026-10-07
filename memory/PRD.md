@@ -303,3 +303,21 @@ Guests can now open a rundown without a Clara account via a secret share token.
 - Full e2e via localhost: POST → token created, idempotent re-POST returns same token, GET reads it, public endpoint returns 11.9 KB HTML with "Shared rundown" eyebrow, DELETE → 204, subsequent public GET → 404.
 - UI: Share dropdown renders correctly with both menu items, next to Export / PDF.
 
+
+
+## 2026-10-07 — RDS presenter-composite: multi-presenter + transparent slots
+
+### Problem
+`GET /api/rds/{station}/presenter-composite.png` previously skipped any presenter without an avatar in Team Settings. A show with 2 presenters where only 1 had a photo rendered as a single-circle PNG — not reflecting the actual line-up — and the "nobody has an avatar" case fell straight through to the plain placeholder without slot layout.
+
+### Fix (`/app/backend/routers/rds.py :: get_station_presenter_composite`)
+- Build a `url_by_id` dict keyed by `presenter_ids` so **every presenter keeps a slot** in the composite, even when they have no avatar.
+- Order the slots by the show's `presenter_ids` order (preserves "lead presenter first").
+- Slots without an avatar are left fully transparent (we simply don't `paste()` onto the RGBA(0,0,0,0) canvas) — matches the frontend `PresenterComposite.jsx` behaviour.
+- When every presenter is avatarless, return the packaged transparent placeholder as before.
+
+### Verified
+- 2 presenters (1 with avatar, 1 without) → 634×512 RGBA PNG, Yannick's photo on the left, right slot fully transparent.
+- 3 presenters (1 with avatar, 2 without) → 884×512 RGBA PNG with 2 transparent slots after Yannick's photo.
+- 0 presenters-with-avatar → 1366×808 transparent placeholder (unchanged behaviour).
+- Test data seeded + cleaned via Mongo.

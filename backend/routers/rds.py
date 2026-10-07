@@ -1274,8 +1274,12 @@ def _placeholder_image_response():
 @rds_router.get("/{station}/presenter-composite.png")
 async def get_station_presenter_composite(station: str):
     """Public endpoint: PIL-composited overlapping circular avatars of the
-    presenters on the currently live show. Falls back to the packaged
-    transparent placeholder when nothing is presentable."""
+    presenters on the currently live show. Every presenter gets a slot — if
+    they have no avatar in Team Settings, their slot is left fully transparent
+    so the layout still shows how many presenters are on the show.
+
+    Falls back to the packaged transparent placeholder when the live show has
+    no presenters at all."""
     from fastapi.responses import Response
     from io import BytesIO
     import httpx
@@ -1289,23 +1293,30 @@ async def get_station_presenter_composite(station: str):
         return _placeholder_image_response()
     show = await db.shows.find_one({"id": cached.get("show_id")}, {"_id": 0, "presenter_ids": 1})
     presenter_ids = (show or {}).get("presenter_ids") or []
-    urls: list[str] = []
-    if presenter_ids:
-        async for u in db.users.find(
-            {"id": {"$in": presenter_ids}},
-            {"_id": 0, "avatar_url": 1, "avatar": 1},
-        ):
-            url = _extract_avatar_url(u)
-            if url:
-                urls.append(url)
-    if not urls:
+    if not presenter_ids:
         return _placeholder_image_response()
 
-    # Fetch each avatar, crop to circle, overlap ~35% of avatar width.
+    # Build a URL-or-None entry per presenter_id so every presenter keeps a slot
+    # — presenters without an avatar render as an empty transparent circle.
+    url_by_id: dict[str, str | None] = {pid: None for pid in presenter_ids}
+    async for u in db.users.find(
+        {"id": {"$in": presenter_ids}},
+        {"_id": 0, "id": 1, "avatar_url": 1, "avatar": 1},
+    ):
+        url_by_id[u["id"]] = _extract_avatar_url(u) or None
+    ordered_urls: list[str | None] = [url_by_id.get(pid) for pid in presenter_ids]
+
+    # If literally no presenter has an avatar, return the fully transparent
+    # placeholder — matches the frontend `PresenterComposite` behaviour.
+    if not any(ordered_urls):
+        return _placeholder_image_response()
+
+    # Composite: every presenter gets an avatar_size slot. Slots without a URL
+    # stay transparent — the canvas is RGBA(0,0,0,0) and we simply don't paste.
     canvas_h = 512
     avatar_size = 384
     overlap = int(avatar_size * 0.35)
-    canvas_w = avatar_size + (len(urls) - 1) * (avatar_size - overlap)
+    canvas_w = avatar_size + (len(ordered_urls) - 1) * (avatar_size - overlap)
     canvas = Image.new("RGBA", (canvas_w, canvas_h), (0, 0, 0, 0))
 
     from pathlib import Path
@@ -1327,7 +1338,13 @@ async def get_station_presenter_composite(station: str):
             return None
 
     async with httpx.AsyncClient(timeout=6.0, follow_redirects=True) as client:
-        for i, url in enumerate(urls):
+        for i, url in enumerate(ordered_urls):
+            x = i * (avatar_size - overlap)
+            y = (canvas_h - avatar_size) // 2
+            if not url:
+                # Presenter without avatar → leave the slot transparent so the
+                # layout still reflects multi-presenter shows.
+                continue
             avatar = await _load_avatar(url)
             if avatar is None:
                 continue
@@ -1340,8 +1357,6 @@ async def get_station_presenter_composite(station: str):
             )
             mask = Image.new("L", (avatar_size, avatar_size), 0)
             ImageDraw.Draw(mask).ellipse((0, 0, avatar_size, avatar_size), fill=255)
-            x = i * (avatar_size - overlap)
-            y = (canvas_h - avatar_size) // 2
             canvas.paste(avatar, (x, y), mask)
 
     buf = BytesIO()
