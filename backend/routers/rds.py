@@ -1313,7 +1313,11 @@ async def _build_presenter_composite_response(presenter_ids: list[str]):
 
     # Build a URL-or-None entry per presenter_id so every presenter keeps a slot
     # — presenters without an avatar render as an empty transparent circle.
-    url_by_id: dict[str, str | None] = {pid: None for pid in presenter_ids}
+    # IMPORTANT: drop "ghost" presenter_ids that no longer resolve to a user
+    # doc. Keeping them in bloats the canvas with an empty slot on the left
+    # (deleted user), which on grk.fm manifests as "the first presenter is
+    # gone, only the second shows" — see production bug on show "Genkluistert".
+    url_by_id: dict[str, str | None] = {}
     async for u in db.users.find(
         {"id": {"$in": presenter_ids}},
         {"_id": 0, "id": 1, "avatar_url": 1, "avatar": 1, "team_id": 1, "main_site_id": 1},
@@ -1324,7 +1328,12 @@ async def _build_presenter_composite_response(presenter_ids: list[str]):
         if url and "/avatars/shared/" in url and (u.get("team_id") or u.get("main_site_id")):
             url = None
         url_by_id[u["id"]] = url
-    ordered_urls: list[str | None] = [url_by_id.get(pid) for pid in presenter_ids]
+    # Preserve the show-doc ordering, but skip ghosts entirely.
+    ordered_urls: list[str | None] = [url_by_id[pid] for pid in presenter_ids if pid in url_by_id]
+
+    # No real presenters at all (every id was a ghost) → transparent placeholder.
+    if not ordered_urls:
+        return _placeholder_image_response()
 
     # If literally no presenter has an avatar, return the fully transparent
     # placeholder — matches the frontend `PresenterComposite` behaviour.

@@ -1,6 +1,27 @@
 # Changelog
 
 
+## 2026-02-08 — Ghost presenter_ids filtering in composite + schedule payload
+
+### Bug (reported door Yannick)
+Op grk.fm toonde het programmaschema niets zodra een tweede presentator-foto werd toegevoegd. Op de hero/player kwam enkel de tweede presentator in beeld terwijl de eerste "verdween". Verwijderen van de tweede foto maakte het schema weer in orde, maar leegde de hero/player.
+
+### Root cause
+Show `Genkluistert` had `presenter_ids: [ghost_id, mike_id]` waarbij `ghost_id` geen matching user doc meer had. Zowel `_build_presenter_composite_response` (rds.py) als `_build_show_payload` (public_schedule.py) hielden toch een slot vrij voor die ghost — resultaat: een 768×512 composite waarvan de linkerhelft volledig transparant was. Op grk.fm's hero/schedule layout met vaste aspect-ratio verschoof dit Mike naar rechts of maakte hem onzichtbaar afhankelijk van object-fit.
+
+### Fix
+- **`public_schedule.py::_build_show_payload`**: ghost-ids worden nu uit `presenter_ids` gefilterd op basis van een single `users.find` lookup. `presenter_names`, `presenter_avatars` en de composite-URL gebruiken allemaal dezelfde gefilterde lijst.
+- **`rds.py::_build_presenter_composite_response`**: `ordered_urls` wordt opgebouwd uit alleen de ids die effectief in `db.users` zitten. Een lijst met uitsluitend ghosts valt terug op de transparante placeholder.
+- Een echte user zonder avatar behoudt zijn transparante slot (zoals Yannick's requirement: "If no image, transparent").
+
+### Verified
+- 1 real + 1 ghost → composite 384×512 (1 slot, Mike alleen).
+- 2 real (één met, één zonder avatar) → composite 768×512 (slot 1 transparant, slot 2 avatar).
+- Ghost + 2 real → composite 768×512 (ghost gedropt, 2 slots).
+- Schedule payload `presenter_ids`/`presenter_names` komen nu overeen met het composite-aantal.
+
+
+
 ## 2026-02-04 — Shows Calendar dynamisch per station + Custom site background bevestiging
 
 ### Shows Calendar (CalendarPage.js)

@@ -271,14 +271,25 @@ async def _build_show_payload(show: dict, title_info: dict, request_base: str = 
     date-based endpoints can reuse exactly the same shape.
     """
     title_name = show.get("title", "")
-    presenter_ids = show.get("presenter_ids") or []
-    presenter_names = []
-    if presenter_ids:
-        presenters = await db.users.find(
-            {"id": {"$in": presenter_ids}},
-            {"_id": 0, "name": 1},
-        ).to_list(10)
-        presenter_names = [p.get("name", "") for p in presenters if p.get("name")]
+    raw_presenter_ids = show.get("presenter_ids") or []
+    # Filter out "ghost" presenter_ids — ids that no longer have a user doc
+    # in the DB. Leaving them in bloats the composite PNG with empty slots
+    # (visual regression: Mike's half of a 2-up composite becomes offset to
+    # the right because slot 1 is a deleted user) and leaks removed users
+    # into `presenter_names`. See the bug report: "programmaschema shows
+    # nothing when a second photo is added".
+    presenter_ids = []
+    presenter_name_by_id: dict[str, str] = {}
+    if raw_presenter_ids:
+        async for p in db.users.find(
+            {"id": {"$in": raw_presenter_ids}},
+            {"_id": 0, "id": 1, "name": 1},
+        ):
+            if p.get("id"):
+                presenter_name_by_id[p["id"]] = p.get("name", "")
+        # Preserve the original ordering from the show doc.
+        presenter_ids = [pid for pid in raw_presenter_ids if pid in presenter_name_by_id]
+    presenter_names = [presenter_name_by_id[pid] for pid in presenter_ids if presenter_name_by_id.get(pid)]
 
     image_url = ""
     if isinstance(title_info.get("image"), dict):
