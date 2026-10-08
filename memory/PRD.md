@@ -422,3 +422,19 @@ Rule: if `avatar.s3_url` contains `/avatars/shared/` **and** the user has a `tea
 - Seeded Class-x this week with 2 avatar-ed presenters → `/api/public/schedule/radiogroep/grk/week` now returns `presenter_image_url = https://api-turbo.preview.emergentagent.com/api/rds/show/{id}/presenter-composite.png` (public hostname, not upstream pod).
 - `GET /api/rds/grk/image.jpg` with a live 2-presenter show → 302 → `/api/rds/grk/presenter-composite.png` (260 KB, 634×512 RGBA with both faces) — no more S3 403.
 - Testdata opgeruimd.
+
+## 2026-10-07 — Presenter composite PNG: squares, not circles
+
+### Change
+User flagged the circular avatar mask in the composite PNG — the API image shouldn't be rounded, consumers can apply `border-radius` in CSS themselves.
+
+### Fix (`/app/backend/routers/rds.py :: _build_presenter_composite_response`)
+- Dropped the `ImageDraw.ellipse()` mask → avatars render as full squares.
+- Removed the 35% overlap (made no visual sense without circles). Avatars sit side-by-side with no gap.
+- Canvas width = `avatar_size * len(presenters)` → 768×512 for 2 presenters, 1152×512 for 3, etc.
+- `canvas.paste(avatar, (x, y), avatar if avatar.mode == "RGBA" else None)` keeps the avatar's own alpha channel intact.
+
+### Verified
+- 2 avatar-ed presenters → 768×512 RGBA PNG with both faces side-by-side, square, transparent background. Visual preview confirmed.
+- Mixed (1 avatar + 1 empty) → avatar on the left, empty slot right stays fully transparent (unchanged behaviour).
+

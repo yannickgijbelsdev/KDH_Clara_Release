@@ -1306,7 +1306,7 @@ async def _build_presenter_composite_response(presenter_ids: list[str]):
     from fastapi.responses import Response
     from io import BytesIO
     import httpx
-    from PIL import Image, ImageDraw
+    from PIL import Image
 
     if not presenter_ids:
         return _placeholder_image_response()
@@ -1333,10 +1333,11 @@ async def _build_presenter_composite_response(presenter_ids: list[str]):
 
     # Composite: every presenter gets an avatar_size slot. Slots without a URL
     # stay transparent — the canvas is RGBA(0,0,0,0) and we simply don't paste.
+    # Rectangular avatars sit side-by-side without overlap — the consumer
+    # (grk.fm, player) can round their corners via CSS.
     canvas_h = 512
     avatar_size = 384
-    overlap = int(avatar_size * 0.35)
-    canvas_w = avatar_size + (len(ordered_urls) - 1) * (avatar_size - overlap)
+    canvas_w = avatar_size * len(ordered_urls)
     canvas = Image.new("RGBA", (canvas_w, canvas_h), (0, 0, 0, 0))
 
     from pathlib import Path
@@ -1357,7 +1358,7 @@ async def _build_presenter_composite_response(presenter_ids: list[str]):
 
     async with httpx.AsyncClient(timeout=6.0, follow_redirects=True) as client:
         for i, url in enumerate(ordered_urls):
-            x = i * (avatar_size - overlap)
+            x = i * avatar_size
             y = (canvas_h - avatar_size) // 2
             if not url:
                 continue
@@ -1370,9 +1371,10 @@ async def _build_presenter_composite_response(presenter_ids: list[str]):
             avatar = avatar.crop((left, top, left + side, top + side)).resize(
                 (avatar_size, avatar_size), Image.LANCZOS
             )
-            mask = Image.new("L", (avatar_size, avatar_size), 0)
-            ImageDraw.Draw(mask).ellipse((0, 0, avatar_size, avatar_size), fill=255)
-            canvas.paste(avatar, (x, y), mask)
+            # Paste as a plain square — no circular mask. Keeps the avatar's
+            # own transparency (if any) intact so the grk.fm hero and other
+            # consumers can style the shape themselves (border-radius in CSS).
+            canvas.paste(avatar, (x, y), avatar if avatar.mode == "RGBA" else None)
 
     buf = BytesIO()
     canvas.save(buf, format="PNG", optimize=True)
