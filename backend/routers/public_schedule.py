@@ -57,14 +57,24 @@ def _public_base_url(request) -> str:
     useless for CDN'd `<img src>` references. Prefer `X-Forwarded-Host`
     and `X-Forwarded-Proto` so we emit `https://clr.koodh.com/...` when
     grk.fm hits `clr.koodh.com`, and fall back to the request's own host
-    header for local/dev requests."""
+    header for local/dev requests.
+
+    IMPORTANT: on public domains we always force `https://` to avoid
+    mixed-content blocking when the embedding page is HTTPS and the proxy
+    forwards HTTP internally. Only genuine localhost/`.local` hosts stay
+    on `http://`.
+    """
     headers = request.headers
     host = headers.get("x-forwarded-host") or headers.get("host") or ""
-    proto = headers.get("x-forwarded-proto") or request.url.scheme or "https"
+    proto = (headers.get("x-forwarded-proto") or request.url.scheme or "https").split(",")[0].strip()
     if not host:
         return str(request.base_url).rstrip("/")
-    # `x-forwarded-host` can be a comma-separated chain — keep the first.
     host = host.split(",")[0].strip()
+    # Force https for any public host so grk.fm (HTTPS) can load the composite
+    # — mixed-content blocking otherwise swallows the <img> request silently.
+    is_local = host.startswith("localhost") or host.startswith("127.") or host.endswith(".local")
+    if not is_local:
+        proto = "https"
     return f"{proto}://{host}"
 
 

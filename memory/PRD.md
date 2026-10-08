@@ -438,3 +438,31 @@ User flagged the circular avatar mask in the composite PNG — the API image sho
 - 2 avatar-ed presenters → 768×512 RGBA PNG with both faces side-by-side, square, transparent background. Visual preview confirmed.
 - Mixed (1 avatar + 1 empty) → avatar on the left, empty slot right stays fully transparent (unchanged behaviour).
 
+
+## 2026-10-08 — Mixed-content fix: force HTTPS on public composite URLs
+
+### Problem (observed live on grk.fm/programmering)
+Browser console on grk.fm (HTTPS) kept warning:
+```
+Mixed Content: ... requested an insecure element
+'http://clr.koodh.com/api/rds/show/.../presenter-composite.png'
+```
+Chrome then silently blocked those `<img>` requests → the Programma's page showed no multi-presenter faces (and worse, looked "kapot" to the user).
+
+### Root cause
+`_public_base_url(request)` was propagating `x-forwarded-proto` as-is. On the prod ingress chain that value arrives as `http` (TLS termination happens upstream and the forwarded proto header is dropped/overwritten), so we emitted `http://clr.koodh.com/...` for every composite URL. The embedding site is HTTPS → browser blocks mixed-content.
+
+### Fix (`/app/backend/routers/public_schedule.py`)
+`_public_base_url(request)` now **forces `proto = "https"` for any non-local host**. Only genuine `localhost`/`127.0.0.1`/`.local` hostnames keep `http://`. The X-Forwarded-* fallback stays for picking the public hostname — only the proto gets upgraded.
+
+### Verified (preview)
+- `GET /api/public/schedule/radiogroep/grk/week` with seeded 2-presenter show →
+  `presenter_image_url = https://api-turbo.preview.emergentagent.com/api/rds/show/.../presenter-composite.png` ✓
+- No more `http://` leaks for any public-host request.
+- Testdata reverted.
+
+### Unrelated findings worth capturing
+- **Bart Valee still has no avatar on prod** (only a stale `/avatars/shared/` that we correctly reject). Composite is 768×512 with Mike on the right and a transparent left slot. **User needs to upload Bart's photo in Team Settings** — no code change will populate it.
+- **Prod has a second "Mike Cnudde" user doc** (`d6db19ec-...`) whose avatar is also in `/avatars/shared/` but passes our stale filter because that doc has no `team_id`. Not blocking anything — Mike is visible — but worth a DB cleanup eventually.
+- **"Class-x draait nog altijd om 2u"**: that is the actual GRK schedule (00:01–08:00). Not a bug — the rotation engine is doing exactly what the schedule says.
+
