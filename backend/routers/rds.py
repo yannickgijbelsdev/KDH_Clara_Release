@@ -1278,6 +1278,38 @@ def _extract_avatar_url(user: dict) -> str | None:
     return None
 
 
+# Public image APIs (composite + `/presenter-image/{slot}.png`) only expose
+# the first N presenters of a show. Keep this in sync with the frontend
+# warning in `ShowDetailPage.js::togglePresenter`.
+MAX_PRESENTERS_IN_COMPOSITE = 3
+
+
+async def _resolve_slot_avatar_url(presenter_ids: list[str], slot: int) -> str | None:
+    """Return the Team-Settings avatar URL for the Nth presenter of a show
+    (1-based `slot`). Stale `/avatars/shared/...` URLs for team-scoped
+    users are dropped so the slot renders transparent instead of leaking a
+    legacy picture. Returns None when the slot is out of range or the
+    presenter has no usable avatar."""
+    if slot < 1 or slot > MAX_PRESENTERS_IN_COMPOSITE:
+        return None
+    if not presenter_ids or len(presenter_ids) < slot:
+        return None
+    url_by_id: dict[str, str | None] = {}
+    async for u in db.users.find(
+        {"id": {"$in": presenter_ids}},
+        {"_id": 0, "id": 1, "avatar_url": 1, "avatar": 1, "team_id": 1, "main_site_id": 1},
+    ):
+        url = _extract_avatar_url(u) or None
+        if url and "/avatars/shared/" in url and (u.get("team_id") or u.get("main_site_id")):
+            url = None
+        url_by_id[u["id"]] = url
+    # Preserve show-doc ordering, drop ghost ids (users that no longer exist).
+    ordered = [url_by_id[pid] for pid in presenter_ids if pid in url_by_id]
+    if len(ordered) < slot:
+        return None
+    return ordered[slot - 1]
+
+
 async def _station_has_presenters(station: str) -> bool:
     """Return True when the currently live show on `station` has at least
     one presenter with a non-stale avatar we can composite."""
@@ -1349,6 +1381,10 @@ async def _build_presenter_composite_response(presenter_ids: list[str]):
         url_by_id[u["id"]] = url
     # Preserve the show-doc ordering, but skip ghosts entirely.
     ordered_urls: list[str | None] = [url_by_id[pid] for pid in presenter_ids if pid in url_by_id]
+    # Cap at MAX_PRESENTERS_IN_COMPOSITE — the public image APIs expose
+    # only the first N presenters (frontend warns the operator when a 4th
+    # is added so this cap is never surprising).
+    ordered_urls = ordered_urls[:MAX_PRESENTERS_IN_COMPOSITE]
 
     # No real presenters at all (every id was a ghost) → transparent placeholder.
     if not ordered_urls:
@@ -1451,6 +1487,107 @@ async def get_show_presenter_composite(show_id: str):
         if title_doc:
             presenter_ids = title_doc.get("default_presenter_ids", []) or []
     return await _build_presenter_composite_response(presenter_ids)
+
+
+async def _build_single_presenter_image_response(presenter_ids: list[str], slot: int):
+    """Serve the Nth presenter's avatar as a 512×512 PNG (centered-cropped
+    to a square so grk.fm / player can embed it next to other slots).
+
+    Returns the transparent placeholder when the slot is empty, out of
+    range (> MAX_PRESENTERS_IN_COMPOSITE), or the presenter has no avatar
+    uploaded in Team Settings — i.e. the API never falls back to a legacy
+    Show-Management image here (same policy as the composite endpoint)."""
+    from fastapi.responses import Response
+    from io import BytesIO
+    import httpx
+    from PIL import Image
+
+    url = await _resolve_slot_avatar_url(presenter_ids, slot)
+    if not url:
+        return _placeholder_image_response()
+
+    # Resolve relative `/uploads/...` paths against the local backend so the
+    # same loader works for S3 and legacy pod-local uploads.
+    if url.startswith("/"):
+        import os
+        base = os.environ.get("INTERNAL_BACKEND_URL") or "http://localhost:8001"
+        url = f"{base}{url}"
+
+    try:
+        async with httpx.AsyncClient(timeout=5.0, follow_redirects=True) as client:
+            resp = await client.get(url)
+            if resp.status_code != 200:
+                return _placeholder_image_response()
+            img = Image.open(BytesIO(resp.content)).convert("RGBA")
+    except Exception:
+        return _placeholder_image_response()
+
+    # Center-crop to a square then resize to 512×512 for a predictable
+    # consumer size (matches the per-slot size inside the composite).
+    side = min(img.size)
+    left = (img.width - side) // 2
+    top = (img.height - side) // 2
+    img = img.crop((left, top, left + side, top + side)).resize((512, 512), Image.LANCZOS)
+
+    buf = BytesIO()
+    img.save(buf, format="PNG")
+    return Response(
+        content=buf.getvalue(),
+        media_type="image/png",
+        headers={"Cache-Control": "public, max-age=60"},
+    )
+
+
+async def _resolve_live_show_presenter_ids(station: str) -> list[str]:
+    cached = await db.rds_cached_rundowns.find_one(
+        {"is_active": True, "rds_station": {"$in": [station, "both"]}},
+        {"_id": 0, "show_id": 1},
+    )
+    if not cached:
+        return []
+    show = await db.shows.find_one(
+        {"id": cached.get("show_id")}, {"_id": 0, "presenter_ids": 1}
+    )
+    return (show or {}).get("presenter_ids") or []
+
+
+async def _resolve_show_presenter_ids(show_id: str) -> list[str]:
+    show = await db.shows.find_one(
+        {"id": show_id}, {"_id": 0, "presenter_ids": 1, "title": 1, "team_id": 1}
+    )
+    if not show:
+        return []
+    presenter_ids = show.get("presenter_ids") or []
+    if not presenter_ids:
+        title_doc = await db.show_titles.find_one(
+            {"name": show.get("title"), "team_id": show.get("team_id")},
+            {"_id": 0, "default_presenter_ids": 1},
+        )
+        if title_doc:
+            presenter_ids = title_doc.get("default_presenter_ids", []) or []
+    return presenter_ids
+
+
+@rds_router.get("/{station}/presenter-image/{slot:int}.png")
+async def get_station_presenter_image_by_slot(station: str, slot: int):
+    """Public endpoint: Nth presenter's Team-Settings avatar as a square PNG
+    for the currently live show on `station`. `slot` is 1-based and capped
+    at 3 — slots beyond that return the transparent placeholder (frontend
+    warns operators when a 4th presenter is added to a show).
+
+    Example: `/api/rds/grk/presenter-image/2.png` → second presenter."""
+    presenter_ids = await _resolve_live_show_presenter_ids(station)
+    return await _build_single_presenter_image_response(presenter_ids, slot)
+
+
+@rds_router.get("/show/{show_id}/presenter-image/{slot:int}.png")
+async def get_show_presenter_image_by_slot(show_id: str, slot: int):
+    """Public endpoint: Nth presenter's Team-Settings avatar as a square PNG
+    for an arbitrary show. 1-based slot, capped at 3.
+
+    Example: `/api/rds/show/<id>/presenter-image/1.png` → first presenter."""
+    presenter_ids = await _resolve_show_presenter_ids(show_id)
+    return await _build_single_presenter_image_response(presenter_ids, slot)
 
 
 @rds_router.get("/{station}/image-url.txt")

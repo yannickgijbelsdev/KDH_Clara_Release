@@ -253,6 +253,15 @@ const ShowDetailPage = () => {
       if (current.includes(userId)) {
         return { ...prev, presenter_ids: current.filter(id => id !== userId) };
       } else {
+        if (current.length >= 3) {
+          // Public image APIs (`/presenter-image/{1|2|3}.png` and the composite)
+          // only expose the first 3 presenters. Warn the operator so they
+          // know the 4th+ presenter won't appear on grk.fm / player hero.
+          toast.warning(
+            'Maximum 3 presentatoren per show voor de externe foto-API. De vierde presentator wordt niet getoond op grk.fm/player.',
+            { duration: 6000 }
+          );
+        }
         return { ...prev, presenter_ids: [...current, userId] };
       }
     });
