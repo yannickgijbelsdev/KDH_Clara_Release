@@ -135,14 +135,17 @@ async def _validate_station_for_site(main_site_id: str, station: str) -> None:
 async def _resolve_presenter_image_url(presenter_ids: list, title_image_url: str = "") -> str:
     """Pick the best image URL for the on-air presenter slot.
 
-    POLICY: **Presenters' Team-Settings avatars always win** over a legacy
-    manually-uploaded show-title image (matches `PresenterComposite.jsx` on
-    the Clara dashboard — product rule).
+    POLICY: **Only presenter Team-Settings avatars count.** If no presenter
+    has an uploaded avatar, return "" so the consumer renders a transparent
+    placeholder. The legacy manually-uploaded show-title image is
+    **never** used as a fallback here (per product owner — Yannick, feb 2026).
 
     Priority:
     1. First presenter avatar's S3 URL (uploaded via Team Settings).
-    2. Show-title image's S3 URL (legacy, uploaded via Show Management).
-    3. "" so the consumer renders a transparent placeholder.
+    2. "" so the consumer renders a transparent placeholder.
+
+    `title_image_url` is kept in the signature for backwards compatibility
+    with internal callers but is deliberately ignored.
 
     S3-only — local `/api/uploads/...` URLs are deliberately skipped so grk.fm
     and the player get cache-friendly CDN URLs.
@@ -191,11 +194,8 @@ async def _resolve_presenter_image_url(presenter_ids: list, title_image_url: str
                 if cleaned and _not_stale(p, cleaned):
                     return cleaned
 
-    # 2. Show-title S3 image as fallback (legacy manual uploads)
-    cleaned_title = _clean(title_image_url)
-    if cleaned_title and (cleaned_title.startswith("http://") or cleaned_title.startswith("https://")):
-        return cleaned_title
-
+    # 2. No valid presenter avatar → return "" so the API serves transparent.
+    #    Show-title image fallback deliberately removed per product owner.
     return ""
 
 
@@ -300,17 +300,14 @@ async def _build_show_payload(show: dict, title_info: dict, request_base: str = 
     presenter_image_url = await _resolve_presenter_image_url(presenter_ids, title_image_url=image_url)
     presenter_avatars = await _resolve_presenter_avatars(presenter_ids)
 
-    # For shows with 2+ presenters that have at least one real avatar, swap the
-    # single presenter_image_url for the public composite PNG endpoint so grk.fm
-    # and other consumers automatically render overlapping circles without
-    # having to iterate `presenter_avatars[]`. Single-presenter shows keep the
-    # direct S3 URL (faster, cacheable at CDN).
-    has_any_real_avatar = any((a.get("avatar_url") or "") for a in presenter_avatars)
-    if len(presenter_ids) >= 2 and has_any_real_avatar:
+    # Any show with presenters → use the composite endpoint so grk.fm /
+    # player always get a consistent PNG (real avatars for users with a
+    # photo, transparent slots for users without one). The composite
+    # endpoint returns a fully transparent placeholder when **no** presenter
+    # has an avatar — guarantees we never leak the legacy show-title image
+    # as a presenter fallback (bug reported feb 2026).
+    if presenter_ids:
         composite_path = f"/api/rds/show/{show.get('id')}/presenter-composite.png"
-        # Prefer the request's own origin (grk.fm fetches via clr.koodh.com → use
-        # clr.koodh.com). Falls back to SHARE_BASE_URL (via _absolute_url) when
-        # the caller didn't pass a base, so cron jobs and background renders still work.
         if request_base:
             presenter_image_url = f"{request_base.rstrip('/')}{composite_path}"
         else:

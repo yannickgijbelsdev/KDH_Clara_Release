@@ -1214,28 +1214,25 @@ async def get_station_show_image_redirect(station: str):
     Used by MagicRDS, grk.fm/mfy.fm players and similar systems that
     embed `<img src=".../image.jpg">` directly.
 
-    Priority (matches `PresenterComposite.jsx` on the Clara dashboard —
-    presenters' Team-Settings avatars always win over the legacy
-    manually-uploaded show-title image):
-      1. Presenter composite PNG — when the live show has at least one
-         presenter with an avatar.
-      2. Per-show / show_title / cached image (via `_resolve_show_image_for_station`).
-      3. Transparent placeholder (kept as HTTP 200 to overwrite stale
-         browser-cached photos; see history note about Hadewig sticking).
+    POLICY (per product owner — Yannick, feb 2026):
+    **Only presenter composite** is served. If no presenter on the live
+    show has an uploaded avatar, we return the transparent placeholder.
+    The legacy manually-uploaded show-title image is **never** served here
+    anymore — grk.fm would otherwise keep showing an old presenter photo
+    that was removed from Team Settings.
     """
     from fastapi.responses import RedirectResponse
 
-    # 1. Presenters first — composite wins when any live presenter has a photo.
-    composite_available = await _station_has_presenters(station)
-    if composite_available:
+    # Presenters only — redirect to the composite (which handles the
+    # all-transparent fallback internally).
+    cached = await db.rds_cached_rundowns.find_one(
+        {"is_active": True, "rds_station": {"$in": [station, "both"]}},
+        {"_id": 0, "show_id": 1},
+    )
+    if cached and cached.get("show_id"):
         return RedirectResponse(url=f"/api/rds/{station}/presenter-composite.png", status_code=302)
 
-    # 2. Fall back to the legacy title image.
-    image_data, _ = await _resolve_show_image_for_station(station)
-    image_url = _image_url_from(image_data)
-    if image_url:
-        return RedirectResponse(url=image_url, status_code=302)
-
+    # No live show at all → transparent placeholder.
     return _placeholder_image_response()
 
 
