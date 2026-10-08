@@ -263,6 +263,26 @@ async def _first_presenter_image(presenter_ids: list, title_image_fallback: str 
     return await _resolve_presenter_image_url(presenter_ids, title_image_url=title_image_fallback)
 
 
+async def _get_prefer_show_image(main_site_id: str | None, team_id: str | None) -> bool:
+    """Lookup the per-tenant `prefer_show_image` RDS setting.
+
+    When True, public image endpoints should serve the legacy show-title
+    image from Show Management instead of the presenter composite PNG.
+    Admins toggle this flag from the RDS Settings page.
+    """
+    or_conditions = []
+    if main_site_id:
+        or_conditions.append({"main_site_id": main_site_id})
+        or_conditions.append({"team_id": main_site_id})
+    if team_id:
+        or_conditions.append({"team_id": team_id})
+    if not or_conditions:
+        return False
+    query = or_conditions[0] if len(or_conditions) == 1 else {"$or": or_conditions}
+    doc = await db.rds_settings.find_one(query, {"_id": 0, "prefer_show_image": 1})
+    return bool(doc and doc.get("prefer_show_image"))
+
+
 async def _build_show_payload(show: dict, title_info: dict, request_base: str = "") -> dict:
     """Produce the public-facing show dict used by all schedule endpoints.
 
@@ -300,13 +320,30 @@ async def _build_show_payload(show: dict, title_info: dict, request_base: str = 
     presenter_image_url = await _resolve_presenter_image_url(presenter_ids, title_image_url=image_url)
     presenter_avatars = await _resolve_presenter_avatars(presenter_ids)
 
-    # Any show with presenters → use the composite endpoint so grk.fm /
-    # player always get a consistent PNG (real avatars for users with a
-    # photo, transparent slots for users without one). The composite
-    # endpoint returns a fully transparent placeholder when **no** presenter
-    # has an avatar — guarantees we never leak the legacy show-title image
-    # as a presenter fallback (bug reported feb 2026).
-    if presenter_ids:
+    # Admin toggle (`RDS Settings → Prefer show image`) decides what gets
+    # served as the presenter slot: the Team-Settings composite (default)
+    # or the legacy show-title image from Show Management.
+    prefer_show_image = await _get_prefer_show_image(
+        show.get("main_site_id"), show.get("team_id")
+    )
+
+    if prefer_show_image:
+        # Admin opted into the legacy Show-Management image → use it for both
+        # the presenter slot and the hero `.image` field. Fallback to the
+        # composite URL only when no title image exists so grk.fm still
+        # shows the transparent placeholder instead of a broken image.
+        if image_url:
+            presenter_image_url = image_url
+        elif presenter_ids:
+            composite_path = f"/api/rds/show/{show.get('id')}/presenter-composite.png"
+            presenter_image_url = (
+                f"{request_base.rstrip('/')}{composite_path}" if request_base
+                else _absolute_url(composite_path)
+            )
+    elif presenter_ids:
+        # Default: composite endpoint for consistent transparent-fallback
+        # behaviour on grk.fm / player (real avatars for users with a photo,
+        # transparent slots for users without one).
         composite_path = f"/api/rds/show/{show.get('id')}/presenter-composite.png"
         if request_base:
             presenter_image_url = f"{request_base.rstrip('/')}{composite_path}"

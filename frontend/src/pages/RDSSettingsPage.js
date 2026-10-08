@@ -26,6 +26,7 @@ import {
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
+import { Switch } from '../components/ui/switch';
 import { toast } from 'sonner';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -44,6 +45,7 @@ const RDSSettingsPage = () => {
   const [editData, setEditData] = useState({
     production_base_url: '',
     cache_refresh_interval: 5,
+    prefer_show_image: false,
   });
   
   // Dynamic stations
@@ -125,6 +127,7 @@ const RDSSettingsPage = () => {
       setEditData({
         production_base_url: settingsRes.data.production_base_url,
         cache_refresh_interval: settingsRes.data.cache_refresh_interval,
+        prefer_show_image: !!settingsRes.data.prefer_show_image,
       });
 
       // Build filter state map
@@ -467,6 +470,7 @@ const RDSSettingsPage = () => {
                   setEditData({
                     production_base_url: settings.production_base_url,
                     cache_refresh_interval: settings.cache_refresh_interval,
+                    prefer_show_image: !!settings.prefer_show_image,
                   });
                 }}
                 className="border-zinc-300 text-zinc-600 hover:bg-zinc-100"
@@ -514,6 +518,23 @@ const RDSSettingsPage = () => {
                 How often the live show cache is automatically refreshed.
               </p>
             </div>
+            <div className="flex items-start gap-3 pt-2 border-t border-zinc-100">
+              <Switch
+                id="prefer-show-image"
+                checked={!!editData.prefer_show_image}
+                onCheckedChange={(v) => setEditData({ ...editData, prefer_show_image: !!v })}
+                data-testid="rds-prefer-show-image-switch"
+              />
+              <div className="flex-1">
+                <Label htmlFor="prefer-show-image" className="text-zinc-900 cursor-pointer">
+                  Gebruik show-afbeelding in plaats van presentator-avatars
+                </Label>
+                <p className="text-xs text-zinc-500 mt-1">
+                  Uit (standaard): externe sites (grk.fm, player, MagicRDS) tonen de presentator-avatars uit Team Settings — ontbrekende avatars worden transparant.<br />
+                  Aan: externe sites tonen de afbeelding die je in Show Management uploadt.
+                </p>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4">
@@ -531,6 +552,14 @@ const RDSSettingsPage = () => {
                 {settings?.last_cache_refresh
                   ? formatInTimeZone(new Date(settings.last_cache_refresh), 'Europe/Brussels', 'MMM dd yyyy HH:mm:ss')
                   : 'Not yet run'}
+              </p>
+            </div>
+            <div className="col-span-2 pt-2 border-t border-zinc-100">
+              <p className="text-zinc-500 text-sm mb-1">Afbeelding voor externe sites</p>
+              <p className="text-zinc-700" data-testid="rds-prefer-show-image-value">
+                {settings?.prefer_show_image
+                  ? 'Show-afbeelding (uploaded via Show Management)'
+                  : 'Presentator-avatars (Team Settings) — standaard'}
               </p>
             </div>
           </div>

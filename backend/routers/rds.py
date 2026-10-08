@@ -17,6 +17,11 @@ class RDSSettings(BaseModel):
     """RDS integration settings."""
     production_base_url: str = "https://clara.koodh.com"
     cache_refresh_interval: int = 1  # minutes
+    # When False (default), the public schedule and `/{station}/image.jpg`
+    # endpoints return the presenter composite PNG (Team-Settings avatars,
+    # transparent slots for missing avatars). When True, they return the
+    # legacy show-title image uploaded in Show Management instead.
+    prefer_show_image: bool = False
 
 
 class RDSSettingsResponse(BaseModel):
@@ -25,6 +30,7 @@ class RDSSettingsResponse(BaseModel):
     team_id: Optional[str] = None
     production_base_url: str
     cache_refresh_interval: int
+    prefer_show_image: bool = False
     last_cache_refresh: Optional[str] = None
     created_at: str
     updated_at: str
@@ -102,13 +108,16 @@ async def get_rds_settings(request: Request, current_user: dict = Depends(requir
             "main_site_id": main_site_id,
             "production_base_url": "https://clara.koodh.com",
             "cache_refresh_interval": 1,
+            "prefer_show_image": False,
             "last_cache_refresh": None,
             "created_at": now,
             "updated_at": now
         }
         await db.rds_settings.insert_one(settings)
         settings.pop("_id", None)
-    
+    # Back-fill the new flag for pre-existing docs that never had it.
+    settings.setdefault("prefer_show_image", False)
+
     return settings
 
 
@@ -129,6 +138,7 @@ async def update_rds_settings(
     update_data = {
         "production_base_url": settings_data.production_base_url.rstrip('/'),
         "cache_refresh_interval": settings_data.cache_refresh_interval,
+        "prefer_show_image": bool(settings_data.prefer_show_image),
         "updated_at": now
     }
     
@@ -149,6 +159,8 @@ async def update_rds_settings(
         query_filter,
         {"_id": 0}
     )
+    if settings is not None:
+        settings.setdefault("prefer_show_image", False)
     return settings
 
 
@@ -1214,26 +1226,36 @@ async def get_station_show_image_redirect(station: str):
     Used by MagicRDS, grk.fm/mfy.fm players and similar systems that
     embed `<img src=".../image.jpg">` directly.
 
-    POLICY (per product owner — Yannick, feb 2026):
-    **Only presenter composite** is served. If no presenter on the live
-    show has an uploaded avatar, we return the transparent placeholder.
-    The legacy manually-uploaded show-title image is **never** served here
-    anymore — grk.fm would otherwise keep showing an old presenter photo
-    that was removed from Team Settings.
+    Behaviour depends on the admin toggle `RDS Settings → Prefer show image`:
+      - False (default) → serve the presenter composite PNG (transparent
+        fallback included).
+      - True → serve the legacy manually-uploaded show-title image, with the
+        composite as fallback when no title image is set.
     """
     from fastapi.responses import RedirectResponse
 
-    # Presenters only — redirect to the composite (which handles the
-    # all-transparent fallback internally).
     cached = await db.rds_cached_rundowns.find_one(
         {"is_active": True, "rds_station": {"$in": [station, "both"]}},
-        {"_id": 0, "show_id": 1},
+        {"_id": 0, "show_id": 1, "main_site_id": 1, "team_id": 1},
     )
-    if cached and cached.get("show_id"):
-        return RedirectResponse(url=f"/api/rds/{station}/presenter-composite.png", status_code=302)
+    if not cached:
+        return _placeholder_image_response()
 
-    # No live show at all → transparent placeholder.
-    return _placeholder_image_response()
+    # Lazy import to avoid cross-router circular import at module load.
+    from routers.public_schedule import _get_prefer_show_image
+    prefer_show_image = await _get_prefer_show_image(
+        cached.get("main_site_id"), cached.get("team_id")
+    )
+
+    if prefer_show_image:
+        # Legacy mode: try to serve the show-title image first.
+        image_data, _ = await _resolve_show_image_for_station(station)
+        image_url = _image_url_from(image_data)
+        if image_url:
+            return RedirectResponse(url=image_url, status_code=302)
+        # Fall through to composite as fallback.
+
+    return RedirectResponse(url=f"/api/rds/{station}/presenter-composite.png", status_code=302)
 
 
 def _extract_avatar_url(user: dict) -> str | None:
