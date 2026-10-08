@@ -65,6 +65,17 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         path = request.url.path
         is_file = path.startswith("/api/files/") or path.startswith("/uploads/")
 
+        # Public embed endpoints — external sites (grk.fm, mfy.fm, WordPress
+        # widgets) load these as <img src>/<script>/<fetch> from a different
+        # registrable domain. CORP: same-site blocks the browser from
+        # consuming the response → broken images in schedule rows / hero.
+        # Set CORP: cross-origin explicitly for these public endpoints.
+        is_public_embed = (
+            path.startswith("/api/rds/")
+            or path.startswith("/api/public/")
+            or path.startswith("/api/widgets/")
+        )
+
         response.headers.setdefault(
             "Strict-Transport-Security",
             "max-age=31536000; includeSubDomains; preload",
@@ -74,7 +85,11 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
         response.headers.setdefault("Permissions-Policy", _PERMISSIONS_POLICY)
         response.headers.setdefault("Cross-Origin-Opener-Policy", "same-origin")
-        if not is_file:
+        if is_public_embed:
+            # Public API consumed by external sites — must be cross-origin
+            # loadable. Overwrite any upstream default so we never regress.
+            response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+        elif not is_file:
             response.headers.setdefault("Cross-Origin-Resource-Policy", "same-site")
             response.headers.setdefault("Content-Security-Policy", _CSP_POLICY)
 

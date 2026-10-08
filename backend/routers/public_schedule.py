@@ -356,7 +356,12 @@ async def _build_show_payload(show: dict, title_info: dict, request_base: str = 
         "presenter_ids": presenter_ids,
         "presenter_image_url": presenter_image_url,
         "presenter_avatars": presenter_avatars,
-        "image": image_url,
+        # `image` mirrors `presenter_image_url` whenever the show has
+        # presenters so grk.fm's hero (which reads `.image`) and schedule
+        # row (which reads `.presenter_image_url`) stay in sync and both
+        # pick up the composite PNG with transparent fallback. Shows
+        # without presenters keep the legacy show-title image as before.
+        "image": presenter_image_url if presenter_ids else image_url,
         "rds_station": title_info.get("rds_station", "none"),
         "has_video": bool(show.get("has_video")),
         "video": video_payload,
