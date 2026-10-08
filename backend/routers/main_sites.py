@@ -1544,7 +1544,11 @@ async def get_main_site_api_endpoints(
                 {"name": f"{name} — Now Playing (text)", "description": f"Current track on {name} as plain text", "method": "GET", "response_type": "text/plain",     "path": f"/api/rds/{code}/now-playing.txt",      "full_url": f"{base_url}/api/rds/{code}/now-playing.txt",      "tag": name, "tag_color": color},
                 {"name": f"{name} — Now Playing (JSON)", "description": "Shoutcast info incl. listeners",          "method": "GET", "response_type": "application/json", "path": f"/api/rds/{code}/now-playing",          "full_url": f"{base_url}/api/rds/{code}/now-playing",          "tag": name, "tag_color": color},
                 {"name": f"{name} — Cached Rundown",     "description": f"Cached rundown JSON for {name}",         "method": "GET", "response_type": "application/json", "path": f"/api/rds/{code}/cached-rundown",       "full_url": f"{base_url}/api/rds/{code}/cached-rundown",       "tag": name, "tag_color": color},
-                {"name": f"{name} — Presenter image",    "description": f"Photo of the current {name} presenter",  "method": "GET", "response_type": "image/jpeg",     "path": f"/api/rds/{code}/image.jpg",            "full_url": f"{base_url}/api/rds/{code}/image.jpg",            "tag": name, "tag_color": color},
+                {"name": f"{name} — Presenter image",    "description": f"Composite PNG of the current {name} presenter(s) (max 3 side-by-side, transparent slots when no avatar).",  "method": "GET", "response_type": "image/jpeg",     "path": f"/api/rds/{code}/image.jpg",            "full_url": f"{base_url}/api/rds/{code}/image.jpg",            "tag": name, "tag_color": color},
+                {"name": f"{name} — Presenter composite (PNG)", "description": f"PNG with all live {name} presenters side-by-side as square avatars (max 3). Transparent background for empty/missing slots.", "method": "GET", "response_type": "image/png", "path": f"/api/rds/{code}/presenter-composite.png", "full_url": f"{base_url}/api/rds/{code}/presenter-composite.png", "tag": name, "tag_color": color},
+                {"name": f"{name} — Presenter 1 image", "description": f"Avatar of the first presenter live on {name}, 512×512 PNG. Transparent when the slot is empty.", "method": "GET", "response_type": "image/png", "path": f"/api/rds/{code}/presenter-image/1.png", "full_url": f"{base_url}/api/rds/{code}/presenter-image/1.png", "tag": name, "tag_color": color},
+                {"name": f"{name} — Presenter 2 image", "description": f"Avatar of the second presenter live on {name}, 512×512 PNG. Transparent when the slot is empty.", "method": "GET", "response_type": "image/png", "path": f"/api/rds/{code}/presenter-image/2.png", "full_url": f"{base_url}/api/rds/{code}/presenter-image/2.png", "tag": name, "tag_color": color},
+                {"name": f"{name} — Presenter 3 image", "description": f"Avatar of the third presenter live on {name}, 512×512 PNG. Transparent when the slot is empty.", "method": "GET", "response_type": "image/png", "path": f"/api/rds/{code}/presenter-image/3.png", "full_url": f"{base_url}/api/rds/{code}/presenter-image/3.png", "tag": name, "tag_color": color},
                 {"name": f"{name} — Show image URL (text)", "description": "Plain text URL of the current show's image",                                       "method": "GET", "response_type": "text/plain",     "path": f"/api/rds/{code}/image-url.txt",        "full_url": f"{base_url}/api/rds/{code}/image-url.txt",        "tag": name, "tag_color": color},
                 {"name": f"{name} — Show image URL (JSON)", "description": "JSON-wrapped URL of the current show's image",                                     "method": "GET", "response_type": "application/json", "path": f"/api/rds/{code}/image-url.json",       "full_url": f"{base_url}/api/rds/{code}/image-url.json",       "tag": name, "tag_color": color},
             ])
@@ -1580,6 +1584,22 @@ async def get_main_site_api_endpoints(
                     "method": "GET", "response_type": "application/json",
                     "path": f"/api/public/schedule/{site_slug_for_schedule}/{code}/today",
                     "full_url": f"{base_url}/api/public/schedule/{site_slug_for_schedule}/{code}/today",
+                    "tag": name, "tag_color": color,
+                })
+                rds_endpoints.append({
+                    "name": f"{name} — Schedule · Specific Date",
+                    "description": f"Shows airing on {name} on a specific ISO date (YYYY-MM-DD). Replace `2026-02-15` in the URL with the date you want.",
+                    "method": "GET", "response_type": "application/json",
+                    "path": f"/api/public/schedule/{site_slug_for_schedule}/{code}/date/2026-02-15",
+                    "full_url": f"{base_url}/api/public/schedule/{site_slug_for_schedule}/{code}/date/2026-02-15",
+                    "tag": name, "tag_color": color,
+                })
+                rds_endpoints.append({
+                    "name": f"{name} — Schedule · Date Range",
+                    "description": f"Shows airing on {name} between two ISO dates. Use `?from=YYYY-MM-DD&to=YYYY-MM-DD` (inclusive, max 31 days).",
+                    "method": "GET", "response_type": "application/json",
+                    "path": f"/api/public/schedule/{site_slug_for_schedule}/{code}/range?from=2026-02-15&to=2026-02-21",
+                    "full_url": f"{base_url}/api/public/schedule/{site_slug_for_schedule}/{code}/range?from=2026-02-15&to=2026-02-21",
                     "tag": name, "tag_color": color,
                 })
                 for day in DAYS_NL:
