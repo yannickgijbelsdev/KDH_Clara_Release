@@ -507,7 +507,19 @@ async def upload_avatar(
     
     # Generate storage key and upload — prefer compressed-output extension
     file_ext = file_ext_override or Path(file.filename).suffix or '.jpg'
-    scope_segment = current_user.get('team_id') or current_user.get('main_site_id') or 'shared'
+    # IMPORTANT: scope the avatar to the TARGET user's tenant, not the admin
+    # performing the upload. A network/system admin typically has no team_id
+    # or main_site_id, which would land every avatar under `avatars/shared/...`
+    # — the public schedule/composite endpoints then correctly reject that
+    # URL as a stale legacy upload for team-scoped presenters, leaving an
+    # empty slot (bug reported feb 2026 for Hadewig Weyen).
+    scope_segment = (
+        user.get('team_id')
+        or user.get('main_site_id')
+        or current_user.get('team_id')
+        or current_user.get('main_site_id')
+        or 'shared'
+    )
     storage_key = f"avatars/{scope_segment}/{user_id}_{uuid.uuid4().hex[:8]}{file_ext}"
     s3_url = None
     
