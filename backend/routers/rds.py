@@ -1399,8 +1399,10 @@ async def _build_presenter_composite_response(presenter_ids: list[str]):
     # stay transparent — the canvas is RGBA(0,0,0,0) and we simply don't paste.
     # Rectangular avatars sit side-by-side without overlap — the consumer
     # (grk.fm, player) can round their corners via CSS.
-    canvas_h = 512
-    avatar_size = 384
+    # 768-px slots (bumped from 384 feb 2026) give grk.fm's hero enough
+    # pixels to downsample cleanly instead of showing a blurry image.
+    canvas_h = 1024
+    avatar_size = 768
     canvas_w = avatar_size * len(ordered_urls)
     canvas = Image.new("RGBA", (canvas_w, canvas_h), (0, 0, 0, 0))
 
@@ -1522,12 +1524,13 @@ async def _build_single_presenter_image_response(presenter_ids: list[str], slot:
     except Exception:
         return _placeholder_image_response()
 
-    # Center-crop to a square then resize to 512×512 for a predictable
-    # consumer size (matches the per-slot size inside the composite).
+    # Center-crop to a square then resize to 1024×1024 for a predictable
+    # consumer size (matches the per-slot size inside the composite — bumped
+    # from 512 feb 2026 so grk.fm's hero can downsample cleanly).
     side = min(img.size)
     left = (img.width - side) // 2
     top = (img.height - side) // 2
-    img = img.crop((left, top, left + side, top + side)).resize((512, 512), Image.LANCZOS)
+    img = img.crop((left, top, left + side, top + side)).resize((1024, 1024), Image.LANCZOS)
 
     buf = BytesIO()
     img.save(buf, format="PNG")

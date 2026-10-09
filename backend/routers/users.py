@@ -465,8 +465,12 @@ async def upload_avatar(
         img.load()
         has_alpha = (img.mode in ("RGBA", "LA")) or (img.mode == "P" and "transparency" in img.info)
 
-        # Downscale to a 512×512 bounding box while keeping aspect ratio.
-        img.thumbnail((512, 512), Image.LANCZOS)
+        # Downscale to a 1024×1024 bounding box while keeping aspect ratio.
+        # 1024 is a good trade-off between hero-sharpness on grk.fm and file
+        # size — a JPEG q=85 of a square 1024 photo lands around 150 KB,
+        # which the composite/per-slot endpoints can downsample cleanly
+        # (bug: previous 512 cap gave a visibly blurry hero image).
+        img.thumbnail((1024, 1024), Image.LANCZOS)
 
         out = BytesIO()
         if has_alpha:
