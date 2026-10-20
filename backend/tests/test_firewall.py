@@ -656,7 +656,7 @@ class TestBruteForceIntegration:
         
         logs = logs_resp.json().get("logs", [])
         # Should have at least one failed login log
-        recent_failed = [l for line in logs if "test_fake_user" in str(l.get("details", {}))]
+        recent_failed = [log for log in logs if "test_fake_user" in str(log.get("details", {}))]
         assert len(recent_failed) > 0 or len(logs) > 0, "Failed login should be logged"
         print("PASS: Failed login attempts are logged as security events")
     
@@ -713,4 +713,3 @@ class TestNonAdminAccess:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "--tb=short"])
-, "--tb=short"])

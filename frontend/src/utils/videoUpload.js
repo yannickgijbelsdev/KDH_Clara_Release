@@ -63,7 +63,7 @@ export async function uploadLargeVideo(file, { target, contentId, headers = {}, 
       });
       done += blob.size;
     }
-    onProgress?.({ phase: 'compressing', percent: 0 });
+    onProgress?.({ phase: 'queued', percent: 0 });
     await axios.post(`${API}/${init.upload_id}/complete`, null, { headers });
     return await waitForCompression(init.upload_id, headers, onProgress);
   } catch (e) {

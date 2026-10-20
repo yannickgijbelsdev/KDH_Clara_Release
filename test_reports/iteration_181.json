@@ -1,0 +1,31 @@
+{
+  "summary": "Frontend-only retest of the iteration_180 issues (Playwright, admin login). (1) RichTextEditor media upload: FIXED. The overlay is portaled into BODY with z-index 1000001, and elementFromPoint at the card center hits the overlay (not .tox-form) in every phase. Phases went Uploading video... -> Compressing video (max 1080p)... -> Upload complete!, and the Source field got the editor/videos/<site>/<uuid>.mp4 S3 URL. (2) VideoEndpointsPage URL overflow: was NOT fixed by the min-w-0 on the flex row. At 1920 the dialog scrollWidth was 999 vs clientWidth 670 and the Type select's right edge was at 1600px vs the dialog edge at 1296px. At 390 the dialog scrollWidth was 1001 vs 388. Root cause: DialogContent is a CSS grid, and its grid item (div.space-y-4.mt-2) has min-width:auto, so the unbreakable URL's min-content width expands the grid track. I fixed it by adding min-w-0 to that div and checked again: scrollWidth == clientWidth at both 1920 and 390, the URL truncates with an ellipsis, and the Type select fits. The clear button works and brings back the upload input. (3) VideoUploadProgress: Uploading % -> Compressing % works in both video-endpoint-upload-progress and liveblog-video-upload-progress. At each phase change the bar starts at 0% (keyed per phase, no reverse animation). I got the Queued state by keeping the compression worker busy through the API: 'Queued for compression', no percent element, grey full-width bar with animate-pulse, then Compressing from 0%. (4) liveblog-remove-video-0 is present and removes the video.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "VideoEndpointsPage dialog", "issue": "Long uploaded URL overflowed the dialog horizontally (grid item min-width:auto). FIXED by the testing agent: added min-w-0 to <div className='space-y-4 mt-2'>. Checked again at 1920 and 390.", "selector": "[data-testid='uploaded-url-display']", "priority": "MEDIUM (fixed)"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "RichTextEditor upload overlay", "issues": ["The overlay's progress bar is not keyed per phase and uses transition-all. When it switches from Uploading 100% to Compressing 0%, the bar animates backwards: a screenshot shows the label at 0% while the bar is about 10% wide. Apply the same key={phase} / transition-[width] fix used in VideoUploadProgress."]},
+      {"screen": "VideoUploadProgress (all usages)", "issues": ["When a job is queued, the UI briefly shows 'Compressing (max 1080p) 0%' before the first poll returns 'queued'. This happens because uploadLargeVideo emits phase 'compressing' before calling /complete. Use the status from the /complete response (it returns 'queued') or emit 'queued' first."]},
+      {"screen": "Global", "issues": ["The Clara System Scan popup opened by itself on top of the open Video Endpoint dialog during testing and covered the form (pre-existing widget, not part of this feature)."]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Key the RichTextEditor overlay progress bar per phase (or drop transition-all) so it doesn't animate backwards from 100% to 0%.",
+    "Optional: emit the 'queued' phase (from the /complete response) instead of 'compressing 0%' right after the chunks finish uploading.",
+    "Keep the min-w-0 fix on VideoEndpointsPage's grid item (div.space-y-4.mt-2). Other DialogContent forms with long unbreakable text may need the same fix."
+  ],
+  "critical_code_review_comments": [
+    "The ui/dialog DialogContent is display:grid. Any child holding long unbreakable content needs min-w-0, otherwise the track grows past max-w. min-w-0 on deeper flex rows alone doesn't help.",
+    "The RichTextEditor overlay duplicates progress-bar markup that already exists in VideoUploadProgress. Consider reusing that component."
+  ],
+  "updated_files": ["/app/frontend/src/pages/VideoEndpointsPage.js"],
+  "success_rate": {"backend": "N/A (skipped as requested)", "frontend": "90% (4/4 retest items pass after 1 CSS fix by the testing agent; 2 minor polish items remain)"},
+  "seed_data_creation": "Created and deleted TEST_liveblog_video_181 content. Uploaded test videos to S3 under videos/ and editor/videos/ (not saved to any endpoint). No video endpoints were created.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Routes: /radiogroep/video-endpoints and /radiogroep/content/:id (you must click [data-testid='edit-content-btn'] before TinyMCE shows). Test videos: /tmp/big.mp4 (31MB, 1440p) and /tmp/small.mp4. To force the Queued state, run /tmp/busy.py (API upload+complete of big.mp4) via asyncio subprocess inside the Playwright script just before uploading from the UI."
+}

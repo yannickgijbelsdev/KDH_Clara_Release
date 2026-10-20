@@ -197,7 +197,8 @@ const RichTextEditor = ({
             </div>
             <div className="w-full bg-zinc-100 rounded-full h-3 overflow-hidden">
               <div 
-                className={`h-full rounded-full transition-all duration-300 ease-out ${
+                key={uploadPhase}
+                className={`h-full rounded-full transition-[width] duration-300 ease-out ${
                   uploadSuccess ? 'bg-gradient-to-r from-green-500 to-green-400' : 'bg-gradient-to-r from-[#7380b6] to-[#7380b6]'
                 }`}
                 style={{ width: `${uploadProgress}%` }}

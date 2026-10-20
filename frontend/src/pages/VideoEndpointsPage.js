@@ -413,7 +413,7 @@ export default function VideoEndpointsPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 mt-2">
+          <div className="space-y-4 mt-2 min-w-0">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label className="text-xs">Name *</Label>

@@ -627,3 +627,12 @@ grk.fm / mfy.fm players embed `<img src="/api/rds/grk/image.jpg">` directly. Whe
 ## Previous Sessions (Summary)
 - Clara Enterprise Assistant, Responsive topbar nav, Support ticket UX
 - PWA install prompt, RDS auto-refresh, WordPress fixes, Cloudflare WAF fixes
+
+
+## 2026-06 — Large video uploads with auto-compression + S3-only uploads
+- NEW `backend/routers/video_uploads.py` (`/api/video-uploads`): init -> PUT chunks (8 MB, S3 multipart) -> complete -> background FFmpeg (libx264 CRF23 veryfast, long edge ≤1920, AAC 128k, faststart) -> S3. Max 2 GB. Statuses: uploading/queued/processing/done/error/cancelled/expired. Semaphore(1) + heartbeat; janitor (startup + every 15 min) fails orphaned jobs and aborts multipart uploads abandoned for more than 24h. Global Protect scans chunk 0.
+- `services/s3_storage.py`: multipart helpers + `upload_local_file_to_s3`.
+- Frontend: `utils/videoUpload.js` (uploadLargeVideo), `components/VideoUploadProgress.js`; wired into VideoEndpointsPage, LiveblogPanel, RichTextEditor (article media insert; overlay now portaled to body).
+- Lint: removed ALL pod-local upload fallbacks (server editor-files, content, media, chat, shows, users avatar, vmix, sites, main_sites logo, task_boards) -> 503 when S3 is missing. Audio trigger sounds now stored in S3 (`audio_triggers/...` key in `*_sound_path`). ObjectId fixes in vmix.py / rds_builder.py.
+- Tested: iteration_180 + iteration_181 (backend 18/19, frontend passes).
+- NOTE: `audio_trigger_router` is NOT mounted in server.py (removed in an earlier commit), so the audio trigger endpoints currently 404.

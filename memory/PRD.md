@@ -466,3 +466,9 @@ Chrome then silently blocked those `<img>` requests → the Programma's page sho
 - **Prod has a second "Mike Cnudde" user doc** (`d6db19ec-...`) whose avatar is also in `/avatars/shared/` but passes our stale filter because that doc has no `team_id`. Not blocking anything — Mike is visible — but worth a DB cleanup eventually.
 - **"Class-x draait nog altijd om 2u"**: that is the actual GRK schedule (00:01–08:00). Not a bug — the rotation engine is doing exactly what the schedule says.
 
+
+
+## Status update 2026-06
+- DONE: Large video uploads (2 GB, auto-compressed to 1080p MP4) for Video Endpoints, Liveblog, Articles. See CHANGELOG.
+- DONE: 21 blocking lint errors (pod-local storage, ObjectId) resolved.
+- Backlog: P1 Radio Automation Phase 2, P1 Calendar integration (Google/Outlook), P2 Payments for License Manager, P2 Stream Monitor VU meters, P2 split large components, re-mount audio_trigger_router (decision needed), VDC auto-deploy upstream 404 (blocked).
