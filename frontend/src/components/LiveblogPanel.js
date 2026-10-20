@@ -242,7 +242,7 @@ const LiveblogPanel = ({ contentId, mainSiteId, token, canEdit, ended = false, e
             {ended ? (
               <span className="w-2 h-2 rounded-full bg-zinc-400" />
             ) : (
-              <span className="w-2 h-2 rounded-full bg-[#7380b6]/100 animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-[#7380b6] animate-pulse" />
             )}
             {ended ? 'Liveblog timeline (ended)' : 'Liveblog timeline'}
             <span className="text-xs font-normal text-zinc-400">({entries.length})</span>
@@ -272,7 +272,7 @@ const LiveblogPanel = ({ contentId, mainSiteId, token, canEdit, ended = false, e
                 <Send className="w-4 h-4 mr-1.5" /> Publish all drafts
               </Button>
             )}
-            <Button onClick={startNew} className="bg-[#7380b6]/100 hover:bg-[#7380b6] text-white" data-testid="liveblog-new-entry-btn">
+            <Button onClick={startNew} className="bg-[#7380b6] hover:bg-[#7380b6] text-white" data-testid="liveblog-new-entry-btn">
               <Plus className="w-4 h-4 mr-1.5" /> Add timeline entry
             </Button>
           </div>
@@ -357,7 +357,7 @@ const EntryCard = ({ entry, canEdit, onEdit, onDelete, onTogglePublish }) => {
         </div>
         {canEdit && (
           <div className="flex items-center gap-1">
-            <button onClick={onTogglePublish} title={entry.published ? 'Unpublish' : 'Publish'} data-testid={`liveblog-publish-${entry.id}`} className={`p-1.5 rounded transition ${entry.published ? 'text-zinc-500 hover:text-zinc-800' : 'text-[#7380b6]0 hover:text-[#5f6ca3]'}`}>
+            <button onClick={onTogglePublish} title={entry.published ? 'Unpublish' : 'Publish'} data-testid={`liveblog-publish-${entry.id}`} className={`p-1.5 rounded transition ${entry.published ? 'text-zinc-500 hover:text-zinc-800' : 'text-[#7380b6] hover:text-[#5f6ca3]'}`}>
               {entry.published ? <EyeOff className="w-4 h-4" /> : <Send className="w-4 h-4" />}
             </button>
             <button onClick={onEdit} className="p-1.5 text-zinc-400 hover:text-zinc-800" data-testid={`liveblog-edit-${entry.id}`} title="Edit"><Pencil className="w-4 h-4" /></button>
@@ -448,7 +448,7 @@ const EntryEditor = ({ draft, setDraft, onSave, onCancel, contentId, headers, sa
   };
 
   return (
-    <div className="border-2 border-[#7380b6]/30 rounded-lg p-4 bg-[#7380b6]/10/30" data-testid="liveblog-entry-editor">
+    <div className="border-2 border-[#7380b6]/30 rounded-lg p-4 bg-[#7380b6]/5" data-testid="liveblog-entry-editor">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
         <div className="md:col-span-2">
           <Label className="text-xs">Title</Label>
@@ -522,7 +522,7 @@ const EntryEditor = ({ draft, setDraft, onSave, onCancel, contentId, headers, sa
               <span className="flex-1 truncate font-mono text-zinc-500">
                 {v.url || v.embed_code}
               </span>
-              <button onClick={() => removeVideo(i)} className="text-zinc-400 hover:text-[#7380b6] p-1"><X className="w-4 h-4" /></button>
+              <button onClick={() => removeVideo(i)} className="text-zinc-400 hover:text-[#7380b6] p-1" data-testid={`liveblog-remove-video-${i}`}><X className="w-4 h-4" /></button>
             </div>
           ))}
         </div>
@@ -544,7 +544,7 @@ const EntryEditor = ({ draft, setDraft, onSave, onCancel, contentId, headers, sa
 
         <div className="ml-auto flex items-center gap-2">
           <Button variant="ghost" onClick={onCancel} disabled={saving} className="text-zinc-500" data-testid="liveblog-cancel-btn">Cancel</Button>
-          <Button onClick={() => onSave(draft)} disabled={saving} className="bg-[#7380b6]/100 text-white hover:bg-[#7380b6]" data-testid="liveblog-save-btn">
+          <Button onClick={() => onSave(draft)} disabled={saving} className="bg-[#7380b6] text-white hover:bg-[#7380b6]" data-testid="liveblog-save-btn">
             {saving ? 'Saving…' : ((draft.images || []).some((i) => !(i.credit || '').trim()) ? 'Save as draft' : 'Save & publish')}
           </Button>
         </div>

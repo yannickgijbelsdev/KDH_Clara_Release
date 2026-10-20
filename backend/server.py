@@ -1188,6 +1188,8 @@ app.add_middleware(SecurityHeadersMiddleware)
 async def startup_db_client():
     """Migrate legacy data and ensure bootstrap admin exists on startup."""
     from services.auth import hash_password
+    from routers.video_uploads import video_upload_janitor
+    app.state.video_upload_janitor = asyncio.create_task(video_upload_janitor())
 
     # Ensure MongoDB indexes for fast queries
     try:

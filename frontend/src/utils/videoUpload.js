@@ -25,14 +25,27 @@ async function putChunk(url, blob, headers, onBytes) {
   }
 }
 
+const MAX_WAIT_MS = 3 * 60 * 60 * 1000;
+
 async function waitForCompression(id, headers, onProgress) {
-  for (;;) {
+  const deadline = Date.now() + MAX_WAIT_MS;
+  let failures = 0;
+  while (Date.now() < deadline) {
     await sleep(2000);
-    const { data } = await axios.get(`${API}/${id}`, { headers });
+    let data;
+    try {
+      ({ data } = await axios.get(`${API}/${id}`, { headers, timeout: 30000 }));
+      failures = 0;
+    } catch (e) {
+      failures += 1;
+      if (failures >= 10) throw e;
+      continue;
+    }
     if (data.status === 'done') return data;
-    if (data.status === 'error') throw new Error(data.error || 'Compression failed');
-    onProgress?.({ phase: 'compressing', percent: data.progress || 0 });
+    if (data.status === 'error' || data.status === 'cancelled') throw new Error(data.error || 'Compression failed');
+    onProgress?.({ phase: data.status === 'queued' ? 'queued' : 'compressing', percent: data.progress || 0 });
   }
+  throw new Error('Compression is taking too long, please try again later');
 }
 
 // Chunked upload (max 2 GB) -> server-side compression to max 1080p MP4. Resolves { url, key, size, original_size }.
@@ -58,4 +71,5 @@ export async function uploadLargeVideo(file, { target, contentId, headers = {}, 
   }
 }
 
-export const phaseLabel = (p) => (p?.phase === 'compressing' ? 'Compressing' : 'Uploading');
+const PHASE_LABELS = { uploading: 'Uploading', queued: 'Queued for compression', compressing: 'Compressing' };
+export const phaseLabel = (p) => PHASE_LABELS[p?.phase] || 'Uploading';

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="1" tests="19" time="67.821" timestamp="2026-10-20T19:15:20.838557+00:00" hostname="agent-env-cb5296ae-7662-4024-b155-dfe7d20a86ef"><testcase classname="tests.test_video_uploads_chunked.TestInitValidation" name="test_init_ok" time="1.597" /><testcase classname="tests.test_video_uploads_chunked.TestInitValidation" name="test_too_large" time="0.130" /><testcase classname="tests.test_video_uploads_chunked.TestInitValidation" name="test_exactly_2gb_allowed" time="1.115" /><testcase classname="tests.test_video_uploads_chunked.TestInitValidation" name="test_invalid_target" time="0.110" /><testcase classname="tests.test_video_uploads_chunked.TestInitValidation" name="test_non_video" time="0.145" /><testcase classname="tests.test_video_uploads_chunked.TestInitValidation" name="test_liveblog_requires_content_id" time="0.128" /><testcase classname="tests.test_video_uploads_chunked.TestInitValidation" name="test_liveblog_bad_content_404" time="0.128" /><testcase classname="tests.test_video_uploads_chunked.TestInitValidation" name="test_zero_size" time="0.126" /><testcase classname="tests.test_video_uploads_chunked.TestInitValidation" name="test_unauth" time="0.142" /><testcase classname="tests.test_video_uploads_chunked.TestChunks" name="test_foreign_user_404" time="0.967" /><testcase classname="tests.test_video_uploads_chunked.TestChunks" name="test_invalid_index_missing_cancel" time="1.677" /><testcase classname="tests.test_video_uploads_chunked.TestChunks" name="test_empty_chunk" time="1.110" /><testcase classname="tests.test_video_uploads_chunked.TestChunks" name="test_get_unknown_404" time="0.133" /><testcase classname="tests.test_video_uploads_chunked.TestCompression" name="test_big_1440p_compressed_to_1080p" time="23.223" /><testcase classname="tests.test_video_uploads_chunked.TestCompression" name="test_small_article_target_not_upscaled" time="34.487"><failure message="requests.exceptions.ReadTimeout: HTTPSConnectionPool(host='api-turbo.preview.emergentagent.com', port=443): Read timed out. (read timeout=30)">/root/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py:534: in _make_request
+    response = conn.getresponse()
+               ^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/urllib3/connection.py:571: in getresponse
+    httplib_response = super().getresponse()
+                       ^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/http/client.py:1443: in getresponse
+    response.begin()
+/usr/local/lib/python3.11/http/client.py:337: in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/http/client.py:298: in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/socket.py:718: in readinto
+    return self._sock.recv_into(b)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/ssl.py:1327: in recv_into
+    return self.read(nbytes, buffer)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/ssl.py:1179: in read
+    return self._sslobj.read(len, buffer)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TimeoutError: The read operation timed out
+
+The above exception was the direct cause of the following exception:
+/root/.venv/lib/python3.11/site-packages/requests/adapters.py:644: in send
+    resp = conn.urlopen(
+/root/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py:841: in urlopen
+    retries = retries.increment(
+/root/.venv/lib/python3.11/site-packages/urllib3/util/retry.py:474: in increment
+    raise reraise(type(error), error, _stacktrace)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/urllib3/util/util.py:39: in reraise
+    raise value
+/root/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py:787: in urlopen
+    response = self._make_request(
+/root/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py:536: in _make_request
+    self._raise_timeout(err=e, url=url, timeout_value=read_timeout)
+/root/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py:367: in _raise_timeout
+    raise ReadTimeoutError(
+E   urllib3.exceptions.ReadTimeoutError: HTTPSConnectionPool(host='api-turbo.preview.emergentagent.com', port=443): Read timed out. (read timeout=30)
+
+During handling of the above exception, another exception occurred:
+tests/test_video_uploads_chunked.py:195: in test_small_article_target_not_upscaled
+    d, _ = _poll(admin, init["upload_id"])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_video_uploads_chunked.py:71: in _poll
+    g = requests.get(f"{API}/video-uploads/{uid}", headers=h, timeout=30)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/api.py:73: in get
+    return request("get", url, params=params, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/api.py:59: in request
+    return session.request(method=method, url=url, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:589: in request
+    resp = self.send(prep, **send_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:703: in send
+    r = adapter.send(request, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/adapters.py:690: in send
+    raise ReadTimeout(e, request=request)
+E   requests.exceptions.ReadTimeout: HTTPSConnectionPool(host='api-turbo.preview.emergentagent.com', port=443): Read timed out. (read timeout=30)</failure></testcase><testcase classname="tests.test_video_uploads_chunked.TestCompression" name="test_invalid_video_bytes_reports_error" time="1.525" /><testcase classname="tests.test_video_uploads_chunked.TestS3Regressions" name="test_editor_files_image" time="0.572" /><testcase classname="tests.test_video_uploads_chunked.TestS3Regressions" name="test_vmix_config" time="0.152" /><testcase classname="tests.test_video_uploads_chunked.TestS3Regressions" name="test_audio_trigger_in_sound_s3" time="0.128"><skipped type="pytest.skip" message="audio_trigger_router is not mounted in server.py (feature removed earlier)">/app/backend/tests/test_video_uploads_chunked.py:236: audio_trigger_router is not mounted in server.py (feature removed earlier)</skipped></testcase></testsuite></testsuites>

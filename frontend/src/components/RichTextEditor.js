@@ -1,5 +1,6 @@
 /* eslint-disable */
 import { useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Editor } from '@tinymce/tinymce-react';
 import axios from 'axios';
 import { Loader2, AlertCircle, CheckCircle } from 'lucide-react';
@@ -110,7 +111,10 @@ const RichTextEditor = ({
           const res = await uploadLargeVideo(file, {
             target: 'article',
             onProgress: (p) => {
-              setUploadPhase(p.phase === 'compressing' ? 'Compressing video (max 1080p)...' : 'Uploading video...');
+              setUploadPhase({
+                compressing: 'Compressing video (max 1080p)...',
+                queued: 'Queued for compression...',
+              }[p.phase] || 'Uploading video...');
               setUploadProgress(p.percent);
             },
           });
@@ -171,10 +175,10 @@ const RichTextEditor = ({
   return (
     <div className="rich-text-editor-wrapper relative">
       {/* Upload Progress Overlay - Fixed position to appear above TinyMCE dialogs */}
-      {isUploading && (
+      {isUploading && createPortal(
         <div 
           className="fixed inset-0 bg-black/70 flex items-center justify-center backdrop-blur-sm"
-          style={{ zIndex: 100000 }}
+          style={{ zIndex: 1000001 }}
           data-testid="editor-upload-overlay"
         >
           <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-2xl min-w-[320px]">
@@ -199,11 +203,12 @@ const RichTextEditor = ({
                 style={{ width: `${uploadProgress}%` }}
               />
             </div>
-            <p className={`text-center text-sm font-medium mt-2 ${uploadSuccess ? 'text-green-400' : 'text-[#7380b6]0'}`}>
+            <p className={`text-center text-sm font-medium mt-2 ${uploadSuccess ? 'text-green-400' : 'text-[#7380b6]'}`}>
               {uploadSuccess ? 'Inserting...' : `${uploadProgress}%`}
             </p>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
       {/* Error notification */}
       {uploadError && (

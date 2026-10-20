@@ -1,8 +1,11 @@
 import { Loader2 } from 'lucide-react';
 import { phaseLabel } from '../utils/videoUpload';
 
+const BAR_COLOR = { uploading: 'bg-[#7380b6]', queued: 'bg-zinc-400', compressing: 'bg-amber-500' };
+
 export const VideoUploadProgress = ({ progress, testId = 'video-upload-progress' }) => {
   if (!progress) return null;
+  const showPercent = progress.phase !== 'queued';
   return (
     <div className="w-full rounded-md border border-zinc-200 bg-white px-3 py-2" data-testid={testId}>
       <div className="flex items-center justify-between text-xs text-zinc-600 mb-1.5">
@@ -11,12 +14,13 @@ export const VideoUploadProgress = ({ progress, testId = 'video-upload-progress'
           {phaseLabel(progress)}
           {progress.phase === 'compressing' && <span className="text-zinc-400">(max 1080p)</span>}
         </span>
-        <span className="font-medium tabular-nums" data-testid={`${testId}-percent`}>{progress.percent}%</span>
+        {showPercent && <span className="font-medium tabular-nums" data-testid={`${testId}-percent`}>{progress.percent}%</span>}
       </div>
       <div className="h-1.5 w-full rounded-full bg-zinc-100 overflow-hidden">
         <div
-          className={`h-full rounded-full transition-[width] duration-300 ${progress.phase === 'compressing' ? 'bg-amber-500' : 'bg-[#7380b6]'}`}
-          style={{ width: `${progress.percent}%` }}
+          key={progress.phase}
+          className={`h-full rounded-full transition-[width] duration-300 ${BAR_COLOR[progress.phase] || BAR_COLOR.uploading} ${progress.phase === 'queued' ? 'animate-pulse' : ''}`}
+          style={{ width: showPercent ? `${progress.percent}%` : '100%' }}
         />
       </div>
     </div>

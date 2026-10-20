@@ -33,6 +33,10 @@ PUBLIC_FIELDS = {"_id": 0, "id": 1, "status": 1, "progress": 1, "url": 1, "key":
                  "original_size": 1, "error": 1, "filename": 1, "target": 1, "content_id": 1}
 
 _compress_slots = asyncio.Semaphore(1)
+_tasks: set = set()
+HEARTBEAT_S = 30
+STALE_PROCESSING_S = 5 * 60
+ABANDONED_UPLOAD_S = 24 * 3600
 
 
 class VideoUploadInit(BaseModel):
@@ -77,7 +81,9 @@ async def init_video_upload(body: VideoUploadInit, request: Request,
     if body.target not in TARGETS:
         raise HTTPException(status_code=400, detail="Invalid upload target")
     ext = body.filename.rsplit(".", 1)[-1].lower() if "." in body.filename else ""
-    if body.content_type not in ALLOWED_TYPES and ext not in ALLOWED_EXTS:
+    ct = (body.content_type or "").lower()
+    ct_ok = not ct or ct in ALLOWED_TYPES or ct == "application/octet-stream"
+    if ext not in ALLOWED_EXTS or not ct_ok:
         raise HTTPException(status_code=400, detail="Unsupported video type. Use mp4, webm, mov, m4v, avi or ogg.")
     if body.size <= 0 or body.size > MAX_VIDEO_BYTES:
         raise HTTPException(status_code=413, detail="Video too large. Max 2 GB.")
@@ -110,8 +116,10 @@ async def upload_video_chunk(upload_id: str, index: int, request: Request,
     if index < 0 or index >= job["total_chunks"]:
         raise HTTPException(status_code=400, detail="Invalid chunk index")
     data = await request.body()
-    if not data or len(data) > CHUNK_BYTES:
-        raise HTTPException(status_code=400, detail="Invalid chunk size")
+    is_last = index == job["total_chunks"] - 1
+    expected = job["original_size"] - index * CHUNK_BYTES if is_last else CHUNK_BYTES
+    if len(data) != expected:
+        raise HTTPException(status_code=400, detail=f"Invalid chunk size: expected {expected} bytes, got {len(data)}")
     if index == 0:
         from services.global_protect import check_and_raise
         await check_and_raise(data, job["filename"], job.get("content_type"), job.get("main_site_id"),
@@ -138,9 +146,11 @@ async def complete_video_upload(upload_id: str, current_user: dict = Depends(req
                                 [{"ETag": parts[str(i)], "PartNumber": i + 1} for i in range(job["total_chunks"])])
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"Could not finalize upload: {e}")
-    await db.video_uploads.update_one({"id": upload_id}, {"$set": {"status": "processing", "progress": 0, "updated_at": _now()}})
-    asyncio.create_task(_compress(upload_id))
-    return {"id": upload_id, "status": "processing", "progress": 0}
+    await db.video_uploads.update_one({"id": upload_id}, {"$set": {"status": "queued", "progress": 0, "updated_at": _now()}})
+    task = asyncio.create_task(_compress(upload_id))
+    _tasks.add(task)
+    task.add_done_callback(_tasks.discard)
+    return {"id": upload_id, "status": "queued", "progress": 0}
 
 
 @video_upload_router.get("/{upload_id}")
@@ -190,27 +200,41 @@ async def _run_ffmpeg(upload_id: str, src_url: str, out_path: str, duration: flo
         *_ffmpeg_args(src_url, out_path), stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
     )
     stderr_task = asyncio.create_task(proc.stderr.read())
-    last = 0
+    last, last_beat = 0, asyncio.get_running_loop().time()
     async for raw in proc.stdout:
         line = raw.decode(errors="ignore").strip()
-        if duration and line.startswith("out_time_us="):
-            try:
-                pct = min(99, int(int(line.split("=", 1)[1]) / 1_000_000 / duration * 100))
-            except ValueError:
-                continue
-            if pct >= last + 2:
-                last = pct
-                await db.video_uploads.update_one({"id": upload_id}, {"$set": {"progress": pct, "updated_at": _now()}})
+        if not (duration and line.startswith("out_time_us=")):
+            continue
+        try:
+            pct = min(99, int(int(line.split("=", 1)[1]) / 1_000_000 / duration * 100))
+        except ValueError:
+            continue
+        now = asyncio.get_running_loop().time()
+        if pct >= last + 2 or now - last_beat >= HEARTBEAT_S:
+            last, last_beat = max(last, pct), now
+            await db.video_uploads.update_one({"id": upload_id}, {"$set": {"progress": last, "updated_at": _now()}})
     rc = await proc.wait()
     err = (await stderr_task).decode(errors="ignore").strip()
     if rc != 0:
         raise RuntimeError(err[-500:] or f"ffmpeg exited with code {rc}")
 
 
+async def _acquire_slot(upload_id: str):
+    # Heartbeat while queued so the janitor doesn't treat the job as stale.
+    while True:
+        try:
+            await asyncio.wait_for(_compress_slots.acquire(), timeout=HEARTBEAT_S)
+            return
+        except asyncio.TimeoutError:
+            await db.video_uploads.update_one({"id": upload_id}, {"$set": {"updated_at": _now()}})
+
+
 async def _compress(upload_id: str):
     job = await db.video_uploads.find_one({"id": upload_id}, {"_id": 0})
     try:
-        async with _compress_slots:
+        await _acquire_slot(upload_id)
+        try:
+            await db.video_uploads.update_one({"id": upload_id}, {"$set": {"status": "processing", "updated_at": _now()}})
             src_url = await s3.generate_presigned_url(job["src_key"], 6 * 3600)
             duration = await _probe_duration(src_url)
             with tempfile.TemporaryDirectory(prefix="vidc_") as tmp:
@@ -219,6 +243,8 @@ async def _compress(upload_id: str):
                 size = os.path.getsize(out_path)
                 key = f"{job['dest_prefix']}/{uuid4()}.mp4"
                 url = await asyncio.to_thread(s3.upload_local_file_to_s3, out_path, key, "video/mp4")
+        finally:
+            _compress_slots.release()
         await db.video_uploads.update_one({"id": upload_id}, {"$set": {
             "status": "done", "progress": 100, "url": url, "key": key, "size": size, "updated_at": _now(),
         }})
@@ -233,3 +259,34 @@ async def _compress(upload_id: str):
             await s3.delete_file_from_s3(job["src_key"])
         except Exception as e:
             logger.warning("Could not delete source %s: %s", job["src_key"], e)
+
+
+async def cleanup_video_uploads():
+    """Fail jobs orphaned by a restart and abort abandoned multipart uploads."""
+    now = datetime.now(timezone.utc).timestamp()
+    async for job in db.video_uploads.find({"status": {"$in": ["queued", "processing", "uploading"]}}, {"_id": 0}):
+        age = now - datetime.fromisoformat(job["updated_at"]).timestamp()
+        if job["status"] == "uploading" and age > ABANDONED_UPLOAD_S:
+            try:
+                await asyncio.to_thread(s3.abort_multipart_upload, job["src_key"], job["s3_upload_id"])
+            except Exception as e:
+                logger.warning("Abort multipart failed for %s: %s", job["id"], e)
+            await db.video_uploads.update_one({"id": job["id"]}, {"$set": {"status": "expired", "updated_at": _now()}})
+        elif job["status"] in ("queued", "processing") and age > STALE_PROCESSING_S:
+            try:
+                await s3.delete_file_from_s3(job["src_key"])
+            except Exception as e:
+                logger.warning("Could not delete source %s: %s", job["src_key"], e)
+            await db.video_uploads.update_one({"id": job["id"]}, {"$set": {
+                "status": "error", "error": "Compression was interrupted (server restart). Please upload again.",
+                "updated_at": _now(),
+            }})
+
+
+async def video_upload_janitor():
+    while True:
+        try:
+            await cleanup_video_uploads()
+        except Exception as e:
+            logger.error("Video upload cleanup failed: %s", e)
+        await asyncio.sleep(15 * 60)

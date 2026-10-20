@@ -1,0 +1,48 @@
+{
+  "summary": "Tested chunked large-video upload + FFmpeg compression end-to-end (backend pytest 18/19 pass + 1 skip, plus 3 frontend flows via Playwright). Backend: init validation (413 >2GB, exactly 2GB allowed, 400 invalid target/non-video/liveblog without content_id, 404 unknown liveblog content, 401 unauth), chunk index validation (400), ownership (404 for job of another user, simulated via DB user_id swap since network-admin login failed), missing chunks on complete (400), cancel (DELETE -> cancelled, then chunk PUT -> 409), and the full 31MB 2560x1440 -> 3.06MB 1920x1080 h264/aac path checked with ffprobe. Small 640x360 video with target=article is not upscaled and lands in editor/videos/. Garbage bytes get blocked by Global Protect at chunk 0 (403). Regression: editor-files image upload to S3 OK, GET /api/vmix/config OK (no _id). The audio-trigger endpoints return 404 because audio_trigger_router is not mounted in server.py (it was removed in an earlier commit), so the S3 sound-storage change can't be reached or tested. Frontend: Video Endpoints dialog shows Uploading 0->100% then Compressing (max 1080p) 0->82%, shows uploaded-url-display with the S3 URL, and the toast reads 'Upload complete (30.0 MB → 2.9 MB)'. The liveblog entry editor shows liveblog-video-upload-progress with both phases, adds the liveblog/<site>/<content>/... mp4 and shows the toast. In the RichTextEditor, TinyMCE media insert goes 'Uploading video...' -> 'Compressing video (max 1080p)...' -> 'Upload complete!' and fills the Source field with the editor/videos S3 URL. But the progress overlay card is hidden behind the TinyMCE dialog (see ui_bugs).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/audio-triggers/*", "issue": "Returns 404 for every route because audio_trigger_router is not included in server.py (removed in commit 87ff603a). The S3 changes to _store_sound/_delete_sound/load_trigger_sound are unreachable dead code right now, so they could not be tested."},
+      {"endpoint": "/api/video-uploads/init (+ abandoned uploads)", "issue": "Orphaned jobs: if the client drops off after init or mid-upload, the job stays status='uploading' forever and the S3 multipart upload is never aborted, so storage piles up. 6 such rows built up during testing because client timeouts happened during a hot-reload; I cancelled them. Needs a TTL/cleanup task (abort multipart for jobs in 'uploading' older than about 24h) or an S3 lifecycle rule for incomplete multipart uploads."},
+      {"endpoint": "/api/video-uploads/{id}/complete (background _compress)", "issue": "If the backend restarts during compression (hot reload or deploy), the asyncio task is lost and the job stays 'processing' forever. The frontend's waitForCompression polls with no max time, so the UI spins indefinitely. Fix: on startup, mark stale 'processing' jobs as error (or requeue them), and add a client-side poll timeout. Also keep a reference to the created task (store it in a set) so it can't be garbage-collected."},
+      {"endpoint": "/api/video-uploads/{id}/chunks/{index}", "issue": "Only the 'not empty and <= 8MB' size is checked. A non-last chunk smaller than 5MB is accepted, and S3 complete then fails with EntityTooSmall (502). Consider requiring len == CHUNK_BYTES for every chunk except the last."},
+      {"endpoint": "/api/video-uploads/init", "issue": "The type check uses AND (content_type not allowed AND ext not allowed), so e.g. content_type=application/pdf with filename x.mp4 passes. Global Protect catches mismatches at chunk 0, so the risk is low."},
+      {"endpoint": "general", "issue": "Environment flakiness: /api/auth/login sometimes took about 12s and one GET poll timed out at 30s while nothing else was running (1 of 3 runs). Probably background schedulers (RDS/shoutcast) blocking the event loop rather than the new code, but worth a look."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "RichTextEditor upload overlay", "issue": "When uploading from the TinyMCE Insert/Edit Media dialog, the dark backdrop shows but the progress card (phase text and % bar) is rendered BEHIND the TinyMCE dialog. The overlay's z-index 100000 is trapped inside ancestor stacking contexts ('absolute inset-0 z-10' and 'absolute z-10 bg-white...'), while TinyMCE's aux/dialog sits at z 10000/999999. Confirmed with elementFromPoint: the overlay's center hits .tox-form. Users get no visible progress during multi-minute uploads and compressions of large videos. Fix: render the overlay with ReactDOM.createPortal(..., document.body).", "selector": "[data-testid='editor-upload-overlay']", "priority": "HIGH"},
+      {"component": "VideoEndpointsPage new/edit dialog", "issue": "After an upload, the long S3 URL in uploaded-url-display pushes the dialog content wider than the dialog. The Type select and the right-hand side get cut off and the layout shifts horizontally. The flex row needs min-w-0 (span: 'min-w-0 flex-1 truncate'; container: 'gap-2 min-w-0').", "selector": "[data-testid='uploaded-url-display']", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "VideoUploadProgress", "issues": ["At the switch from uploading to compressing, the bar animates from 100% back down to 0% while also changing color. Briefly the label says 0% while the bar is around 15% wide. Consider disabling the transition when the phase changes.", "With Semaphore(1), a queued job shows 'Compressing 0%' with no hint that it is waiting in a queue. Consider a 'Queued' state."]},
+      {"screen": "VideoEndpointsPage / LiveblogPanel", "issues": ["Invalid Tailwind classes (pre-existing): 'text-[#7380b6]0' on the page header icon, and 'bg-[#7380b6]/10/30' and 'bg-[#7380b6]/100' in LiveblogPanel.", "The X (clear uploaded URL) button in VideoEndpointsPage and the liveblog video remove button have no data-testid."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_video_uploads_chunked.py", "/app/test_reports/pytest/pytest_video_uploads.xml"],
+  "action_items": [
+    "HIGH: Render the RichTextEditor upload overlay through a React portal into document.body so it shows above the TinyMCE media dialog.",
+    "Fix the VideoEndpointsPage dialog overflow when a long uploaded URL is shown (min-w-0 on the flex row and the span).",
+    "Add cleanup for orphaned video_uploads (abort S3 multipart for 'uploading' jobs older than N hours) and recover or mark 'processing' jobs left stale after a restart. Add a max polling duration in waitForCompression.",
+    "Decide on audio triggers: either mount audio_trigger_router again (plus the scheduler) or drop the dead S3 sound code. Today every /api/audio-triggers route returns 404.",
+    "Optional: enforce exact chunk size for non-last chunks; tighten the content-type/extension check to OR."
+  ],
+  "critical_code_review_comments": [
+    "video_uploads.py: asyncio.create_task(_compress(...)) has no stored reference and no restart recovery, so jobs can stay 'processing' forever.",
+    "video_uploads.py: there is no expiry for 'uploading' jobs, so S3 incomplete multipart parts accumulate (each can be up to 2 GB).",
+    "RichTextEditor.js: uploadLargeVideo is called without explicit headers and relies on the global axios interceptor for X-Main-Site-ID. It works (the key was scoped to the main site), but this is implicit.",
+    "videoUpload.js: chunks upload strictly one after another. Fine for reliability, but 2 GB = 256 sequential requests. Parallelizing 2-3 at a time would speed things up."
+  ],
+  "updated_files": ["/app/backend/tests/test_video_uploads_chunked.py"],
+  "success_rate": {"backend": "95% (18/19 run; 1 skipped: audio-trigger router not mounted; 1 flaky timeout seen in 1 of 3 runs)", "frontend": "90% (3/3 flows functionally work; the RTE progress overlay is not visible to the user)"},
+  "test_credentials": "Admin admkoodh@koodh.com / KYLovie13monx works. Network admin yannick.gijbels@koodh.com / test returns 401 Invalid credentials, so /app/memory/test_credentials.md is stale for this user (DB role is 'editor').",
+  "seed_data_creation": "Created and then deleted the content item TEST_liveblog_video_article (radiogroep site). Compressed test MP4s remain in S3 under videos/, liveblog/ and editor/videos/ (about 3 MB each). Cancelled the orphaned 'uploading' video_uploads rows.",
+  "flaky_tests": ["test_small_article_target_not_upscaled: one 30s read timeout on GET poll (1 of 3 runs, environment stall)"],
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Frontend routes are nested under the main-site slug, e.g. /radiogroep/video-endpoints and /radiogroep/content/:id (main_site_id 63154708-3320-444c-932d-aa3642b5090c). Test videos: /tmp/vt/big.mp4 (2560x1440, 31MB, 4 chunks) and small.mp4; the test file regenerates them if missing. Creating or editing files under /app/backend triggers a uvicorn hot reload of about 30-60s; wait before running pytest or you'll get timeouts. TinyMCE media upload: click .tox-tbtn[aria-label='Insert/edit media'], then .tox-dialog .tox-browse-url with expect_file_chooser. A liveblog article can be made via POST /api/content with header X-Main-Site-ID, then PUT {is_liveblog:true}.",
+  "rca of the issue": "RTE overlay hidden: the overlay is position:fixed with z-index 100000, but it renders inside ContentDetailPage wrappers with 'absolute z-10', which create a stacking context. Its effective z-index is therefore 10 at the root level, below TinyMCE's .tox-tinymce-aux (z 10000) that is appended to body. Mitigation: use createPortal to document.body."
+}

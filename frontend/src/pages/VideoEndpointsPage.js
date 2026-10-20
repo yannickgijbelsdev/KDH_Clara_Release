@@ -190,7 +190,7 @@ export default function VideoEndpointsPage() {
       <div className="flex items-center justify-between mb-8 flex-wrap gap-3">
         <div>
           <h1 className="text-3xl font-bold text-zinc-900 flex items-center gap-3">
-            <VideoIcon className="w-7 h-7 text-[#7380b6]0" /> Video Endpoints
+            <VideoIcon className="w-7 h-7 text-[#7380b6]" /> Video Endpoints
           </h1>
           <p className="text-sm text-zinc-500 mt-1">
             Reusable library of video embeds and uploaded ads. Link these to shows in the Calendar
@@ -239,7 +239,7 @@ export default function VideoEndpointsPage() {
             data-testid="schedule-overview-toggle"
           >
             <div className="flex items-center gap-2">
-              <CalendarIcon className="w-4 h-4 text-[#7380b6]0" />
+              <CalendarIcon className="w-4 h-4 text-[#7380b6]" />
               <span className="font-semibold text-zinc-900">Scheduling overview</span>
               <span className="text-xs text-zinc-400">
                 ({schedule.reduce((n, s) => n + s.show_count, 0)} show{schedule.reduce((n, s) => n + s.show_count, 0) === 1 ? '' : 's'} across {schedule.filter(s => s.show_count > 0).length} endpoint{schedule.filter(s => s.show_count > 0).length === 1 ? '' : 's'})
@@ -468,13 +468,14 @@ export default function VideoEndpointsPage() {
                   <div className="flex-1 h-px bg-zinc-200" />
                 </div>
                 {draft.uploaded_url ? (
-                  <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-md px-3 py-2">
-                    <span className="text-xs text-emerald-700 truncate" data-testid="uploaded-url-display">
+                  <div className="flex items-center justify-between gap-2 min-w-0 bg-emerald-50 border border-emerald-200 rounded-md px-3 py-2">
+                    <span className="min-w-0 flex-1 text-xs text-emerald-700 truncate" title={draft.uploaded_url} data-testid="uploaded-url-display">
                       Uploaded: {draft.uploaded_url}
                     </span>
                     <button
                       onClick={() => setDraft({ ...draft, uploaded_url: '', uploaded_key: '' })}
-                      className="text-emerald-700 hover:text-emerald-900 p-1"
+                      className="shrink-0 text-emerald-700 hover:text-emerald-900 p-1"
+                      data-testid="clear-uploaded-video-btn"
                     >
                       <X className="w-4 h-4" />
                     </button>
