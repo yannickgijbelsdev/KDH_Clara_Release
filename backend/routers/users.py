@@ -5,7 +5,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 import uuid
 import mimetypes
-import aiofiles
 import asyncio
 
 from database import db, AVATARS_DIR
@@ -534,11 +533,7 @@ async def upload_avatar(
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to upload: {str(e)}")
     else:
-        local_key = f"{user_id}_{uuid.uuid4().hex[:8]}{file_ext}"
-        file_path = AVATARS_DIR / local_key
-        async with aiofiles.open(file_path, 'wb') as f:
-            await f.write(content)
-        storage_key = local_key
+        raise HTTPException(status_code=503, detail="Object storage is not configured")
     
     # Update user record
     avatar_data = {

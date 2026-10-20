@@ -1,6 +1,5 @@
 """Task Board Router — Kanban boards with tasks, columns, and calendar sync."""
 import uuid
-import os
 import asyncio
 from datetime import datetime, timezone
 from typing import Optional, List
@@ -535,12 +534,7 @@ async def add_attachment(
         await upload_file_to_s3(content, s3_key, file.content_type or "application/octet-stream", main_site_id=main_site_id)
         file_url = f"/api/task-boards/attachments/download/{s3_key}"
     else:
-        uploads_dir = os.path.join(os.environ.get("UPLOADS_DIR", "/app/backend/uploads"), "task_attachments")
-        os.makedirs(uploads_dir, exist_ok=True)
-        filepath = os.path.join(uploads_dir, filename)
-        with open(filepath, "wb") as f:
-            f.write(content)
-        file_url = f"/api/uploads/task_attachments/{filename}"
+        raise HTTPException(status_code=503, detail="Object storage is not configured")
 
     attachment = {
         "id": str(uuid.uuid4()),

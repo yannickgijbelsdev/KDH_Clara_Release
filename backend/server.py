@@ -84,6 +84,7 @@ from routers.news_public import news_public_router
 from routers.clara_flows import clara_flows_router
 from routers.video_endpoints import video_router, public_video_router
 from routers.liveblog import liveblog_router
+from routers.video_uploads import video_upload_router
 from routers.bookings import bookings_router
 from routers.security import security_router
 from models.wordpress import PublishToWordPressRequest, PublishResponse
@@ -173,6 +174,7 @@ api_router.include_router(vdc_quick_router)
 api_router.include_router(video_router)
 api_router.include_router(public_video_router)
 api_router.include_router(liveblog_router)
+api_router.include_router(video_upload_router)
 api_router.include_router(bookings_router)
 
 
@@ -694,7 +696,6 @@ async def get_show_title_image_file(file_key: str):
 
 # Editor file upload endpoint
 from fastapi import UploadFile, File
-import aiofiles
 
 EDITOR_UPLOADS_DIR = UPLOADS_DIR.parent / 'editor_files'
 EDITOR_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
@@ -775,17 +776,7 @@ async def upload_editor_file(
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to upload to storage: {str(e)}")
     
-    # Fallback to local storage
-    local_file_key = f"{uuid.uuid4()}.{ext}" if ext else str(uuid.uuid4())
-    file_path = EDITOR_UPLOADS_DIR / local_file_key
-    
-    async with aiofiles.open(file_path, 'wb') as f:
-        await f.write(contents)
-    
-    base_url = os.environ.get('REACT_APP_BACKEND_URL', '')
-    url = f"{base_url}/api/uploads/editor-files/{local_file_key}"
-    
-    return {"url": url, "filename": file.filename, "size": len(contents)}
+    raise HTTPException(status_code=503, detail="Object storage is not configured")
 
 
 @api_router.get("/uploads/editor-files/s3/{file_key:path}")

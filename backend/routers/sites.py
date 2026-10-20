@@ -1,7 +1,6 @@
 """Sites/Landing Pages management routes."""
 import uuid
 import hashlib
-import os
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request
 
@@ -342,14 +341,7 @@ async def upload_site_logo(
             logger.error(f"S3 upload failed: {e}")
             raise HTTPException(status_code=500, detail="Upload mislukt")
     else:
-        # Fallback to local storage
-        upload_dir = "/app/backend/uploads/site_logos"
-        os.makedirs(upload_dir, exist_ok=True)
-        filename = f"{site_id}.{ext}"
-        filepath = os.path.join(upload_dir, filename)
-        with open(filepath, "wb") as f:
-            f.write(content)
-        logo_url = f"/uploads/site_logos/{filename}"
+        raise HTTPException(status_code=503, detail="Object storage is not configured")
     
     await db.sites.update_one(
         {"id": site_id},
@@ -399,14 +391,7 @@ async def upload_site_header(
             logger.error(f"S3 upload failed: {e}")
             raise HTTPException(status_code=500, detail="Upload mislukt")
     else:
-        # Fallback to local storage
-        upload_dir = "/app/backend/uploads/site_headers"
-        os.makedirs(upload_dir, exist_ok=True)
-        filename = f"{site_id}.{ext}"
-        filepath = os.path.join(upload_dir, filename)
-        with open(filepath, "wb") as f:
-            f.write(content)
-        header_url = f"/uploads/site_headers/{filename}"
+        raise HTTPException(status_code=503, detail="Object storage is not configured")
     
     await db.sites.update_one(
         {"id": site_id},
@@ -457,14 +442,7 @@ async def upload_site_audio(
             logger.error(f"S3 upload failed: {e}")
             raise HTTPException(status_code=500, detail="Upload mislukt")
     else:
-        # Fallback to local storage
-        upload_dir = "/app/backend/uploads/site_audio"
-        os.makedirs(upload_dir, exist_ok=True)
-        filename = f"{site_id}.{ext}"
-        filepath = os.path.join(upload_dir, filename)
-        with open(filepath, "wb") as f:
-            f.write(content)
-        audio_url = f"/uploads/site_audio/{filename}"
+        raise HTTPException(status_code=503, detail="Object storage is not configured")
     
     await db.sites.update_one(
         {"id": site_id},
@@ -778,14 +756,7 @@ async def upload_form_file(
             logger.error(f"S3 upload failed: {e}")
             raise HTTPException(status_code=500, detail="Upload mislukt")
     else:
-        # Fallback to local storage
-        upload_dir = f"/app/backend/uploads/site_submissions/{site['id']}"
-        os.makedirs(upload_dir, exist_ok=True)
-        filename = f"{file_id}.{ext}"
-        filepath = os.path.join(upload_dir, filename)
-        with open(filepath, "wb") as f:
-            f.write(content)
-        file_url = f"/uploads/site_submissions/{site['id']}/{filename}"
+        raise HTTPException(status_code=503, detail="Object storage is not configured")
     
     return {
         "file_url": file_url,
@@ -935,13 +906,7 @@ async def upload_form_file_multisite(
             logger.error(f"S3 upload failed: {e}")
             raise HTTPException(status_code=500, detail="Upload failed")
     else:
-        upload_dir = f"/app/backend/uploads/site_submissions/{site['id']}"
-        os.makedirs(upload_dir, exist_ok=True)
-        filename = f"{file_id}.{ext}"
-        filepath = os.path.join(upload_dir, filename)
-        with open(filepath, "wb") as f:
-            f.write(content)
-        file_url = f"/uploads/site_submissions/{site['id']}/{filename}"
+        raise HTTPException(status_code=503, detail="Object storage is not configured")
     
     return {
         "file_url": file_url,

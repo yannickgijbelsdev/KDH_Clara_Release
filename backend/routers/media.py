@@ -5,7 +5,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 import uuid
 import mimetypes
-import aiofiles
 import secrets
 
 from database import db, MEDIA_UPLOADS_DIR
@@ -153,12 +152,7 @@ async def upload_media_asset(
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to upload to storage: {str(e)}")
     else:
-        # Fallback to local storage
-        local_key = f"{current_user.get('team_id')}_{uuid.uuid4().hex[:12]}{file_ext}"
-        file_path = MEDIA_UPLOADS_DIR / local_key
-        async with aiofiles.open(file_path, 'wb') as f:
-            await f.write(file_content)
-        storage_key = local_key
+        raise HTTPException(status_code=503, detail="Object storage is not configured")
     
     now = datetime.now(timezone.utc).isoformat()
     asset_doc = {

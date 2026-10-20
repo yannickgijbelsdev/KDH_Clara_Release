@@ -9,14 +9,12 @@ from datetime import datetime, timezone
 
 from database import get_db
 from services.auth import get_current_user
+from services.s3_storage import is_s3_configured, upload_file_to_s3, delete_file_from_s3
 
 logger = logging.getLogger(__name__)
 
 audio_trigger_router = APIRouter(prefix="/audio-triggers", tags=["Audio Triggers"])
 
-# Upload directory for audio trigger files
-AUDIO_TRIGGER_UPLOAD_DIR = "/app/backend/uploads/audio_triggers"
-os.makedirs(AUDIO_TRIGGER_UPLOAD_DIR, exist_ok=True)
 
 
 # Pydantic models
@@ -200,12 +198,7 @@ async def delete_audio_trigger(
     
     # Delete audio files
     for path_field in ["in_sound_path", "out_sound_path"]:
-        path = trigger.get(path_field)
-        if path and os.path.exists(path):
-            try:
-                os.unlink(path)
-            except Exception as e:
-                logger.warning(f"Could not delete {path}: {e}")
+        await _remove_sound(trigger.get(path_field))
     
     # Delete trigger
     await db.audio_triggers.delete_one({"id": trigger_id})
@@ -216,192 +209,96 @@ async def delete_audio_trigger(
     return {"status": "success", "message": "Audio trigger deleted"}
 
 
-@audio_trigger_router.post("/{trigger_id}/in-sound")
-async def upload_in_sound(
-    trigger_id: str,
-    file: UploadFile = File(...),
-    db=Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
-    """Upload the IN sound (trigger activation sound) for an audio trigger."""
+async def _remove_sound(path: Optional[str]):
+    """Best-effort removal of a stored sound (S3 key or legacy local path)."""
+    if not path:
+        return
+    try:
+        if path.startswith("audio_triggers/"):
+            await delete_file_from_s3(path)
+        elif os.path.exists(path):
+            os.unlink(path)
+    except Exception as e:
+        logger.warning(f"Could not delete {path}: {e}")
+
+
+async def _load_trigger_for_edit(db, trigger_id: str, current_user: dict) -> dict:
     if current_user["role"] not in ["admin", "editor"]:
-        raise HTTPException(status_code=403, detail="Only admins and editors can upload sounds")
-    
-    trigger = await db.audio_triggers.find_one(
-        {"id": trigger_id, "team_id": current_user["team_id"]}
-    )
-    
+        raise HTTPException(status_code=403, detail="Only admins and editors can manage sounds")
+    trigger = await db.audio_triggers.find_one({"id": trigger_id, "team_id": current_user["team_id"]})
     if not trigger:
         raise HTTPException(status_code=404, detail="Audio trigger not found")
-    
-    # Validate file type
+    return trigger
+
+
+async def _store_sound(db, trigger_id: str, kind: str, file: UploadFile, current_user: dict) -> dict:
+    trigger = await _load_trigger_for_edit(db, trigger_id, current_user)
     if not file.filename.lower().endswith(('.mp3', '.wav', '.m4a', '.aac')):
         raise HTTPException(status_code=400, detail="Only MP3, WAV, M4A, and AAC files are allowed")
-    
-    # Delete old file if exists
-    old_path = trigger.get("in_sound_path")
-    if old_path and os.path.exists(old_path):
-        try:
-            os.unlink(old_path)
-        except Exception:
-            pass
-    
-    # Save new file
-    ext = os.path.splitext(file.filename)[1].lower()
-    filename = f"{trigger_id}_in{ext}"
-    file_path = os.path.join(AUDIO_TRIGGER_UPLOAD_DIR, filename)
-    
+    if not is_s3_configured():
+        raise HTTPException(status_code=503, detail="Object storage is not configured")
+
     content = await file.read()
-    # Clara Global Protect: scan before upload
-    from services.global_protect import check_and_raise
-    await check_and_raise(content, file.filename, file.content_type,
-        user_id=current_user.get("id"), user_name=current_user.get("name"))
-    with open(file_path, "wb") as f:
-        f.write(content)
-    
-    # Update trigger
+    ext = os.path.splitext(file.filename)[1].lower()
+    key = f"audio_triggers/{current_user['team_id']}/{trigger_id}_{kind}_{uuid.uuid4().hex[:8]}{ext}"
+    try:
+        await upload_file_to_s3(content, key, file.content_type,
+                                user_id=current_user.get("id"), user_name=current_user.get("name"))
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to upload: {str(e)}")
+
+    await _remove_sound(trigger.get(f"{kind}_sound_path"))
     await db.audio_triggers.update_one(
         {"id": trigger_id},
         {"$set": {
-            "in_sound_path": file_path,
-            "in_sound_filename": file.filename,
+            f"{kind}_sound_path": key,
+            f"{kind}_sound_filename": file.filename,
             "updated_at": datetime.now(timezone.utc).isoformat()
         }}
     )
-    
-    return {
-        "status": "success",
-        "message": "IN sound uploaded",
-        "filename": file.filename,
-        "path": file_path
-    }
+    return {"status": "success", "message": f"{kind.upper()} sound uploaded", "filename": file.filename, "path": key}
+
+
+async def _delete_sound(db, trigger_id: str, kind: str, current_user: dict) -> dict:
+    trigger = await _load_trigger_for_edit(db, trigger_id, current_user)
+    await _remove_sound(trigger.get(f"{kind}_sound_path"))
+    await db.audio_triggers.update_one(
+        {"id": trigger_id},
+        {"$set": {
+            f"{kind}_sound_path": None,
+            f"{kind}_sound_filename": None,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    return {"status": "success", "message": f"{kind.upper()} sound deleted"}
+
+
+@audio_trigger_router.post("/{trigger_id}/in-sound")
+async def upload_in_sound(trigger_id: str, file: UploadFile = File(...), db=Depends(get_db),
+                          current_user: dict = Depends(get_current_user)):
+    """Upload the IN sound (trigger activation sound) for an audio trigger."""
+    return await _store_sound(db, trigger_id, "in", file, current_user)
 
 
 @audio_trigger_router.post("/{trigger_id}/out-sound")
-async def upload_out_sound(
-    trigger_id: str,
-    file: UploadFile = File(...),
-    db=Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
+async def upload_out_sound(trigger_id: str, file: UploadFile = File(...), db=Depends(get_db),
+                           current_user: dict = Depends(get_current_user)):
     """Upload the OUT sound (trigger deactivation sound) for an audio trigger."""
-    if current_user["role"] not in ["admin", "editor"]:
-        raise HTTPException(status_code=403, detail="Only admins and editors can upload sounds")
-    
-    trigger = await db.audio_triggers.find_one(
-        {"id": trigger_id, "team_id": current_user["team_id"]}
-    )
-    
-    if not trigger:
-        raise HTTPException(status_code=404, detail="Audio trigger not found")
-    
-    # Validate file type
-    if not file.filename.lower().endswith(('.mp3', '.wav', '.m4a', '.aac')):
-        raise HTTPException(status_code=400, detail="Only MP3, WAV, M4A, and AAC files are allowed")
-    
-    # Delete old file if exists
-    old_path = trigger.get("out_sound_path")
-    if old_path and os.path.exists(old_path):
-        try:
-            os.unlink(old_path)
-        except Exception:
-            pass
-    
-    # Save new file
-    ext = os.path.splitext(file.filename)[1].lower()
-    filename = f"{trigger_id}_out{ext}"
-    file_path = os.path.join(AUDIO_TRIGGER_UPLOAD_DIR, filename)
-    
-    content = await file.read()
-    # Clara Global Protect: scan before upload
-    from services.global_protect import check_and_raise
-    await check_and_raise(content, file.filename, file.content_type,
-        user_id=current_user.get("id"), user_name=current_user.get("name"))
-    with open(file_path, "wb") as f:
-        f.write(content)
-    
-    # Update trigger
-    await db.audio_triggers.update_one(
-        {"id": trigger_id},
-        {"$set": {
-            "out_sound_path": file_path,
-            "out_sound_filename": file.filename,
-            "updated_at": datetime.now(timezone.utc).isoformat()
-        }}
-    )
-    
-    return {
-        "status": "success",
-        "message": "OUT sound uploaded",
-        "filename": file.filename,
-        "path": file_path
-    }
+    return await _store_sound(db, trigger_id, "out", file, current_user)
 
 
 @audio_trigger_router.delete("/{trigger_id}/in-sound")
-async def delete_in_sound(
-    trigger_id: str,
-    db=Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
+async def delete_in_sound(trigger_id: str, db=Depends(get_db), current_user: dict = Depends(get_current_user)):
     """Delete the IN sound for an audio trigger."""
-    if current_user["role"] not in ["admin", "editor"]:
-        raise HTTPException(status_code=403, detail="Only admins and editors can delete sounds")
-    
-    trigger = await db.audio_triggers.find_one(
-        {"id": trigger_id, "team_id": current_user["team_id"]}
-    )
-    
-    if not trigger:
-        raise HTTPException(status_code=404, detail="Audio trigger not found")
-    
-    path = trigger.get("in_sound_path")
-    if path and os.path.exists(path):
-        os.unlink(path)
-    
-    await db.audio_triggers.update_one(
-        {"id": trigger_id},
-        {"$set": {
-            "in_sound_path": None,
-            "in_sound_filename": None,
-            "updated_at": datetime.now(timezone.utc).isoformat()
-        }}
-    )
-    
-    return {"status": "success", "message": "IN sound deleted"}
+    return await _delete_sound(db, trigger_id, "in", current_user)
 
 
 @audio_trigger_router.delete("/{trigger_id}/out-sound")
-async def delete_out_sound(
-    trigger_id: str,
-    db=Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
+async def delete_out_sound(trigger_id: str, db=Depends(get_db), current_user: dict = Depends(get_current_user)):
     """Delete the OUT sound for an audio trigger."""
-    if current_user["role"] not in ["admin", "editor"]:
-        raise HTTPException(status_code=403, detail="Only admins and editors can delete sounds")
-    
-    trigger = await db.audio_triggers.find_one(
-        {"id": trigger_id, "team_id": current_user["team_id"]}
-    )
-    
-    if not trigger:
-        raise HTTPException(status_code=404, detail="Audio trigger not found")
-    
-    path = trigger.get("out_sound_path")
-    if path and os.path.exists(path):
-        os.unlink(path)
-    
-    await db.audio_triggers.update_one(
-        {"id": trigger_id},
-        {"$set": {
-            "out_sound_path": None,
-            "out_sound_filename": None,
-            "updated_at": datetime.now(timezone.utc).isoformat()
-        }}
-    )
-    
-    return {"status": "success", "message": "OUT sound deleted"}
+    return await _delete_sound(db, trigger_id, "out", current_user)
 
 
 @audio_trigger_router.get("/{trigger_id}/state")

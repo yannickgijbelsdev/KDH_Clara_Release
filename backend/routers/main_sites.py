@@ -644,13 +644,7 @@ async def upload_site_logo(
         logo_url = None
 
     if not logo_url:
-        # Local fallback (ephemeral — survives reload but not container restart)
-        local_key = f"{main_site_id}_{uuid.uuid4().hex[:8]}.{ext}"
-        dest = SITE_LOGOS_DIR / local_key
-        SITE_LOGOS_DIR.mkdir(parents=True, exist_ok=True)
-        with open(dest, "wb") as out:
-            out.write(file_bytes)
-        logo_url = f"/api/uploads/site_logos/{local_key}"
+        raise HTTPException(status_code=503, detail="Object storage is unavailable")
 
     await db.main_sites.update_one({"id": main_site_id}, {"$set": {"logo_url": logo_url}})
     return {"logo_url": logo_url}

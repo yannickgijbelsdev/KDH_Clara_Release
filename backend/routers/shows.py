@@ -8,7 +8,6 @@ from pathlib import Path
 import uuid
 import re
 import jwt
-import aiofiles
 import mimetypes
 import logging
 
@@ -385,11 +384,7 @@ async def upload_show_title_image(
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to upload: {str(e)}")
     else:
-        local_key = f"{title_id}_{uuid.uuid4().hex[:8]}{file_ext}"
-        file_path = SHOW_TITLE_IMAGES_DIR / local_key
-        async with aiofiles.open(file_path, 'wb') as f:
-            await f.write(content)
-        storage_key = local_key
+        raise HTTPException(status_code=503, detail="Object storage is not configured")
     
     # Update title record
     image_data = {
@@ -722,11 +717,7 @@ async def upload_show_image(
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to upload: {str(e)}")
     else:
-        local_key = f"show_{show_id}_{uuid.uuid4().hex[:8]}{file_ext}"
-        file_path = SHOW_IMAGES_DIR / local_key
-        async with aiofiles.open(file_path, 'wb') as f:
-            await f.write(file_content)
-        storage_key = local_key
+        raise HTTPException(status_code=503, detail="Object storage is not configured")
     
     now = datetime.now(timezone.utc).isoformat()
     image_data = {

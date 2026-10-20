@@ -28,6 +28,8 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
+import { uploadLargeVideo, isVideo } from '../utils/videoUpload';
+import { VideoUploadProgress } from './VideoUploadProgress';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const WS_BASE = process.env.REACT_APP_BACKEND_URL?.replace(/^https/, 'wss').replace(/^http/, 'ws');
@@ -402,6 +404,7 @@ const EntryCard = ({ entry, canEdit, onEdit, onDelete, onTogglePublish }) => {
 const EntryEditor = ({ draft, setDraft, onSave, onCancel, contentId, headers, saving }) => {
   const [uploadingImg, setUploadingImg] = useState(false);
   const [uploadingVid, setUploadingVid] = useState(false);
+  const [vidProgress, setVidProgress] = useState(null);
 
   const setField = (k, v) => setDraft((d) => ({ ...d, [k]: v }));
   const addImage = (img) => setDraft((d) => ({ ...d, images: [...(d.images || []), img] }));
@@ -427,18 +430,16 @@ const EntryEditor = ({ draft, setDraft, onSave, onCancel, contentId, headers, sa
   };
   const uploadVideo = async (file) => {
     if (!file) return;
+    if (!isVideo(file)) { toast.error(`Unsupported video type: ${file.type || file.name}`); return; }
     setUploadingVid(true);
+    setVidProgress({ phase: 'uploading', percent: 0 });
     try {
-      const fd = new FormData();
-      fd.append('file', file);
-      const r = await axios.post(`${API}/content/${contentId}/liveblog/upload-video`, fd, {
-        headers: { ...headers, 'Content-Type': 'multipart/form-data' },
-      });
-      addVideo({ ...emptyVideo, url: r.data.url, key: r.data.key });
-      toast.success('Video uploaded');
+      const r = await uploadLargeVideo(file, { target: 'liveblog', contentId, headers, onProgress: setVidProgress });
+      addVideo({ ...emptyVideo, url: r.url, key: r.key });
+      toast.success('Video uploaded & compressed');
     } catch (e) {
-      toast.error(e.response?.data?.detail || 'Upload failed');
-    } finally { setUploadingVid(false); }
+      toast.error(e.message);
+    } finally { setUploadingVid(false); setVidProgress(null); }
   };
   const addEmbed = () => {
     const code = window.prompt('Paste a YouTube/Vimeo URL or <iframe> snippet:');
@@ -534,8 +535,9 @@ const EntryEditor = ({ draft, setDraft, onSave, onCancel, contentId, headers, sa
         </label>
         <label className="inline-flex items-center gap-1.5 cursor-pointer text-xs px-3 py-1.5 rounded-md border border-zinc-300 bg-white hover:bg-zinc-50">
           {uploadingVid ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />} Upload video
-          <input type="file" accept="video/mp4,video/webm,video/quicktime" className="hidden" onChange={(e) => uploadVideo(e.target.files?.[0])} data-testid="liveblog-upload-vid" />
+          <input type="file" accept="video/*,.mp4,.webm,.mov,.m4v,.avi" className="hidden" disabled={uploadingVid} onChange={(e) => uploadVideo(e.target.files?.[0])} data-testid="liveblog-upload-vid" />
         </label>
+        {vidProgress && <div className="basis-full"><VideoUploadProgress progress={vidProgress} testId="liveblog-video-upload-progress" /></div>}
         <button onClick={addEmbed} className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md border border-zinc-300 bg-white hover:bg-zinc-50" data-testid="liveblog-add-embed">
           <LinkIcon className="w-3.5 h-3.5" /> Embed (YouTube/Vimeo)
         </button>

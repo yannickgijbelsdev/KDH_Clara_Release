@@ -108,7 +108,7 @@ async def update_rds_sequence(
         sequence_data["id"] = str(uuid.uuid4())
         sequence_data["current_index"] = 0
         sequence_data["current_text"] = ""
-        await db.rds_sequences.insert_one(sequence_data)
+        await db.rds_sequences.insert_one({**sequence_data})
     
     return {
         "status": "success",

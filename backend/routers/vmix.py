@@ -101,7 +101,7 @@ async def get_vmix_config(
     if not config:
         # Return default config
         config = _default_config(main_site_id)
-        await db.vmix_configs.insert_one(config)
+        await db.vmix_configs.insert_one({**config})
     return config
 
 
@@ -156,10 +156,7 @@ async def upload_logo(
         await upload_file_to_s3(content, s3_key, file.content_type)
         logo_url = get_s3_url(s3_key)
     else:
-        filepath = os.path.join(VMIX_LOGOS_DIR, filename)
-        with open(filepath, "wb") as f:
-            f.write(content)
-        logo_url = f"/api/uploads/vmix_logos/{filename}"
+        raise HTTPException(status_code=503, detail="Object storage is not configured")
 
     await db.vmix_configs.update_one(
         {"main_site_id": main_site_id},
@@ -199,10 +196,7 @@ async def upload_background(
         await upload_file_to_s3(content, s3_key, file.content_type)
         bg_url = get_s3_url(s3_key)
     else:
-        filepath = os.path.join(VMIX_BG_DIR, filename)
-        with open(filepath, "wb") as f:
-            f.write(content)
-        bg_url = f"/api/uploads/vmix_backgrounds/{filename}"
+        raise HTTPException(status_code=503, detail="Object storage is not configured")
 
     field_name = f"{element}_bg_image_url"
     await db.vmix_configs.update_one(

@@ -198,6 +198,19 @@ async def load_audio_from_bytes(audio_bytes: bytes, format_hint: str = "mp3") ->
         os.unlink(tmp_path)
 
 
+def _sound_exists(path: Optional[str]) -> bool:
+    return bool(path) and (path.startswith("audio_triggers/") or os.path.exists(path))
+
+
+async def load_trigger_sound(path: str) -> Tuple[np.ndarray, int]:
+    """Load a trigger sound from S3 (key) or a legacy local path."""
+    if not path.startswith("audio_triggers/"):
+        return await load_audio_file(path)
+    from services.s3_storage import get_file_from_s3
+    data = await get_file_from_s3(path)
+    return await load_audio_from_bytes(data, path.rsplit(".", 1)[-1])
+
+
 async def fetch_stream_chunk(station: str, duration: float = CHUNK_DURATION) -> Optional[bytes]:
     """Fetch a chunk of audio from the stream."""
     if station not in STREAM_URLS:
@@ -396,7 +409,7 @@ class AudioTriggerScheduler:
         
         # Load audio file
         in_sound_path = trigger.get("in_sound_path")
-        if not in_sound_path or not os.path.exists(in_sound_path):
+        if not _sound_exists(in_sound_path):
             # Cache this so we don't log repeatedly
             self.trigger_cache[trigger_id] = {
                 "no_valid_path": True,
@@ -407,7 +420,7 @@ class AudioTriggerScheduler:
             return None
         
         try:
-            audio_data, sr = await load_audio_file(in_sound_path)
+            audio_data, sr = await load_trigger_sound(in_sound_path)
             fingerprint = compute_audio_fingerprint(audio_data, sr)
             
             # Cache it
@@ -425,11 +438,11 @@ class AudioTriggerScheduler:
     async def _load_out_fingerprint(self, trigger: Dict) -> Optional[np.ndarray]:
         """Load the OUT sound fingerprint for a trigger."""
         out_sound_path = trigger.get("out_sound_path")
-        if not out_sound_path or not os.path.exists(out_sound_path):
+        if not _sound_exists(out_sound_path):
             return None
         
         try:
-            audio_data, sr = await load_audio_file(out_sound_path)
+            audio_data, sr = await load_trigger_sound(out_sound_path)
             return compute_audio_fingerprint(audio_data, sr)
         except Exception as e:
             logger.error(f"Error loading out sound: {e}")

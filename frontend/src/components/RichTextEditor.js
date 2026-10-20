@@ -3,6 +3,7 @@ import { useRef, useState } from 'react';
 import { Editor } from '@tinymce/tinymce-react';
 import axios from 'axios';
 import { Loader2, AlertCircle, CheckCircle } from 'lucide-react';
+import { uploadLargeVideo, isVideo } from '../utils/videoUpload';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -24,6 +25,7 @@ const RichTextEditor = ({
   const [uploadFileName, setUploadFileName] = useState('');
   const [uploadError, setUploadError] = useState(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [uploadPhase, setUploadPhase] = useState('');
 
   const handleEditorChange = (content) => {
     onChange(content);
@@ -103,6 +105,26 @@ const RichTextEditor = ({
         setUploadProgress(0);
         setUploadError(null);
         
+        if (isVideo(file)) {
+          setUploadPhase('Uploading video...');
+          const res = await uploadLargeVideo(file, {
+            target: 'article',
+            onProgress: (p) => {
+              setUploadPhase(p.phase === 'compressing' ? 'Compressing video (max 1080p)...' : 'Uploading video...');
+              setUploadProgress(p.percent);
+            },
+          });
+          setUploadSuccess(true);
+          setTimeout(() => {
+            setIsUploading(false);
+            setUploadProgress(0);
+            setUploadSuccess(false);
+            setUploadPhase('');
+            callback(res.url, { title: file.name });
+          }, 800);
+          return;
+        }
+        
         const formData = new FormData();
         formData.append('file', file);
         
@@ -136,6 +158,7 @@ const RichTextEditor = ({
       } catch (error) {
         setIsUploading(false);
         setUploadProgress(0);
+        setUploadPhase('');
         const errorMsg = error.response?.data?.detail || error.message || 'Upload failed';
         setUploadError(`Upload failed: ${errorMsg}`);
         setTimeout(() => setUploadError(null), 5000);
@@ -162,8 +185,8 @@ const RichTextEditor = ({
                 <Loader2 className="w-6 h-6 text-[#7380b6] animate-spin" />
               )}
               <div>
-                <p className="text-zinc-900 font-medium">
-                  {uploadSuccess ? 'Upload complete!' : 'Uploading file...'}
+                <p className="text-zinc-900 font-medium" data-testid="editor-upload-phase">
+                  {uploadSuccess ? 'Upload complete!' : (uploadPhase || 'Uploading file...')}
                 </p>
                 <p className="text-zinc-400 text-sm truncate max-w-[220px]">{uploadFileName}</p>
               </div>

@@ -15,6 +15,8 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { useMainSite } from '../context/MainSiteContext';
 import { useAuth } from '../context/AuthContext';
+import { uploadLargeVideo, isVideo } from '../utils/videoUpload';
+import { VideoUploadProgress } from '../components/VideoUploadProgress';
 import {
   Plus, Search, Trash2, Edit3, ExternalLink, Copy, Upload, Video as VideoIcon,
   Youtube, Film, Megaphone, Image as ImageIcon, Loader2, X, Play, Code as CodeIcon,
@@ -65,6 +67,7 @@ export default function VideoEndpointsPage() {
   const [draft, setDraft] = useState(empty);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(null);
   const [previewItem, setPreviewItem] = useState(null);
   const [schedule, setSchedule] = useState([]);
   const [scheduleOpen, setScheduleOpen] = useState(true);
@@ -150,24 +153,21 @@ export default function VideoEndpointsPage() {
 
   const onUploadFile = async (file) => {
     if (!file) return;
-    const okTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-m4v', 'video/ogg'];
-    if (!okTypes.includes(file.type)) {
-      toast.error(`Unsupported video type: ${file.type}`);
+    if (!isVideo(file)) {
+      toast.error(`Unsupported video type: ${file.type || file.name}`);
       return;
     }
     setUploading(true);
+    setUploadProgress({ phase: 'uploading', percent: 0 });
     try {
-      const fd = new FormData();
-      fd.append('file', file);
-      const res = await axios.post(`${API}/videos/upload`, fd, {
-        headers: { ...headers, 'Content-Type': 'multipart/form-data' },
-      });
-      setDraft((d) => ({ ...d, uploaded_url: res.data.url, uploaded_key: res.data.key, embed_code: '' }));
-      toast.success('Upload complete');
+      const res = await uploadLargeVideo(file, { target: 'video_endpoint', headers, onProgress: setUploadProgress });
+      setDraft((d) => ({ ...d, uploaded_url: res.url, uploaded_key: res.key, embed_code: '' }));
+      toast.success(`Upload complete (${(res.original_size / 1048576).toFixed(1)} MB → ${(res.size / 1048576).toFixed(1)} MB)`);
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Upload failed');
+      toast.error(err.message);
     } finally {
       setUploading(false);
+      setUploadProgress(null);
     }
   };
 
@@ -479,16 +479,14 @@ export default function VideoEndpointsPage() {
                       <X className="w-4 h-4" />
                     </button>
                   </div>
+                ) : uploading ? (
+                  <VideoUploadProgress progress={uploadProgress} testId="video-endpoint-upload-progress" />
                 ) : (
                   <label className="flex items-center justify-center gap-2 border-2 border-dashed border-zinc-300 hover:border-zinc-400 rounded-md py-4 cursor-pointer bg-white">
-                    {uploading ? (
-                      <><Loader2 className="w-4 h-4 animate-spin" /> Uploading…</>
-                    ) : (
-                      <><Upload className="w-4 h-4" /> Upload video file (mp4/webm/mov, max 500 MB)</>
-                    )}
+                    <Upload className="w-4 h-4" /> Upload video file (mp4/webm/mov/avi, max 2 GB — auto-compressed to 1080p)
                     <input
                       type="file"
-                      accept="video/mp4,video/webm,video/quicktime,video/x-m4v,video/ogg"
+                      accept="video/*,.mp4,.webm,.mov,.m4v,.avi,.ogg"
                       className="hidden"
                       onChange={(e) => onUploadFile(e.target.files?.[0])}
                       disabled={uploading}

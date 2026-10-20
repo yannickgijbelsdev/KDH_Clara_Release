@@ -8,7 +8,6 @@ from pathlib import Path
 import uuid
 import re
 import mimetypes
-import aiofiles
 import io
 import base64
 import httpx
@@ -1241,11 +1240,7 @@ async def upload_content_featured_image(
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to upload: {str(e)}")
     else:
-        local_key = f"content_{content_id}_{uuid.uuid4().hex[:8]}{file_ext}"
-        file_path = UPLOADS_DIR / local_key
-        async with aiofiles.open(file_path, 'wb') as f:
-            await f.write(file_content)
-        storage_key = local_key
+        raise HTTPException(status_code=503, detail="Object storage is not configured")
     
     now = datetime.now(timezone.utc).isoformat()
     image_data = {
@@ -1732,11 +1727,7 @@ async def upload_featured_image(
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to upload: {str(e)}")
     else:
-        local_key = f"{content_id}_{site_id}_{uuid.uuid4().hex[:8]}{file_ext}"
-        file_path = UPLOADS_DIR / local_key
-        async with aiofiles.open(file_path, 'wb') as f:
-            await f.write(file_content)
-        storage_key = local_key
+        raise HTTPException(status_code=503, detail="Object storage is not configured")
     
     now = datetime.now(timezone.utc).isoformat()
     image_doc = {

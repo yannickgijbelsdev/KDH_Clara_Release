@@ -4,7 +4,6 @@ from typing import Optional, List
 from datetime import datetime, timezone
 import uuid
 import os
-import aiofiles
 
 from database import db
 from models.chat import (
@@ -866,19 +865,7 @@ async def upload_chat_attachment(
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to upload: {str(e)}")
     
-    # Fallback to local storage
-    file_path = os.path.join(UPLOAD_DIR, unique_filename)
-    async with aiofiles.open(file_path, 'wb') as f:
-        await f.write(content)
-    
-    file_url = f"/api/chat/files/{unique_filename}"
-    
-    return {
-        "url": file_url,
-        "type": attachment_type,
-        "name": file.filename,
-        "size": len(content)
-    }
+    raise HTTPException(status_code=503, detail="Object storage is not configured")
 
 
 @chat_router.get("/files/{filename}")

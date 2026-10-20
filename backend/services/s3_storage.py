@@ -233,3 +233,33 @@ async def check_s3_connection() -> dict:
         return {'connected': True, 'bucket': S3_BUCKET, 'endpoint': S3_ENDPOINT}
     except ClientError as e:
         return {'connected': False, 'error': str(e)}
+
+
+def create_multipart_upload(file_key: str, content_type: str) -> str:
+    return get_s3_client().create_multipart_upload(
+        Bucket=S3_BUCKET, Key=file_key, ContentType=content_type
+    )["UploadId"]
+
+
+def upload_multipart_part(file_key: str, upload_id: str, part_number: int, body: bytes) -> str:
+    return get_s3_client().upload_part(
+        Bucket=S3_BUCKET, Key=file_key, UploadId=upload_id, PartNumber=part_number, Body=body
+    )["ETag"]
+
+
+def complete_multipart_upload(file_key: str, upload_id: str, parts: list) -> None:
+    get_s3_client().complete_multipart_upload(
+        Bucket=S3_BUCKET, Key=file_key, UploadId=upload_id, MultipartUpload={"Parts": parts}
+    )
+
+
+def abort_multipart_upload(file_key: str, upload_id: str) -> None:
+    get_s3_client().abort_multipart_upload(Bucket=S3_BUCKET, Key=file_key, UploadId=upload_id)
+
+
+def upload_local_file_to_s3(path: str, file_key: str, content_type: str) -> str:
+    """Stream a (temporary) processed file to S3 and return its public URL."""
+    get_s3_client().upload_file(
+        path, S3_BUCKET, file_key, ExtraArgs={"ContentType": content_type, "ACL": "public-read"}
+    )
+    return get_s3_url(file_key)
