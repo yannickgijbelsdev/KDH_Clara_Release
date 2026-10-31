@@ -1342,6 +1342,7 @@ const ContentDetailPage = () => {
               <Label className="text-zinc-600">Body</Label>
               <RichTextEditor
                 id="edit-content-body"
+                contentId={contentId}
                 value={editData.body}
                 onChange={(content) => setEditData({ ...editData, body: content })}
                 placeholder="Write your content here..."

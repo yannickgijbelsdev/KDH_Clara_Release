@@ -23,7 +23,8 @@ const RichTextEditor = ({
   placeholder = 'Start writing...',
   height = 400,
   disabled = false,
-  id = 'rich-text-editor'
+  id = 'rich-text-editor',
+  contentId = null
 }) => {
   const editorRef = useRef(null);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -42,7 +43,8 @@ const RichTextEditor = ({
   const handleQrInsert = (url, cfg) => {
     const editor = editorRef.current;
     const height = Math.round(cfg.size * (cfg.captionEnabled && cfg.caption.trim() ? 1.16 : 1));
-    const attrs = { src: url, class: 'clara-qr', 'data-qr': JSON.stringify(cfg), width: cfg.size, height, alt: `QR code: ${cfg.text}` };
+    const { apiUrl, ...savedCfg } = cfg;
+    const attrs = { src: url, class: 'clara-qr', 'data-qr': JSON.stringify(savedCfg), width: cfg.size, height, alt: `QR code: ${cfg.text}` };
     if (qr.node && editor.dom.isChildOf(qr.node, editor.getBody())) {
       editor.undoManager.transact(() => editor.dom.setAttribs(qr.node, attrs));
       editor.nodeChanged();
@@ -256,6 +258,7 @@ const RichTextEditor = ({
       <QrCodeDialog
         open={qr.open}
         initialConfig={qr.config}
+        contentId={contentId}
         onClose={() => setQr({ open: false, config: null, node: null })}
         onInsert={handleQrInsert}
       />

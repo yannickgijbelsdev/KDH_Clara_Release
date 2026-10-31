@@ -8,7 +8,8 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 import { Slider } from './ui/slider';
-import { DEFAULT_QR, renderQrPng, renderQrSvg, blobToDataUrl, downloadBlob } from '../utils/qrRender';
+import { DEFAULT_QR, renderQrPng, renderQrSvg, blobToDataUrl, downloadBlob, isUrl } from '../utils/qrRender';
+import { QrTrackingPanel } from './QrTrackingPanel';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const keyFromUrl = (url) => (url.match(/(editor\/[^?#]+)$/) || [])[1] || '';
@@ -43,12 +44,13 @@ const LogoPicker = ({ logoDataUrl, uploading, onPick }) => (
   </label>
 );
 
-export const QrCodeDialog = ({ open, initialConfig, onClose, onInsert }) => {
+export const QrCodeDialog = ({ open, initialConfig, contentId, onClose, onInsert }) => {
   const [cfg, setCfg] = useState(DEFAULT_QR);
   const [logoDataUrl, setLogoDataUrl] = useState('');
   const [logoUploading, setLogoUploading] = useState(false);
   const [preview, setPreview] = useState('');
   const [busy, setBusy] = useState(false);
+  const [tracking, setTracking] = useState(null);
   const previewUrl = useRef('');
   const set = (patch) => setCfg((c) => ({ ...c, ...patch }));
 
@@ -57,6 +59,10 @@ export const QrCodeDialog = ({ open, initialConfig, onClose, onInsert }) => {
     const next = { ...DEFAULT_QR, ...(initialConfig || {}) };
     setCfg(next);
     setLogoDataUrl('');
+    setTracking(null);
+    if (next.qrId) {
+      axios.get(`${API}/qr-codes/${next.qrId}`).then((r) => setTracking(r.data)).catch(() => {});
+    }
     if (next.logoKey) {
       axios.get(`${API}/uploads/editor-files/raw/${next.logoKey}`, { responseType: 'blob' })
         .then((r) => blobToDataUrl(r.data)).then(setLogoDataUrl)
@@ -95,18 +101,46 @@ export const QrCodeDialog = ({ open, initialConfig, onClose, onInsert }) => {
     }
   };
 
+  // Create/update the tracking record so the QR encodes the short link; returns the config to render.
+  const ensureTracking = async () => {
+    const link = isUrl(cfg.text);
+    if (!link || !cfg.trackingEnabled) {
+      if (cfg.qrId && tracking?.tracking_enabled) {
+        const { data } = await axios.patch(`${API}/qr-codes/${cfg.qrId}`, { tracking_enabled: false });
+        setTracking(data);
+      }
+      return cfg;
+    }
+    const label = (cfg.captionEnabled && cfg.caption.trim()) || cfg.text.trim();
+    const { data } = cfg.qrId
+      ? await axios.patch(`${API}/qr-codes/${cfg.qrId}`, { target_url: cfg.text.trim(), tracking_enabled: true })
+      : await axios.post(`${API}/qr-codes`, { target_url: cfg.text.trim(), label, content_id: contentId || null, tracking_enabled: true });
+    setTracking(data);
+    const next = { ...cfg, qrId: data.id, trackingUrl: data.tracking_url };
+    setCfg(next);
+    return next;
+  };
+
   const fileBase = () => `qr-${(cfg.text || 'code').replace(/^https?:\/\//, '').replace(/[^a-z0-9]+/gi, '-').slice(0, 40)}`;
-  const downloadPng = async () => downloadBlob(await renderQrPng(cfg, 2048, logoDataUrl), `${fileBase()}.png`);
-  const downloadSvg = async () => downloadBlob(new Blob([await renderQrSvg(cfg, 1024, logoDataUrl)], { type: 'image/svg+xml' }), `${fileBase()}.svg`);
+  const withTracking = (fn) => async () => {
+    try {
+      await fn(await ensureTracking());
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Could not create the tracking link');
+    }
+  };
+  const downloadPng = withTracking(async (c) => downloadBlob(await renderQrPng(c, 2048, logoDataUrl), `${fileBase()}.png`));
+  const downloadSvg = withTracking(async (c) => downloadBlob(new Blob([await renderQrSvg(c, 1024, logoDataUrl)], { type: 'image/svg+xml' }), `${fileBase()}.svg`));
 
   const insert = async () => {
     setBusy(true);
     try {
-      const blob = await renderQrPng(cfg, Math.min(2048, cfg.size * 2), logoDataUrl);
+      const finalCfg = await ensureTracking();
+      const blob = await renderQrPng(finalCfg, Math.min(2048, finalCfg.size * 2), logoDataUrl);
       const fd = new FormData();
       fd.append('file', blob, `${fileBase()}.png`);
       const { data } = await axios.post(`${API}/uploads/editor-files`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
-      onInsert(data.url, cfg);
+      onInsert(data.url, finalCfg);
     } catch (e) {
       toast.error(e.response?.data?.detail || 'Could not save the QR code');
     } finally {
@@ -138,6 +172,9 @@ export const QrCodeDialog = ({ open, initialConfig, onClose, onInsert }) => {
               <Slider min={120} max={800} step={10} value={[cfg.size]} onValueChange={([size]) => set({ size })} data-testid="qr-size-slider" />
             </div>
             <div className="space-y-2">
+              <OptionToggle label="Track scans (Clara Campaigns API)" checked={cfg.trackingEnabled} onChange={(v) => set({ trackingEnabled: v })} testId="qr-toggle-tracking">
+                <QrTrackingPanel text={cfg.text.trim()} isLink={isUrl(cfg.text)} info={tracking?.tracking_enabled ? tracking : null} />
+              </OptionToggle>
               <OptionToggle label="Transparent background" checked={cfg.transparentEnabled} onChange={(v) => set({ transparentEnabled: v })} testId="qr-toggle-transparent" />
               <OptionToggle label="Rounded dots" checked={cfg.roundedEnabled} onChange={(v) => set({ roundedEnabled: v })} testId="qr-toggle-rounded" />
               <OptionToggle label="Logo in the middle" checked={cfg.logoEnabled} onChange={(v) => set({ logoEnabled: v })} testId="qr-toggle-logo">

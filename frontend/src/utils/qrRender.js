@@ -11,7 +11,14 @@ export const DEFAULT_QR = {
   logoKey: '',
   captionEnabled: false,
   caption: 'Scan mij',
+  trackingEnabled: true,
+  qrId: '',
+  trackingUrl: '',
 };
+
+export const isUrl = (t) => /^https?:\/\/\S+$/i.test((t || '').trim());
+// What actually goes into the QR: the tracking short link when tracking is active.
+export const encodedText = (cfg) => (cfg.trackingEnabled && isUrl(cfg.text) && cfg.trackingUrl ? cfg.trackingUrl : cfg.text);
 
 const CAPTION_FONT = "600 {px}px Outfit, 'Helvetica Neue', Arial, sans-serif";
 const captionHeight = (px) => Math.round(px * 0.16);
@@ -23,7 +30,7 @@ const buildQr = (cfg, px, type, logoDataUrl) => {
     width: px,
     height: px,
     type,
-    data: cfg.text || ' ',
+    data: encodedText(cfg) || ' ',
     margin: Math.round(px * 0.04),
     qrOptions: { errorCorrectionLevel: useLogo ? 'H' : 'M' },
     dotsOptions: { color: cfg.fg, type: rounded ? 'rounded' : 'square' },

@@ -85,6 +85,7 @@ from routers.clara_flows import clara_flows_router
 from routers.video_endpoints import video_router, public_video_router
 from routers.liveblog import liveblog_router
 from routers.video_uploads import video_upload_router
+from routers.qr_codes import qr_router
 from routers.bookings import bookings_router
 from routers.security import security_router
 from models.wordpress import PublishToWordPressRequest, PublishResponse
@@ -175,6 +176,7 @@ api_router.include_router(video_router)
 api_router.include_router(public_video_router)
 api_router.include_router(liveblog_router)
 api_router.include_router(video_upload_router)
+api_router.include_router(qr_router)
 api_router.include_router(bookings_router)
 
 
@@ -1209,6 +1211,9 @@ async def startup_db_client():
     """Migrate legacy data and ensure bootstrap admin exists on startup."""
     from services.auth import hash_password
     from routers.video_uploads import video_upload_janitor
+    await db.qr_codes.create_index("code", unique=True)
+    await db.qr_scans.create_index([("qr_id", 1), ("scanned_at", 1)])
+    await db.qr_scans.create_index([("qr_id", 1), ("visitor", 1)])
     app.state.video_upload_janitor = asyncio.create_task(video_upload_janitor())
 
     # Ensure MongoDB indexes for fast queries

@@ -1658,6 +1658,19 @@ async def get_main_site_api_endpoints(
                 "endpoints": news_endpoints,
             })
 
+        qr_tag = {"tag": "QR", "tag_color": "#7380b6"}
+        groups.append({
+            "id": "qr_tracking",
+            "name": "QR Code Tracking",
+            "icon": "globe",
+            "description": "Scan statistics per QR code created in the content editor. Each QR code has its own read-only API link with a token — copy it from the QR dialog (Track scans) in the editor and give it to Clara Campaigns.",
+            "endpoints": [
+                {"name": "QR stats (dashboard)", "description": "Totals, unique scans, per day, device, OS, browser, country, city and the 50 latest scans. Optional `days` (default 90). Token via `?token=` or `X-API-Key` header.", "method": "GET", "response_type": "application/json", "path": "/api/public/qr/{code}/stats?token={token}", "full_url": f"{base_url}/api/public/qr/{{code}}/stats?token={{token}}", **qr_tag},
+                {"name": "QR raw scans (incremental)", "description": "Raw scans in chronological order. Pass the returned `next_since` as `since` to fetch only new scans. `limit` max 5000.", "method": "GET", "response_type": "application/json", "path": "/api/public/qr/{code}/scans?token={token}&since={iso}", "full_url": f"{base_url}/api/public/qr/{{code}}/scans?token={{token}}", **qr_tag},
+                {"name": "QR tracking redirect", "description": "The short link encoded in the QR image. Logs the scan (no IP stored) and redirects to the target link.", "method": "GET", "response_type": "302 redirect", "path": "/api/q/{code}", "full_url": f"{base_url}/api/q/{{code}}", **qr_tag},
+            ],
+        })
+
     # ─── Clara Custom integrations ─────────────────────────────────────────
     # Show this group when the site has at least one registered Clara
     # integration (auto-detected — no separate feature flag needed).
