@@ -6,7 +6,10 @@ visitor is redirected to the target. Clara Campaigns reads the data per QR code 
 /api/public/qr/{code}/stats|scans?token=... (token-protected, read-only).
 """
 import hashlib
+import hmac
+import ipaddress
 import logging
+import os
 import re
 import secrets
 from datetime import datetime, timezone, timedelta
@@ -81,8 +84,14 @@ async def _new_code() -> str:
     raise HTTPException(status_code=500, detail="Could not allocate a QR code")
 
 
+def _scope(current_user: dict) -> dict:
+    # Users without a team (e.g. platform admins) only see their own QR codes.
+    team_id = current_user.get("team_id")
+    return {"team_id": team_id} if team_id else {"team_id": None, "created_by": current_user.get("id")}
+
+
 async def _owned_qr(qr_id: str, current_user: dict) -> dict:
-    qr = await db.qr_codes.find_one({"id": qr_id, "team_id": current_user.get("team_id")}, {"_id": 0})
+    qr = await db.qr_codes.find_one({"id": qr_id, **_scope(current_user)}, {"_id": 0})
     if not qr:
         raise HTTPException(status_code=404, detail="QR code not found")
     return qr
@@ -106,7 +115,7 @@ async def create_qr_code(body: QrCreate, request: Request, current_user: dict = 
 @qr_router.get("/qr-codes")
 async def list_qr_codes(request: Request, content_id: Optional[str] = None,
                         current_user: dict = Depends(require_editor_or_admin)):
-    query = {"team_id": current_user.get("team_id")}
+    query = _scope(current_user)
     if content_id:
         query["content_id"] = content_id
     items = await db.qr_codes.find(query, {"_id": 0}).sort("created_at", -1).to_list(500)
@@ -188,7 +197,10 @@ _geo_cache: dict = {}
 
 
 async def _lookup_geo(ip: str) -> dict:
-    if not ip or ip.startswith(("10.", "127.", "192.168.", "172.")):
+    try:
+        if not ipaddress.ip_address(ip).is_global:
+            return {}
+    except ValueError:
         return {}
     if ip in _geo_cache:
         return _geo_cache[ip]
@@ -215,8 +227,13 @@ async def _lookup_geo(ip: str) -> dict:
 
 async def _record_scan(qr_id: str, ua: str, ip: str, geo: dict):
     now = _now()
-    # Daily-rotating hash: counts unique visitors without storing the IP.
-    visitor = hashlib.sha256(f"{qr_id}|{ip}|{ua}|{now.date().isoformat()}".encode()).hexdigest()
+    # Keyed, daily-rotating hash: counts unique visitors without storing (or exposing) the IP.
+    visitor = hmac.new(os.environ["JWT_SECRET"].encode(), f"{qr_id}|{ip}|{ua}|{now.date().isoformat()}".encode(),
+                       hashlib.sha256).hexdigest()
+    burst = await db.qr_scans.count_documents(
+        {"qr_id": qr_id, "visitor": visitor, "scanned_at": {"$gte": (now - timedelta(minutes=1)).isoformat()}})
+    if burst >= 5:
+        return
     if not geo.get("country"):
         geo = {**geo, **{k: v for k, v in (await _lookup_geo(ip)).items() if v}}
     unique = not await db.qr_scans.find_one({"qr_id": qr_id, "visitor": visitor}, {"_id": 1})
@@ -229,7 +246,7 @@ async def _record_scan(qr_id: str, ua: str, ip: str, geo: dict):
     })
 
 
-@qr_router.get("/q/{code}")
+@qr_router.api_route("/q/{code}", methods=["GET", "HEAD"])
 async def qr_redirect(code: str, request: Request, background: BackgroundTasks):
     qr = await db.qr_codes.find_one({"code": code}, {"_id": 0, "id": 1, "target_url": 1, "tracking_enabled": 1})
     if not qr:
@@ -267,7 +284,9 @@ async def public_qr_stats(code: str, request: Request, token: Optional[str] = No
     since = (_now() - timedelta(days=days)).isoformat()
     by_day_raw = await db.qr_scans.aggregate([
         {"$match": {"qr_id": qr["id"], "scanned_at": {"$gte": since}}},
-        {"$group": {"_id": {"$substr": ["$scanned_at", 0, 10]}, "scans": {"$sum": 1},
+        {"$group": {"_id": {"$dateToString": {"format": "%Y-%m-%d", "timezone": "Europe/Brussels",
+                                              "date": {"$dateFromString": {"dateString": "$scanned_at"}}}},
+                    "scans": {"$sum": 1},
                     "unique": {"$sum": {"$cond": ["$unique", 1, 0]}}}},
         {"$sort": {"_id": 1}},
     ]).to_list(4000)
@@ -279,6 +298,8 @@ async def public_qr_stats(code: str, request: Request, token: Optional[str] = No
                "content_title": (content or {}).get("title"),
                "tracking_url": f"{_public_base_url(request)}/api/q/{qr['code']}"},
         "period_days": days,
+        "timezone": "Europe/Brussels",
+        "_notes": "totals are all-time; by_* breakdowns cover the last period_days; by_day uses Europe/Brussels dates.",
         "totals": {"scans": qr.get("scan_count", 0), "unique_scans": qr.get("unique_scan_count", 0),
                    "first_scan_at": (first or {}).get("scanned_at"), "last_scan_at": qr.get("last_scan_at")},
         "by_day": [{"date": r["_id"], "scans": r["scans"], "unique": r["unique"]} for r in by_day_raw],

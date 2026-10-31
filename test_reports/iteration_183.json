@@ -1,0 +1,44 @@
+{
+  "summary": "QR scan tracking + Clara Campaigns pull API tested end-to-end. Backend: 11/11 executed pytest cases pass (1 skipped because the network-admin account was brute-force locked; cross-team isolation was instead verified by inserting a foreign-team QR doc -> GET/PATCH 404 and not listed). Frontend: every requested flow passes (toggle ON by default, not-link/pending hints, insert -> POST with content_id, data-qr has qrId+trackingUrl and no token/apiUrl, decoded QR image (jsQR) = /api/q/{code}, re-open shows tracking-info with the scan count rising after a mobile-UA hit, URL change -> PATCH with the same code and the redirect follows, tracking off -> PATCH tracking_enabled=false and the image encodes the raw URL, PNG+SVG downloads create/patch the record and decode to the tracking link, API Endpoints page shows 'QR Code Tracking' with 3 endpoints). One blocking pre-existing issue was found and fixed: synchronous smtplib in services/email_service.py froze the whole event loop (all APIs gave 502/timeouts for ~15s per email in a loop).",
+  "backend_issues": {
+    "critical": [
+      {"endpoint": "ALL (services/email_service.py send_email_with_config)", "issue": "PRE-EXISTING, FIXED BY TESTING AGENT: blocking smtplib.SMTP calls (timeout=15s) ran inside an async function. A scheduler kept retrying failed emails to ~7 recipients, so the event loop blocked continuously; login/health timed out and /api/q + /api/public/qr returned 502. I wrapped the SMTP block in asyncio.to_thread. test_smtp_config() (lines ~161-180) still uses sync smtplib and should get the same treatment. The SMTP server is also timing out ('Connection unexpectedly closed: read operation timed out'), so check the SMTP config / the retry loop that resends every ~90s.", "priority": "HIGH"}
+    ],
+    "minor": [
+      {"endpoint": "_lookup_geo (qr_codes.py)", "issue": "ip.startswith('172.') skips the whole 172.x range; only 172.16.0.0/12 is private, so public 172.0-15 / 172.32-255 IPs never get geo. Use ipaddress.ip_address(ip).is_private / is_loopback. IPv6 private (fc00::/7, ::1) is not filtered either."},
+      {"endpoint": "_record_scan visitor hash", "issue": "sha256(qr_id|ip|ua|date) without a secret salt. IPv4 space is small enough to brute-force the IP back from the stored hash, which weakens the 'no IP stored' promise (GDPR). Add a server-side secret pepper (env var) to the hash."},
+      {"endpoint": "GET /api/q/{code}", "issue": "Only GET is routed, so HEAD returns 405 (some scanners/link checkers send HEAD). Consider api_route(methods=['GET','HEAD']); the code already only logs on GET."},
+      {"endpoint": "QR ownership scoping", "issue": "Scoped only by team_id. The admin has team_id=None, so every user without a team shares the same QR pool. main_site_id is stored but not used for scoping."},
+      {"endpoint": "Public stats", "issue": "totals.* ignores the `days` param while by_* are filtered. Fine, but document it. by_day groups by UTC date, not Europe/Brussels. No rate limiting on /api/q (scan inflation) or on the public API."},
+      {"endpoint": "Orphan QR records", "issue": "A QR record is created on insert/download even if the article is never saved or the dialog is cancelled after a download, so orphaned qr_codes accumulate (seen during testing). Low impact; maybe a cleanup or 'unused' flag."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "QR dialog (new QR, tracking on)", "issues": ["Before insert/download the live preview encodes the raw URL (no trackingUrl yet), while the inserted/downloaded image encodes /api/q/{code}. So the preview pattern differs from the final image. Minor, but users who scan the preview with a phone bypass tracking."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_qr_tracking.py", "/app/test_reports/pytest/pytest_qr_tracking.xml"],
+  "action_items": [
+    "Keep/review the asyncio.to_thread fix in services/email_service.py send_email_with_config, apply the same to test_smtp_config, and investigate the endless failing-email retry loop / SMTP timeouts",
+    "Fix the _lookup_geo private-IP check (use the ipaddress module)",
+    "Add a secret pepper to the visitor hash in _record_scan",
+    "Optional: allow HEAD on /api/q/{code}; consider rate limiting the public QR endpoints"
+  ],
+  "critical_code_review_comments": [
+    "qr_codes.py is clean: _id is excluded everywhere, api_token is never returned except inside api_url, compare_digest is used for the token, the scan doc has no IP field (verified keys: id,qr_id,scanned_at,visitor,unique,country,city,device_type,os,browser), and PUBLIC_HEADERS adds CORS *",
+    "Client-sent cf-ipcountry/cf-ipcity headers are overwritten by the ingress on preview, so geo came from the IP lookup (US/North Charleston for the test runner). Expected.",
+    "PATCH update_one filters by id only, after the _owned_qr check. OK.",
+    "Old QR images from iteration 182 (no trackingEnabled key) inherit trackingEnabled=true from DEFAULT_QR, so 'Update' on an old QR silently creates a tracking record and changes the encoded link. Probably desired, but be aware."
+  ],
+  "updated_files": ["/app/backend/services/email_service.py", "/app/backend/tests/test_qr_tracking.py"],
+  "success_rate": {"backend": "100% (11/11 executed, 1 skipped; cross-team verified manually)", "frontend": "100%"},
+  "test_credentials": "admkoodh@koodh.com / KYLovie13monx works. yannick.gijbels@koodh.com was brute-force locked (429/401) during this run.",
+  "seed_data_creation": "None kept. TEST_ QR records and the UI-created ui-track-*/ui-dl-* QR records + scans were deleted. Article ffb6a31a-... (TEST_QR article) was not saved/modified.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "UI auth: POST /api/auth/login via page.request, then set localStorage token AND session_expires_at = response.expires_at (epoch seconds). A ms-based value makes the app wipe the token -> 'Site not found'. Article: /radiogroep/content/ffb6a31a-ccd9-4ed3-8ade-a8c318b660f3 -> [data-testid=edit-content-btn] -> the 'button[aria-label=\"QR code\"]:visible' toolbar button. Inserted images live on nbg1.your-objectstorage.com; decode by fetching via page.request + jsQR loaded with (0,eval) (the runner disallows `global`). Background scan logging needs ~1-2s. If the backend hangs, check backend.err.log for 'Failed to send email' (the event-loop blocking issue).",
+  "rca of the issue": "Backend unresponsive at test start: services/email_service.send_email_with_config is async but calls blocking smtplib with timeout=15. The SMTP server times out, and some scheduler resends to ~7 recipients in a loop, so the single uvicorn event loop was blocked about 100% of the time -> 502/timeouts for every endpoint. Mitigation applied: run the SMTP send in asyncio.to_thread. Health went from 10s timeouts to ~5ms responses."
+}

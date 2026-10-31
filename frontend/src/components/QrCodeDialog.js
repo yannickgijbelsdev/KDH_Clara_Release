@@ -191,6 +191,11 @@ export const QrCodeDialog = ({ open, initialConfig, contentId, onClose, onInsert
                 ? <img src={preview} alt="QR preview" className="max-h-full max-w-full object-contain" data-testid="qr-preview-image" />
                 : <span className="px-4 text-center text-xs text-zinc-400">Enter a link or text to see the preview</span>}
             </div>
+            {cfg.trackingEnabled && isUrl(cfg.text) && !cfg.trackingUrl && (
+              <p className="text-[11px] leading-snug text-zinc-500" data-testid="qr-preview-tracking-note">
+                Preview only — the final code points to the tracking link (created when you insert or download).
+              </p>
+            )}
             <div className="grid grid-cols-2 gap-2">
               <Button variant="outline" size="sm" disabled={!canUse} onClick={downloadPng} data-testid="qr-download-png"><Download className="mr-1.5 h-3.5 w-3.5" />PNG</Button>
               <Button variant="outline" size="sm" disabled={!canUse} onClick={downloadSvg} data-testid="qr-download-svg"><Download className="mr-1.5 h-3.5 w-3.5" />SVG</Button>

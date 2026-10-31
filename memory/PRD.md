@@ -472,4 +472,5 @@ Chrome then silently blocked those `<img>` requests → the Programma's page sho
 - DONE: Large video uploads (2 GB, auto-compressed to 1080p MP4) for Video Endpoints, Liveblog, Articles. See CHANGELOG.
 - DONE: 21 blocking lint errors (pod-local storage, ObjectId) resolved.
 - DONE: QR code generator in the content editor (colours, background, transparent, logo, caption, rounded dots, PNG/SVG download, editable afterwards).
+- DONE: QR scan tracking with a per-QR API link for Clara Campaigns (pull only, no IP stored).
 - Backlog: P1 Radio Automation Phase 2, P1 Calendar integration (Google/Outlook), P2 Payments for License Manager, P2 Stream Monitor VU meters, P2 split large components, re-mount audio_trigger_router (decision needed), VDC auto-deploy upstream 404 (blocked).

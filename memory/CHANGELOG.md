@@ -642,3 +642,11 @@ grk.fm / mfy.fm players embed `<img src="/api/rds/grk/image.jpg">` directly. Whe
 - RichTextEditor: toolbar/context menu button 'qrcode', context toolbar on `img.clara-qr`, double-click to edit; config stored in `data-qr` JSON on the img; PNG uploaded to S3 via `/api/uploads/editor-files`.
 - content.py: `img.clara-qr` is excluded from image rights checks (`_iter_inline_img_srcs`).
 - Tested: iteration_182 (backend 7/7, frontend all QR flows pass).
+
+## 2026-06 — QR scan tracking + Clara Campaigns pull API
+- NEW `backend/routers/qr_codes.py`: `qr_codes` + `qr_scans` collections. Auth CRUD `/api/qr-codes` (scoped by team, or by creator when there is no team), `rotate-token`. Redirect `GET|HEAD /api/q/{code}` logs scans in the background (device/OS/browser from the UA; country/city from Cloudflare headers, else ipwho.is → ipapi.co; NO IP stored; visitor = HMAC(JWT_SECRET) daily hash; bots skipped; max 5 per visitor per minute).
+- Public read API per QR (token via ?token= or X-API-Key, CORS *): `/api/public/qr/{code}/stats` (totals all-time, by_day in Europe/Brussels, by device/os/browser/country/city, recent 50) and `/api/public/qr/{code}/scans?since=` (incremental).
+- Editor: tracking switch (default ON) in QrCodeDialog + QrTrackingPanel (scan count, copyable API link + tracking link). The QR encodes the short link; the target can be changed later without reprinting. data-qr stores qrId/trackingUrl, never the token. API Endpoints page: group "QR Code Tracking".
+- Fixed (testing agent + main): blocking smtplib calls in email_service now run in asyncio.to_thread (they froze the event loop).
+- Tested: iteration_183 (backend 11/11, frontend 100%).
+- Known: QR records created by downloads/inserts that are never saved stay as orphans (low impact).

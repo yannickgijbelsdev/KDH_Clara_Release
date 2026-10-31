@@ -1,4 +1,5 @@
 """Email service for sending notifications via SMTP."""
+import asyncio
 import smtplib
 import ssl
 import logging
@@ -130,16 +131,17 @@ async def send_email_with_config(smtp_config: dict, to_email: str, subject: str,
         host = smtp_config["host"]
         port = int(smtp_config.get("port", 587))
 
-        refused = {}
-        if smtp_config.get("use_tls", True):
-            with smtplib.SMTP(host, port, timeout=15) as server:
-                server.starttls(context=context)
-                server.login(smtp_config["username"], smtp_config["password"])
-                refused = server.sendmail(from_email, to_email, msg.as_string())
-        else:
+        def _smtp_send():
+            if smtp_config.get("use_tls", True):
+                with smtplib.SMTP(host, port, timeout=15) as server:
+                    server.starttls(context=context)
+                    server.login(smtp_config["username"], smtp_config["password"])
+                    return server.sendmail(from_email, to_email, msg.as_string())
             with smtplib.SMTP_SSL(host, port, context=context, timeout=15) as server:
                 server.login(smtp_config["username"], smtp_config["password"])
-                refused = server.sendmail(from_email, to_email, msg.as_string())
+                return server.sendmail(from_email, to_email, msg.as_string())
+
+        refused = await asyncio.to_thread(_smtp_send)
 
         if refused:
             logger.error(f"Email refused for {to_email}: {refused}")
@@ -165,13 +167,16 @@ async def test_smtp_config(smtp_config: dict) -> dict:
         host = smtp_config["host"]
         port = int(smtp_config.get("port", 587))
 
-        if smtp_config.get("use_tls", True):
-            with smtplib.SMTP(host, port, timeout=10) as server:
-                server.starttls(context=context)
-                server.login(smtp_config["username"], smtp_config["password"])
-        else:
-            with smtplib.SMTP_SSL(host, port, context=context, timeout=10) as server:
-                server.login(smtp_config["username"], smtp_config["password"])
+        def _check():
+            if smtp_config.get("use_tls", True):
+                with smtplib.SMTP(host, port, timeout=10) as server:
+                    server.starttls(context=context)
+                    server.login(smtp_config["username"], smtp_config["password"])
+            else:
+                with smtplib.SMTP_SSL(host, port, context=context, timeout=10) as server:
+                    server.login(smtp_config["username"], smtp_config["password"])
+
+        await asyncio.to_thread(_check)
 
         return {"success": True, "message": "SMTP connection successful!"}
     except smtplib.SMTPAuthenticationError:
