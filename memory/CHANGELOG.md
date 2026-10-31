@@ -636,3 +636,9 @@ grk.fm / mfy.fm players embed `<img src="/api/rds/grk/image.jpg">` directly. Whe
 - Lint: removed ALL pod-local upload fallbacks (server editor-files, content, media, chat, shows, users avatar, vmix, sites, main_sites logo, task_boards) -> 503 when S3 is missing. Audio trigger sounds now stored in S3 (`audio_triggers/...` key in `*_sound_path`). ObjectId fixes in vmix.py / rds_builder.py.
 - Tested: iteration_180 + iteration_181 (backend 18/19, frontend passes).
 - NOTE: `audio_trigger_router` is NOT mounted in server.py (removed in an earlier commit), so the audio trigger endpoints currently 404.
+
+## 2026-06 — QR codes in the content library editor
+- `components/QrCodeDialog.js` + `utils/qrRender.js` (qr-code-styling 1.9.2): link/text, QR colour, background colour, size; switchable options: transparent background, rounded dots, logo in the middle (stored in S3, reloaded via same-origin `GET /api/uploads/editor-files/raw/editor/...`), caption below the code. Live preview, PNG (2048px) + SVG download.
+- RichTextEditor: toolbar/context menu button 'qrcode', context toolbar on `img.clara-qr`, double-click to edit; config stored in `data-qr` JSON on the img; PNG uploaded to S3 via `/api/uploads/editor-files`.
+- content.py: `img.clara-qr` is excluded from image rights checks (`_iter_inline_img_srcs`).
+- Tested: iteration_182 (backend 7/7, frontend all QR flows pass).

@@ -1403,8 +1403,7 @@ def _content_has_missing_image_attribution(item: dict) -> bool:
     attrs = item.get("image_attributions") or {}
     if not isinstance(attrs, dict):
         attrs = {}
-    for m in _INLINE_IMG_SRC_RE.finditer(body):
-        url = (m.group(1) or "").strip()
+    for url in _iter_inline_img_srcs(body):
         if not url or url.startswith("data:") or "/None/" in url or "/None_" in url:
             continue
         if not _attribution_is_filled(attrs.get(url)):
@@ -1415,6 +1414,13 @@ def _content_has_missing_image_attribution(item: dict) -> bool:
 # ── Image rights / inline body image attributions ──
 
 _INLINE_IMG_SRC_RE = re.compile(r'<img[^>]+src=["\']([^"\']+)["\']', re.IGNORECASE)
+_QR_IMG_RE = re.compile(r'<img\b[^>]*\bclass=["\'][^"\']*\bclara-qr\b[^>]*>', re.IGNORECASE)
+
+
+def _iter_inline_img_srcs(body: str):
+    """Inline <img> srcs, excluding self-generated QR codes (no image rights needed)."""
+    for m in _INLINE_IMG_SRC_RE.finditer(_QR_IMG_RE.sub("", body)):
+        yield (m.group(1) or "").strip()
 
 
 def _detect_body_images(body: str) -> List[str]:
@@ -1424,8 +1430,7 @@ def _detect_body_images(body: str) -> List[str]:
     if not body:
         return []
     seen = []
-    for m in _INLINE_IMG_SRC_RE.finditer(body):
-        url = (m.group(1) or "").strip()
+    for url in _iter_inline_img_srcs(body):
         if not url or url.startswith("data:"):
             continue
         if "/None/" in url or "/None_" in url:

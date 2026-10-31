@@ -1,0 +1,36 @@
+{
+  "summary": "Tested the QR code feature in the TinyMCE editor of the content library, both backend and frontend, plus a quick editor regression. Backend: 7/7 pytest pass for the GET /api/uploads/editor-files/raw/{key} guard rules (bytes match the upload, image/png type, 400 for a non-editor/ key, a traversal attempt, a non-image or a missing extension, 404 when missing) and upload auth. Frontend (Playwright, admin, /radiogroep/content/:id edit mode and the Create Content wizard): the QR button is visible on the primary toolbar in the detail page; in the Create dialog it sits behind the '...' More button and works there. The dialog title is 'Insert QR code', the text field starts empty and gets focus, and Insert/PNG/SVG are disabled until text is entered. The preview shows up after typing. Colour changes update the preview, checked by pixel (bg #ffff00 corner = 255,255,0). The slider updates the size label (300->320px). Transparent: alpha 0 corner pixel and the bg field is dimmed and disabled; off restores white. Rounded changes the image. Caption: default 'Scan mij', canvas grows 512x512 -> 512x594, off removes it, the custom text is kept when switched back on. Logo: the picker appears and Insert is disabled until a logo exists; the uploaded PNG is rendered in the centre (blue centre pixel). Downloads: qr-example-com-hello.png (2048x2376) and .svg (contains the caption text and <image> logo). Insert uploads the PNG (POST editor-files 200) and inserts img.clara-qr with width=300, height=348 and full data-qr JSON. Save (PUT 200) persists it, checked via GET /api/content/:id. Edit: clicking the QR shows a context toolbar with the QR button. Double-click opens 'Edit QR code' with every field filled in, and the logo is loaded via GET raw 200. 'Update QR code' replaces the src in place (still 1 image), saves, and the context toolbar button also opens the edit dialog. Inside the Create Content dialog, real keyboard typing works (no focus-trap issue), Insert works, and Escape closes only the QR dialog. Regression: the TinyMCE image dialog 'Browse' upload still fills the Source field with the S3 URL (POST 200). The video upload overlay was not re-run (no code change in that path).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "GET /api/uploads/editor-files/raw/{key}", "issue": "No auth and no size limit. Any editor/ image can be fetched by key. That is acceptable because these files are public-read on S3 anyway, but note it is an open proxy for editor images."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Image rights / News API publishing", "issue": "An inserted QR code is counted as an inline photo by the image-rights check (backend/routers/content.py _build_image_rights_status). After saving, the 'Manage image rights' modal opens automatically with 'INLINE IMAGE 1 - Source missing', the header shows 'Image rights · 1 missing', and Publish to News API stays blocked until the user enters a source for a self-generated QR code. Suggest skipping <img class='clara-qr'> (or images with data-qr) in the image-rights extraction, both backend and ImageRightsModal.", "affected_selectors": ["img.clara-qr", "Image rights badge", "Manage image rights modal"]}
+    ],
+    "design_issues": [
+      {"screen": "Editor QR context toolbar", "issues": ["The node-positioned context toolbar (QR + align buttons, stacked vertically) sits on top of the QR image's top-left area. Cosmetic only."]},
+      {"screen": "QR dialog at 1920x1080", "issues": ["With logo and caption switched on, the dialog body scrolls (max-h 92vh) and the caption input sits close to the footer. Acceptable."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_qr_editor_raw.py", "/app/test_reports/pytest/pytest_qr.xml"],
+  "action_items": [
+    "Exclude QR code images (img.clara-qr / [data-qr]) from the image-rights 'missing' count so QR codes don't trigger the rights popup or block News API publishing.",
+    "Optional: when the QR text is too long for a QR code (qr-code-styling overflow above ~2900 chars), the preview just goes blank while the Insert/Download buttons stay enabled. Show an inline error and disable the buttons when rendering fails."
+  ],
+  "critical_code_review_comments": [
+    "QrCodeDialog: if the saved logo fails to load (toast error), canUse stays false (logoEnabled && !logoDataUrl). The user must switch the logo off to continue. Acceptable, but a clearer hint would help.",
+    "QrCodeDialog: if a render fails, setPreview('') is called but canUse ignores render failure (see the action item above).",
+    "The data-qr JSON (including logoKey) is stored in the article body and will be sent to WordPress/News API as-is. Harmless, but consider stripping the data-qr/class attributes at publish time if downstream sanitizers complain."
+  ],
+  "updated_files": ["/app/backend/tests/test_qr_editor_raw.py"],
+  "success_rate": {"backend": "100%", "frontend": "95% (all QR flows pass; 1 integration issue with image-rights)"},
+  "test_credentials": "Admin admkoodh@koodh.com / KYLovie13monx (from /app/memory/test_credentials.md)",
+  "seed_data_creation": "Created the article 'TEST_QR article' (radiogroep) via the API for testing and deleted it afterwards. Uploaded a few small test PNGs to S3 editor/ (not cleaned up). The Create dialog article was not saved.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "In headless Playwright, the UI login at /login stayed on 'Signing in...' and no /api/auth/login request was seen. I worked around it by logging in via the API and injecting localStorage.token (+session_expires_at) before going to /radiogroep/content/:id. Click [data-testid='edit-content-btn'] to get TinyMCE. Dismiss the auto-opened 'Manage image rights' modal ('Fill in later') if an article has QR/inline images. Create wizard: create-content-btn -> fill title -> Continue -> [data-testid='writing-method-manual'] -> the editor shows (the QR button is behind 'Reveal or hide additional toolbar items'). The editor iframe is '.tox-edit-area iframe'; the QR context toolbar is '.tox-pop button[aria-label=\"QR code\"]'."
+}
