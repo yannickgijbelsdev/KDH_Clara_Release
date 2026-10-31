@@ -14,7 +14,7 @@ Architecture:
 """
 
 from fastapi import FastAPI, APIRouter, WebSocket, WebSocketDisconnect, Depends, Request, HTTPException
-from fastapi.responses import PlainTextResponse, FileResponse
+from fastapi.responses import PlainTextResponse, FileResponse, Response
 from starlette.middleware.cors import CORSMiddleware
 import os
 import logging
@@ -794,6 +794,26 @@ async def get_editor_file_s3(file_key: str):
         return RedirectResponse(url=presigned_url, status_code=302)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to serve file: {str(e)}")
+
+
+@api_router.get("/uploads/editor-files/raw/{file_key:path}")
+async def get_editor_file_raw(file_key: str):
+    """Same-origin bytes of a public editor file (lets the browser canvas use it, e.g. QR logos)."""
+    from fastapi import HTTPException
+    from services.s3_storage import get_file_from_s3, is_s3_configured
+
+    if not file_key.startswith("editor/") or ".." in file_key:
+        raise HTTPException(status_code=400, detail="Invalid file key")
+    media_type = mimetypes.guess_type(file_key)[0] or ""
+    if not media_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Only images can be fetched this way")
+    if not is_s3_configured():
+        raise HTTPException(status_code=503, detail="Object storage is not configured")
+    try:
+        data = await get_file_from_s3(file_key)
+    except Exception:
+        raise HTTPException(status_code=404, detail="File not found")
+    return Response(content=data, media_type=media_type, headers={"Cache-Control": "public, max-age=86400"})
 
 
 @api_router.get("/uploads/editor-files/{file_key}")

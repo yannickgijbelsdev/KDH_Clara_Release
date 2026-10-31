@@ -5,6 +5,11 @@ import { Editor } from '@tinymce/tinymce-react';
 import axios from 'axios';
 import { Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { uploadLargeVideo, isVideo } from '../utils/videoUpload';
+import { QrCodeDialog } from './QrCodeDialog';
+
+const QR_ICON = '<svg width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M3 3h8v8H3V3zm2 2v4h4V5H5zm8-2h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5zm8-2h2v2h-2v-2zm2 2h2v2h-2v-2zm2-2h2v2h-2v-2zm2 2h2v2h-2v-2zm-6 2h2v2h-2v-2zm4 0h2v2h-2v-2zm-2 2h2v2h-2v-2zm4 0h2v2h-2v-2z"/></svg>';
+const isQrNode = (node) => node && node.nodeName === 'IMG' && node.classList.contains('clara-qr');
+const readQrConfig = (node) => { try { return JSON.parse(node.getAttribute('data-qr') || '{}'); } catch { return {}; } };
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -27,6 +32,26 @@ const RichTextEditor = ({
   const [uploadError, setUploadError] = useState(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [uploadPhase, setUploadPhase] = useState('');
+  const [qr, setQr] = useState({ open: false, config: null, node: null });
+
+  const openQrDialog = (editor) => {
+    const node = editor.selection.getNode();
+    setQr(isQrNode(node) ? { open: true, config: readQrConfig(node), node } : { open: true, config: null, node: null });
+  };
+
+  const handleQrInsert = (url, cfg) => {
+    const editor = editorRef.current;
+    const height = Math.round(cfg.size * (cfg.captionEnabled && cfg.caption.trim() ? 1.16 : 1));
+    const attrs = { src: url, class: 'clara-qr', 'data-qr': JSON.stringify(cfg), width: cfg.size, height, alt: `QR code: ${cfg.text}` };
+    if (qr.node && editor.dom.isChildOf(qr.node, editor.getBody())) {
+      editor.undoManager.transact(() => editor.dom.setAttribs(qr.node, attrs));
+      editor.nodeChanged();
+      onChange(editor.getContent());
+    } else {
+      editor.insertContent(editor.dom.createHTML('img', attrs));
+    }
+    setQr({ open: false, config: null, node: null });
+  };
 
   const handleEditorChange = (content) => {
     onChange(content);
@@ -228,6 +253,12 @@ const RichTextEditor = ({
           </button>
         </div>
       )}
+      <QrCodeDialog
+        open={qr.open}
+        initialConfig={qr.config}
+        onClose={() => setQr({ open: false, config: null, node: null })}
+        onInsert={handleQrInsert}
+      />
       <Editor
         id={id}
         tinymceScriptSrc="/tinymce/tinymce.min.js"
@@ -251,7 +282,7 @@ const RichTextEditor = ({
             'bold italic underline strikethrough | forecolor backcolor | ' +
             'alignleft aligncenter alignright alignjustify | ' +
             'bullist numlist outdent indent | ' +
-            'link image media table | ' +
+            'link image media qrcode table | ' +
             'blockquote codesample emoticons charmap | ' +
             'removeformat | fullscreen preview code help',
           toolbar_mode: 'sliding',
@@ -281,7 +312,7 @@ const RichTextEditor = ({
           // Quick toolbars
           quickbars_selection_toolbar: 'bold italic | quicklink h2 h3 blockquote',
           quickbars_insert_toolbar: 'quickimage quicktable',
-          contextmenu: 'link image table',
+          contextmenu: 'link image qrcode table',
           
           // Image upload settings - enables drag/drop and paste
           paste_data_images: true,
@@ -322,6 +353,24 @@ const RichTextEditor = ({
           
           // Setup callback
           setup: (editor) => {
+            editor.ui.registry.addIcon('clara-qr', QR_ICON);
+            editor.ui.registry.addButton('qrcode', {
+              icon: 'clara-qr',
+              tooltip: 'QR code',
+              onAction: () => openQrDialog(editor),
+            });
+            editor.ui.registry.addMenuItem('qrcode', {
+              icon: 'clara-qr',
+              text: 'QR code…',
+              onAction: () => openQrDialog(editor),
+            });
+            editor.ui.registry.addContextToolbar('clara-qr-toolbar', {
+              predicate: isQrNode,
+              items: 'qrcode',
+              position: 'node',
+              scope: 'node',
+            });
+            editor.on('dblclick', (e) => { if (isQrNode(e.target)) { editor.selection.select(e.target); openQrDialog(editor); } });
             editor.on('init', () => {
               const container = editor.getContainer();
               if (container) {
