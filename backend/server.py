@@ -760,8 +760,9 @@ async def upload_editor_file(
     )
     
     # Validate file size (100MB max for video/audio, 10MB for others)
-    is_video = (file.content_type and file.content_type.startswith('video/')) or file_ext in ['mp4', 'mov', 'webm', 'avi']
-    is_audio = (file.content_type and file.content_type.startswith('audio/')) or file_ext in ['mp3', 'wav', 'ogg', 'm4a']
+    is_video = (file.content_type and file.content_type.startswith('video/')) or file_ext in ['mp4', 'mov', 'webm', 'avi', 'm4v']
+    is_audio = (file.content_type and file.content_type.startswith('audio/')) or file_ext in [
+        'mp3', 'wav', 'ogg', 'oga', 'm4a', 'aac', 'flac', 'opus', 'aif', 'aiff', 'wma']
     max_size = 100 * 1024 * 1024 if (is_video or is_audio) else 10 * 1024 * 1024
     
     if len(contents) > max_size:
@@ -776,6 +777,12 @@ async def upload_editor_file(
     if is_s3_configured():
         try:
             result = await upload_file_to_s3(contents, file_key, file.content_type, main_site_id=main_site_id)
+            # Remember the original name so the Media Library mirror can show it.
+            await db.editor_uploads.insert_one({
+                "file_storage_key": result['key'], "filename": file.filename, "mime_type": file.content_type,
+                "size": len(contents), "user_id": current_user.get("id"),
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            })
             # Return direct S3 URL (files are uploaded with ACL='public-read')
             return {"url": result['url'], "filename": file.filename, "size": len(contents)}
         except HTTPException:
@@ -1222,6 +1229,9 @@ async def startup_db_client():
     await db.qr_scans.create_index([("qr_id", 1), ("scanned_at", 1)])
     await db.qr_scans.create_index([("qr_id", 1), ("visitor", 1)])
     app.state.video_upload_janitor = asyncio.create_task(video_upload_janitor())
+    from services.article_media import backfill_article_media
+    app.state.article_media_backfill = asyncio.create_task(backfill_article_media())
+    await db.media_assets.create_index([("main_site_id", 1), ("file_storage_key", 1)])
 
     # Ensure MongoDB indexes for fast queries
     try:

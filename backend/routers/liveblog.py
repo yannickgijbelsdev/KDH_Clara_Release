@@ -12,6 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File
 
 from database import db
 from services.auth import require_editor_or_admin, require_upload_access
+from services.article_media import syncs_article_media
 from services.main_site_context import get_main_site_id_from_header
 from services.s3_storage import upload_file_to_s3, is_s3_configured
 from services.websocket import ws_manager
@@ -126,6 +127,7 @@ async def list_entries(
 
 
 @liveblog_router.post("/{content_id}/liveblog/entries", response_model=LiveblogEntryResponse, status_code=201)
+@syncs_article_media
 async def create_entry(
     content_id: str,
     payload: LiveblogEntryCreate,
@@ -166,6 +168,7 @@ async def create_entry(
 
 
 @liveblog_router.put("/{content_id}/liveblog/entries/{entry_id}", response_model=LiveblogEntryResponse)
+@syncs_article_media
 async def update_entry(
     content_id: str,
     entry_id: str,

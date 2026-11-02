@@ -18,6 +18,8 @@ class MediaAssetResponse(BaseModel):
     size: int
     duration_seconds: Optional[float] = None
     folder_id: Optional[str] = None
+    source: Optional[str] = None       # "article" when mirrored from an article
+    content_id: Optional[str] = None   # article the file belongs to
     created_at: str
     updated_at: str
 

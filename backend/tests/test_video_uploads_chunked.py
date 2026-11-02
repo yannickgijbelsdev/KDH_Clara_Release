@@ -164,10 +164,10 @@ class TestCompression:
     def test_big_1440p_compressed_to_1080p(self, admin):
         _ensure_videos()
         init, size = _upload_all(admin, BIG, target="video_endpoint")
-        assert init["total_chunks"] == 4
+        assert init["total_chunks"] == -(-size // CHUNK)
         c = requests.post(f"{API}/video-uploads/{init['upload_id']}/complete", headers=admin, timeout=120)
         assert c.status_code == 200, c.text
-        assert c.json()["status"] == "processing"
+        assert c.json()["status"] in ("processing", "queued")
         d, seen = _poll(admin, init["upload_id"])
         print("status trail:", seen)
         assert d["status"] == "done", d

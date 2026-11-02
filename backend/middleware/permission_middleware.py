@@ -225,6 +225,12 @@ class PermissionMiddleware(BaseHTTPMiddleware):
                 request.state.permission_approved = True
                 return await call_next(request)
 
+        # Everyone may remove their own media uploads.
+        if feature == "media_library" and method == "DELETE" and path.count("/") == 3:
+            own = await db.media_assets.find_one({"id": path.rsplit("/", 1)[-1], "uploaded_by": user_id}, {"_id": 1})
+            if own:
+                return await call_next(request)
+
         await self._log_denial(user_id, user_email, role_slug, main_site_id, feature, action, path, method, client_ip)
         return JSONResponse(
             status_code=403,

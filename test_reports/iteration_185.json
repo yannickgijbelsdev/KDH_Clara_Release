@@ -1,0 +1,40 @@
+{
+  "summary": "Tested the 'everyone can upload audio/video/images' change. Backend: 39/40 tests pass in the new test_upload_access_all_roles.py, using JWTs minted for redactie, presentator, viewer and presenter. /api/uploads/editor-files (mp3/mp4/png plus wav/m4a/aac/flac/ogg/opus/aiff/wma), POST /api/media, /api/videos/upload, liveblog upload-image and upload-video, and the chunked /api/video-uploads all return 200/201 for every role. Unauthenticated requests are rejected. In the chunked flow, a 13MB WAV with target media becomes an MP3: ffprobe confirms mp3 at 192000 bps, the media asset has kind audio, mime audio/mpeg and duration about 70s, and asset_id is set. Target article gives an editor/videos/...mp3 with no asset. Audio with target video_endpoint or liveblog returns 400. Video with target media gives an MP4 plus a video asset. Global Protect: a 12MB AAC is no longer blocked. One failure: a 13MB AIFF sent as application/octet-stream is rejected by editor-files' own size check with 10MB max. Frontend (admin): the Media Library Upload button is visible. A small mp3 goes straight to POST /api/media (201). A 13MB WAV shows the overlay with phases Uploading file... -> Queued for compression... -> Compressing audio (MP3 192 kbps)... and the percent text. No compression dialog appears. Afterwards the list shows big.wav as an audio asset (big.mp3, 1.6MB, 1:10). In the TinyMCE editor (Insert/edit media), a small mp3 goes through /api/uploads/editor-files. A 13MB WAV goes Uploading audio... -> Queued -> Compressing audio (MP3 192 kbps)..., the source becomes .../editor/videos/<site>/<uuid>.mp3 and an <audio> element is inserted. Regression: test_video_uploads_chunked, test_editor_file_upload and test_media_upload_video pass except 2 stale webm tests and 1 stale chunk-count assertion (fixed).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/uploads/editor-files", "issue": "In server.py upload_editor_file, is_audio matches only the extensions mp3/wav/ogg/m4a, and is_video does not include m4v. So aac/flac/opus/aiff/aif/wma/oga files sent with an empty or application/octet-stream content type get the 10MB limit ('File too large. Maximum size is 10MB'). Reproduced with a 13MB AIFF as octet-stream. The frontend avoids this because audio over 5MB uses the chunked flow, but direct API calls and clients without a MIME type are affected. Fix: reuse the full allowed audio/video extension lists."},
+      {"endpoint": "DELETE /api/media/{id}", "issue": "Users who can now upload (viewer/redactie/presentator) get 403 'Content editing access required' when deleting their own upload. Admin DELETE of an asset from another team returns 404 because of team scoping. Consider letting the uploader delete their own assets (uploaded_by == current user)."},
+      {"endpoint": "tests (stale)", "issue": "test_editor_file_upload::test_upload_video_webm_returns_url and test_media_upload_video::test_upload_video_webm send a fake 105-byte EBML header, which Global Protect blocks with 403 'MIME type mismatch'. A real libvpx webm uploads fine (200). The tests need a real webm fixture; this is not a product bug."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Media Library chunked upload", "issue": "uploadFiles does not pass folderId/currentFolder to uploadLargeVideo, and the direct POST /api/media FormData has no folder_id either. Files uploaded while a folder is open land in the root instead of that folder. Not verified in the UI because no folders exist; found in code review.", "affected_selectors": ["[data-testid='upload-media-btn']"]}
+    ],
+    "design_issues": [
+      {"screen": "Media Library list", "issues": ["A compressed WAV shows title 'big.wav' with subtitle 'big.mp3'. This is acceptable, but the title keeps the original extension, which may confuse users."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_upload_access_all_roles.py", "/app/test_reports/pytest/iteration_185.xml", "/app/backend/tests/test_video_uploads_chunked.py"],
+  "action_items": [
+    "Widen is_audio/is_video in server.py upload_editor_file to the full extension list (aac, flac, opus, aif, aiff, wma, oga, m4v) so octet-stream audio between 10 and 100MB is not rejected.",
+    "Optional: allow the uploader to delete their own media assets now that every role can upload.",
+    "Optional: pass currentFolder as folderId (chunked) and folder_id (direct) in MediaLibraryPage uploadFiles.",
+    "Optional: replace the fake-EBML webm fixtures in test_editor_file_upload.py and test_media_upload_video.py with a real ffmpeg-generated webm."
+  ],
+  "critical_code_review_comments": [
+    "require_upload_access now only requires get_current_user, so it is applied consistently across video_uploads, media, liveblog, video_endpoints and server.py. The middleware bypass applies only to exact POST /api/media.",
+    "Unauthenticated requests return 403 'Not authenticated' (the app-wide HTTPBearer convention), not 401.",
+    "MediaLibraryPage.js is about 1890 lines; it should be split."
+  ],
+  "updated_files": ["/app/backend/tests/test_upload_access_all_roles.py (new)", "/app/backend/tests/test_video_uploads_chunked.py (chunk-count assertion now computed from file size; complete status accepts queued)"],
+  "success_rate": {"backend": "97.5% (39/40 new); regressions 41/44, with the 3 failures being stale tests", "frontend": "100% of tested admin flows (Media Library small + large audio, TinyMCE small + large audio)"},
+  "test_credentials": "Admin admkoodh@koodh.com / KYLovie13monx. Role JWTs minted with /tmp/mint.py (services.auth.create_token) for redactie 7aba2fdb..., presentator 3d82563a..., viewer e7058f69..., presenter 6cd6f3df...",
+  "seed_data_creation": "None. TEST_ media_assets and the UI-created big.wav/small.mp3 assets were deleted from the DB (the S3 objects remain). The liveblog article 9f3cdbc2 was not saved, because only the TinyMCE media dialog was used.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Fixtures are in /tmp/at (big.wav 13MB, big.aiff 13MB, big.aac 12MB, small.mp3, small.mp4, s.png, real.webm); the test regenerates role tokens via /tmp/mint.py if they are missing. Non-admin UI testing is blocked in preview: viewer and redactie get 'No active license' on /radiogroep, and presenter has no main site ('No Access'). So upload-button visibility for non-admins was checked by code review only (the button is no longer wrapped in canEdit; New Folder still is). The Media Library briefly repeated GET /api/media + folders/tree about 5 times on load for a viewer on an unlicensed site; worth a look.",
+  "rca of the issue": "The remaining 10MB rejection comes from upload_editor_file's local is_audio check (an extension whitelist that is too narrow). It does not come from Global Protect: EXT_CATEGORY now maps aac/aiff to audio, and the 12MB AAC passes."
+}

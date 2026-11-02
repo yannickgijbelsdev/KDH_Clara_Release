@@ -211,6 +211,13 @@ async def upload_media_asset(
     return asset_doc
 
 
+@media_router.post("/sync-articles")
+async def sync_article_media_now(current_user: dict = Depends(require_can_edit_content)):
+    """Re-scan all articles and add their S3 files to the Media Library (Artikels folder)."""
+    from services.article_media import backfill_article_media
+    return await backfill_article_media(force=True)
+
+
 @media_router.get("/serve/{asset_id}")
 async def serve_media_file(asset_id: str):
     """Serve a media file via presigned URL (S3) or local file."""
@@ -292,14 +299,21 @@ async def update_media_asset(
 async def delete_media_asset(
     asset_id: str,
     request: Request,
-    current_user: dict = Depends(require_can_edit_content)
+    current_user: dict = Depends(get_current_user)
 ):
-    """Delete a media asset from storage."""
+    """Delete a media asset from storage (editors, or the person who uploaded it)."""
     asset = await db.media_assets.find_one(
         {"id": asset_id, "team_id": current_user.get('team_id')}
     )
     if not asset:
         raise HTTPException(status_code=404, detail="Media asset not found")
+    if asset.get("uploaded_by") != current_user.get("id"):
+        await require_can_edit_content(request, current_user)
+    if asset.get("source") == "article":
+        # Still used by the article: keep the S3 file, just don't mirror it again.
+        await db.media_sync_ignore.update_one(
+            {"file_storage_key": asset["file_storage_key"], "main_site_id": asset.get("main_site_id"), "team_id": asset.get("team_id")},
+            {"$set": {"created_at": datetime.now(timezone.utc).isoformat()}}, upsert=True)
     
     asset_title = asset.get("title", asset.get("original_filename", "Unknown"))
     main_site_id = asset.get("main_site_id")

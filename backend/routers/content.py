@@ -23,6 +23,7 @@ from services.audit import log_action, get_client_ip
 from services.s3_storage import upload_file_to_s3, delete_file_from_s3, is_s3_configured
 from services.main_site_context import get_main_site_id_from_header, get_effective_role
 from services.permissions import get_user_permissions
+from services.article_media import syncs_article_media
 
 
 async def _can_approve_content(request: Request, current_user: dict) -> bool:
@@ -339,6 +340,7 @@ async def get_content_items(
 
 
 @content_router.post("", response_model=ContentItemResponse, status_code=status.HTTP_201_CREATED)
+@syncs_article_media
 async def create_content_item(
     content_data: ContentItemCreate,
     request: Request,
@@ -414,6 +416,7 @@ async def get_content_item(
 
 
 @content_router.put("/{content_id}", response_model=ContentItemResponse)
+@syncs_article_media
 async def update_content_item(
     content_id: str,
     content_data: ContentItemUpdate,
@@ -793,6 +796,7 @@ async def delete_content_item(
 
 
 @content_router.post("/{content_id}/restore")
+@syncs_article_media
 async def restore_content_item(
     content_id: str,
     request: Request,
@@ -955,6 +959,7 @@ async def get_content_audit_logs(
 
 
 @content_router.post("/{content_id}/rollback/{log_id}", response_model=ContentItemResponse)
+@syncs_article_media
 async def rollback_content_item(
     content_id: str,
     log_id: str,
@@ -1171,6 +1176,7 @@ async def export_content_audit_logs_pdf(
 # ============== CONTENT FEATURED IMAGE (Not site-specific) ==============
 
 @content_router.post("/{content_id}/featured-image")
+@syncs_article_media
 async def upload_content_featured_image(
     content_id: str,
     request: Request,
@@ -1651,6 +1657,7 @@ async def get_featured_images(
 
 
 @content_router.post("/{content_id}/featured-images/{site_id}", response_model=FeaturedImageResponse)
+@syncs_article_media
 async def upload_featured_image(
     content_id: str,
     site_id: str,
