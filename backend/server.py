@@ -86,6 +86,7 @@ from routers.video_endpoints import video_router, public_video_router
 from routers.liveblog import liveblog_router
 from routers.video_uploads import video_upload_router
 from routers.qr_codes import qr_router
+from routers.media_editor import media_editor_router
 from routers.bookings import bookings_router
 from routers.security import security_router
 from models.wordpress import PublishToWordPressRequest, PublishResponse
@@ -177,6 +178,7 @@ api_router.include_router(public_video_router)
 api_router.include_router(liveblog_router)
 api_router.include_router(video_upload_router)
 api_router.include_router(qr_router)
+api_router.include_router(media_editor_router)
 api_router.include_router(bookings_router)
 
 

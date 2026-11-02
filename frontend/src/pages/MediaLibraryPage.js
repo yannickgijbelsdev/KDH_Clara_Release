@@ -8,6 +8,8 @@ import ImageResizeDialog from '../components/ImageResizeDialog';
 import { isImageFile, isOversized } from '../utils/imageResize';
 import { uploadLargeVideo, needsServerCompression } from '../utils/videoUpload';
 import { MediaUsageBadge } from '../components/MediaUsageBadge';
+import { MediaEditorDialog, EDITABLE_KINDS } from '../components/editor/MediaEditorDialog';
+import { Wand2 } from 'lucide-react';
 import {
   DndContext,
   DragOverlay,
@@ -133,6 +135,7 @@ const MediaLibraryPage = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadFileName, setUploadFileName] = useState('');
   const [uploadPhase, setUploadPhase] = useState('');
+  const [editorAsset, setEditorAsset] = useState(null);
   
   const fileInputRef = useRef(null);
   const audioPreviewRef = useRef(null);
@@ -1037,6 +1040,16 @@ const MediaLibraryPage = () => {
                           <Share2 className="w-4 h-4 mr-2" />
                           Share
                         </DropdownMenuItem>
+                        {EDITABLE_KINDS.includes(asset.kind) && (
+                          <DropdownMenuItem
+                            data-testid={`edit-media-${asset.id}`}
+                            onClick={(e) => { e.stopPropagation(); setEditorAsset(asset); }}
+                            className="text-zinc-600"
+                          >
+                            <Wand2 className="w-4 h-4 mr-2" />
+                            Edit {asset.kind}
+                          </DropdownMenuItem>
+                        )}
                         {canEdit && (
                           <>
                             <DropdownMenuItem
@@ -1748,6 +1761,7 @@ const MediaLibraryPage = () => {
           </div>
         </div>
       )}
+      <MediaEditorDialog asset={editorAsset} onClose={() => setEditorAsset(null)} onSaved={fetchAssets} />
     </div>
   );
 };
