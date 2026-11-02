@@ -27,7 +27,7 @@ from models.video_endpoints import (
     VideoEndpointResponse,
 )
 from services.video_embed import serialize_video
-from services.auth import require_editor_or_admin
+from services.auth import require_editor_or_admin, require_upload_access
 from services.s3_storage import upload_file_to_s3, delete_file_from_s3, is_s3_configured
 from services.main_site_context import get_main_site_id_from_header
 
@@ -234,7 +234,7 @@ async def upload_video_file(
     request: Request,
     file: UploadFile = File(...),
     poster_url: Optional[str] = Form(None),
-    current_user: dict = Depends(require_editor_or_admin),
+    current_user: dict = Depends(require_upload_access),
 ):
     """Upload an ad / promo video to S3 and return its public URL.
 

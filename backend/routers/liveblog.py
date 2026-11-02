@@ -11,7 +11,7 @@ from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File
 
 from database import db
-from services.auth import require_editor_or_admin
+from services.auth import require_editor_or_admin, require_upload_access
 from services.main_site_context import get_main_site_id_from_header
 from services.s3_storage import upload_file_to_s3, is_s3_configured
 from services.websocket import ws_manager
@@ -314,7 +314,7 @@ async def upload_entry_image(
     content_id: str,
     request: Request,
     file: UploadFile = File(...),
-    current_user: dict = Depends(require_editor_or_admin),
+    current_user: dict = Depends(require_upload_access),
 ):
     if not is_s3_configured():
         raise HTTPException(status_code=503, detail="S3 storage is not configured.")
@@ -349,7 +349,7 @@ async def upload_entry_video(
     content_id: str,
     request: Request,
     file: UploadFile = File(...),
-    current_user: dict = Depends(require_editor_or_admin),
+    current_user: dict = Depends(require_upload_access),
 ):
     if not is_s3_configured():
         raise HTTPException(status_code=503, detail="S3 storage is not configured.")

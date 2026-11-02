@@ -91,11 +91,18 @@ ALLOWED_EXTENSIONS = {
     # Video
     "mp4", "webm", "mov", "avi", "mkv", "mpeg", "mpg", "ogv",
     # Audio
-    "mp3", "wav", "ogg", "m4a", "aac", "flac", "wma",
+    "mp3", "wav", "ogg", "oga", "m4a", "aac", "flac", "wma", "opus", "aif", "aiff",
     # Documents
     "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt", "csv", "rtf",
     # Font
     "woff", "woff2", "ttf", "otf", "eot",
+}
+
+EXT_CATEGORY = {
+    **{e: "image" for e in ("jpg", "jpeg", "png", "gif", "webp", "svg", "heic", "heif", "bmp", "tiff", "tif")},
+    **{e: "video" for e in ("mp4", "webm", "mov", "avi", "mkv", "mpeg", "mpg", "ogv", "m4v")},
+    **{e: "audio" for e in ("mp3", "wav", "ogg", "oga", "m4a", "aac", "flac", "wma", "opus", "aif", "aiff")},
+    **{e: "document" for e in ("pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt", "csv", "rtf")},
 }
 
 # File size limits (in bytes)
@@ -335,7 +342,7 @@ def _detect_mime_basic(content: bytes) -> Optional[str]:
 
 def _check_file_size(result: ScanResult, content: bytes, ext: str):
     size = len(content)
-    category = result.file_type or "default"
+    category = result.file_type or EXT_CATEGORY.get(ext, "default")
     limit = SIZE_LIMITS.get(category, SIZE_LIMITS["default"])
 
     if size > limit:

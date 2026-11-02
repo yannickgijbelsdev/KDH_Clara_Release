@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { Editor } from '@tinymce/tinymce-react';
 import axios from 'axios';
 import { Loader2, AlertCircle, CheckCircle } from 'lucide-react';
-import { uploadLargeVideo, isVideo } from '../utils/videoUpload';
+import { uploadLargeVideo, needsServerCompression } from '../utils/videoUpload';
 import { QrCodeDialog } from './QrCodeDialog';
 
 const QR_ICON = '<svg width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M3 3h8v8H3V3zm2 2v4h4V5H5zm8-2h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5zm8-2h2v2h-2v-2zm2 2h2v2h-2v-2zm2-2h2v2h-2v-2zm2 2h2v2h-2v-2zm-6 2h2v2h-2v-2zm4 0h2v2h-2v-2zm-2 2h2v2h-2v-2zm4 0h2v2h-2v-2z"/></svg>';
@@ -118,7 +118,7 @@ const RichTextEditor = ({
       input.setAttribute('accept', 'image/*,.jpg,.jpeg,.png,.gif,.webp,.heic,.heif,.svg');
     } else if (meta.filetype === 'media') {
       // Accept video and audio
-      input.setAttribute('accept', 'video/*,audio/*,.mp4,.mov,.webm,.avi,.mp3,.wav,.m4a,.ogg');
+      input.setAttribute('accept', 'video/*,audio/*,.mp4,.mov,.webm,.avi,.m4v,.mp3,.wav,.m4a,.aac,.flac,.ogg,.opus,.aif,.aiff,.wma');
     } else {
       input.setAttribute('accept', '*/*');
     }
@@ -133,15 +133,16 @@ const RichTextEditor = ({
         setUploadProgress(0);
         setUploadError(null);
         
-        if (isVideo(file)) {
-          setUploadPhase('Uploading video...');
+        if (needsServerCompression(file)) {
+          setUploadPhase('Uploading...');
           const res = await uploadLargeVideo(file, {
             target: 'article',
             onProgress: (p) => {
+              const what = p.kind === 'audio' ? 'audio' : 'video';
               setUploadPhase({
-                compressing: 'Compressing video (max 1080p)...',
+                compressing: p.kind === 'audio' ? 'Compressing audio (MP3 192 kbps)...' : 'Compressing video (max 1080p)...',
                 queued: 'Queued for compression...',
-              }[p.phase] || 'Uploading video...');
+              }[p.phase] || `Uploading ${what}...`);
               setUploadProgress(p.percent);
             },
           });

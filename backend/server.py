@@ -705,13 +705,16 @@ EDITOR_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 # Import S3 storage
 from services.s3_storage import upload_file_to_s3, is_s3_configured
 
+from services.auth import require_upload_access  # noqa: E402
+
+
 @api_router.post("/uploads/editor-files")
 async def upload_editor_file(
     request: Request,
     file: UploadFile = File(...),
-    current_user: dict = Depends(require_editor_or_admin)
+    current_user: dict = Depends(require_upload_access)
 ):
-    """Upload a file from the TinyMCE editor to S3 storage."""
+    """Upload a file from the TinyMCE editor to S3 storage (standard right for every user)."""
     from fastapi import HTTPException
     from services.main_site_context import get_main_site_id_from_header
     
@@ -724,9 +727,11 @@ async def upload_editor_file(
         'image/heic', 'image/heif',  # Apple HEIC format
         # Video
         'video/mp4', 'video/webm', 'video/quicktime',  # quicktime = .mov
-        'video/x-msvideo',  # .avi
+        'video/x-msvideo', 'video/x-m4v',  # .avi / .m4v
         # Audio
-        'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/m4a', 'audio/x-m4a',
+        'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/x-wav', 'audio/wave', 'audio/ogg', 'audio/m4a', 'audio/x-m4a',
+        'audio/mp4', 'audio/aac', 'audio/x-aac', 'audio/flac', 'audio/x-flac', 'audio/opus', 'audio/aiff',
+        'audio/x-aiff', 'audio/x-ms-wma', 'audio/webm',
         # Documents
         'application/pdf'
     ]
@@ -734,8 +739,8 @@ async def upload_editor_file(
     # Also check by file extension for browsers that don't send correct MIME type
     allowed_extensions = [
         'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'heic', 'heif',
-        'mp4', 'webm', 'mov', 'avi',
-        'mp3', 'wav', 'ogg', 'm4a',
+        'mp4', 'webm', 'mov', 'avi', 'm4v',
+        'mp3', 'wav', 'ogg', 'oga', 'm4a', 'aac', 'flac', 'opus', 'aif', 'aiff', 'wma',
         'pdf'
     ]
     

@@ -5,8 +5,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import ImageResizeDialog from '../components/ImageResizeDialog';
 import { isImageFile, isOversized } from '../utils/imageResize';
-import MediaCompressDialog from '../components/MediaCompressDialog';
-import { isAudioFile, isVideoFile, isMediaOversized } from '../utils/mediaCompress';
+import { uploadLargeVideo, needsServerCompression } from '../utils/videoUpload';
 import {
   DndContext,
   DragOverlay,
@@ -126,12 +125,11 @@ const MediaLibraryPage = () => {
   const [pendingFiles, setPendingFiles] = useState([]);
   
   // Media compress state
-  const [compressFile, setCompressFile] = useState(null);
-  const [compressPendingFiles, setCompressPendingFiles] = useState([]);
   
   // Upload progress state
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadFileName, setUploadFileName] = useState('');
+  const [uploadPhase, setUploadPhase] = useState('');
   
   const fileInputRef = useRef(null);
   const audioPreviewRef = useRef(null);
@@ -202,7 +200,6 @@ const MediaLibraryPage = () => {
 
     const filesToUpload = [];
     let oversizedImage = null;
-    let oversizedMedia = null;
     const remaining = [];
 
     for (let i = 0; i < files.length; i++) {
@@ -212,14 +209,6 @@ const MediaLibraryPage = () => {
       if (isImageFile(file) && isOversized(file)) {
         if (!oversizedImage) {
           oversizedImage = file;
-          remaining.push(...Array.from(files).slice(i + 1));
-          break;
-        }
-      }
-      // Check for oversized audio/video
-      else if ((isAudioFile(file) || isVideoFile(file)) && isMediaOversized(file)) {
-        if (!oversizedMedia) {
-          oversizedMedia = file;
           remaining.push(...Array.from(files).slice(i + 1));
           break;
         }
@@ -239,11 +228,6 @@ const MediaLibraryPage = () => {
       setPendingFiles(remaining);
       setResizeFile(oversizedImage);
     }
-    // Show compress dialog for oversized audio/video
-    else if (oversizedMedia) {
-      setCompressPendingFiles(remaining);
-      setCompressFile(oversizedMedia);
-    }
 
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -258,7 +242,23 @@ const MediaLibraryPage = () => {
       try {
         setUploadFileName(file.name);
         setUploadProgress(0);
-        
+        setUploadPhase('Uploading file...');
+
+        // Large audio/video: chunked upload, compressed on the server (audio -> MP3 192 kbps, video -> max 1080p).
+        if (needsServerCompression(file)) {
+          await uploadLargeVideo(file, {
+            target: 'media',
+            onProgress: (p) => {
+              setUploadProgress(p.percent);
+              setUploadPhase(p.phase === 'compressing'
+                ? (p.kind === 'audio' ? 'Compressing audio (MP3 192 kbps)...' : 'Compressing video (max 1080p)...')
+                : p.phase === 'queued' ? 'Queued for compression...' : 'Uploading file...');
+            },
+          });
+          successCount++;
+          continue;
+        }
+
         const formData = new FormData();
         formData.append('file', file);
 
@@ -292,18 +292,6 @@ const MediaLibraryPage = () => {
     setResizeFile(null);
     await uploadFiles([resizedFile, ...pendingFiles]);
     setPendingFiles([]);
-  };
-
-  const handleCompressed = async (compressedFile) => {
-    setCompressFile(null);
-    await uploadFiles([compressedFile, ...compressPendingFiles]);
-    setCompressPendingFiles([]);
-  };
-
-  const handleCompressSkip = async (originalFile) => {
-    setCompressFile(null);
-    await uploadFiles([originalFile, ...compressPendingFiles]);
-    setCompressPendingFiles([]);
   };
 
   const handleDeleteAsset = async (asset) => {
@@ -770,7 +758,6 @@ const MediaLibraryPage = () => {
 
         <div className="flex gap-2">
           {canEdit && (
-            <>
               <Button
                 data-testid="new-folder-btn"
                 onClick={() => setShowNewFolderDialog(true)}
@@ -780,11 +767,12 @@ const MediaLibraryPage = () => {
                 <FolderPlus className="w-4 h-4 mr-2" />
                 New Folder
               </Button>
+          )}
               <input
                 ref={fileInputRef}
                 type="file"
                 multiple
-                accept=".pdf,.docx,.txt,.mp3,.wav,.m4a,.ogg,.aac,.flac,.jpg,.jpeg,.png,.gif,.webp,.mp4,.mov,.webm"
+                accept=".pdf,.docx,.txt,.mp3,.wav,.m4a,.ogg,.oga,.aac,.flac,.opus,.aif,.aiff,.wma,.jpg,.jpeg,.png,.gif,.webp,.heic,.heif,.mp4,.mov,.webm,.m4v,.avi,audio/*,video/*,image/*"
                 onChange={handleFileUpload}
                 className="hidden"
               />
@@ -806,8 +794,6 @@ const MediaLibraryPage = () => {
                   </>
                 )}
               </Button>
-            </>
-          )}
         </div>
       </div>
 
@@ -1678,14 +1664,6 @@ const MediaLibraryPage = () => {
         onResized={handleResized}
       />
 
-      {/* Media Compress Dialog (Audio/Video) */}
-      <MediaCompressDialog
-        file={compressFile}
-        open={!!compressFile}
-        onClose={() => { setCompressFile(null); setCompressPendingFiles([]); }}
-        onCompressed={handleCompressed}
-        onSkip={handleCompressSkip}
-      />
 
       {/* Upload Progress Overlay */}
       {uploading && uploadFileName && (
@@ -1697,17 +1675,18 @@ const MediaLibraryPage = () => {
             <div className="flex items-center gap-3 mb-4">
               <Loader2 className="w-6 h-6 text-[#7380b6] animate-spin" />
               <div>
-                <p className="text-zinc-700 font-medium">Uploading file...</p>
+                <p className="text-zinc-700 font-medium" data-testid="upload-progress-phase">{uploadPhase || 'Uploading file...'}</p>
                 <p className="text-zinc-400 text-sm truncate max-w-[220px]">{uploadFileName}</p>
               </div>
             </div>
             <div className="w-full bg-zinc-100 rounded-full h-3 overflow-hidden">
               <div
-                className="bg-gradient-to-r from-[#7380b6] to-[#7380b6] h-full rounded-full transition-all duration-300 ease-out"
+                key={uploadPhase}
+                className="bg-gradient-to-r from-[#7380b6] to-[#7380b6] h-full rounded-full transition-[width] duration-300 ease-out"
                 style={{ width: `${uploadProgress}%` }}
               />
             </div>
-            <p className="text-center text-[#7380b6]0 text-sm font-medium mt-2">{uploadProgress}%</p>
+            <p className="text-center text-[#7380b6] text-sm font-medium mt-2" data-testid="upload-progress-percent">{uploadProgress}%</p>
           </div>
         </div>
       )}

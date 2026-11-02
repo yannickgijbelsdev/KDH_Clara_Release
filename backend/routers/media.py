@@ -11,7 +11,7 @@ from database import db, MEDIA_UPLOADS_DIR
 from models.media import (
     MediaAssetResponse, MediaAssetUpdate
 )
-from services.auth import get_current_user, require_can_edit_content
+from services.auth import get_current_user, require_can_edit_content, require_upload_access
 from services.s3_storage import (
     upload_file_to_s3, delete_file_from_s3, is_s3_configured, generate_presigned_url
 )
@@ -32,7 +32,18 @@ ALLOWED_AUDIO_TYPES = {
     'audio/wav': 'audio',
     'audio/x-wav': 'audio',
     'audio/x-m4a': 'audio',
-    'audio/m4a': 'audio'
+    'audio/m4a': 'audio',
+    'audio/mp4': 'audio',
+    'audio/wave': 'audio',
+    'audio/ogg': 'audio',
+    'audio/aac': 'audio',
+    'audio/x-aac': 'audio',
+    'audio/flac': 'audio',
+    'audio/x-flac': 'audio',
+    'audio/opus': 'audio',
+    'audio/aiff': 'audio',
+    'audio/x-aiff': 'audio',
+    'audio/x-ms-wma': 'audio',
 }
 ALLOWED_IMAGE_TYPES = {
     'image/jpeg': 'image',
@@ -45,7 +56,9 @@ ALLOWED_IMAGE_TYPES = {
 ALLOWED_VIDEO_TYPES = {
     'video/mp4': 'video',
     'video/quicktime': 'video',
-    'video/webm': 'video'
+    'video/webm': 'video',
+    'video/x-m4v': 'video',
+    'video/x-msvideo': 'video',
 }
 ALLOWED_MEDIA_TYPES = {**ALLOWED_DOCUMENT_TYPES, **ALLOWED_AUDIO_TYPES, **ALLOWED_IMAGE_TYPES, **ALLOWED_VIDEO_TYPES}
 MAX_MEDIA_SIZE = 100 * 1024 * 1024  # 100MB
@@ -95,9 +108,10 @@ async def upload_media_asset(
     request: Request,
     file: UploadFile = File(...),
     title: Optional[str] = None,
-    current_user: dict = Depends(require_can_edit_content)
+    folder_id: Optional[str] = None,
+    current_user: dict = Depends(require_upload_access)
 ):
-    """Upload a new media asset to S3 storage."""
+    """Upload a new media asset to S3 storage (standard right for every user)."""
     # Get main_site_id from header for multisite context
     main_site_id = await get_main_site_id_from_header(request)
     
@@ -107,10 +121,11 @@ async def upload_media_asset(
     file_ext = Path(file.filename).suffix.lower() if file.filename else ''
     ext_to_kind = {
         '.pdf': 'document', '.docx': 'document', '.txt': 'document',
-        '.mp3': 'audio', '.wav': 'audio', '.m4a': 'audio', '.ogg': 'audio',
+        '.mp3': 'audio', '.wav': 'audio', '.m4a': 'audio', '.ogg': 'audio', '.oga': 'audio', '.aac': 'audio',
+        '.flac': 'audio', '.opus': 'audio', '.aif': 'audio', '.aiff': 'audio', '.wma': 'audio',
         '.jpg': 'image', '.jpeg': 'image', '.png': 'image', '.gif': 'image', 
         '.webp': 'image', '.heic': 'image', '.heif': 'image',
-        '.mp4': 'video', '.mov': 'video', '.webm': 'video'
+        '.mp4': 'video', '.mov': 'video', '.webm': 'video', '.m4v': 'video', '.avi': 'video'
     }
     
     kind = ALLOWED_MEDIA_TYPES.get(content_type)
@@ -120,7 +135,7 @@ async def upload_media_asset(
     if not kind:
         raise HTTPException(
             status_code=400,
-            detail="Unsupported file type. Allowed: PDF, DOCX, TXT, MP3, WAV, M4A, JPEG, PNG, GIF, WebP, HEIC, MP4, MOV"
+            detail="Unsupported file type. Allowed: PDF, DOCX, TXT, MP3, WAV, M4A, AAC, FLAC, OGG, OPUS, AIFF, WMA, JPEG, PNG, GIF, WebP, HEIC, MP4, MOV, WEBM, M4V, AVI"
         )
     
     # Read file content
@@ -168,6 +183,7 @@ async def upload_media_asset(
         "mime_type": content_type,
         "size": file_size,
         "duration_seconds": None,
+        "folder_id": folder_id or None,
         "created_at": now,
         "updated_at": now
     }

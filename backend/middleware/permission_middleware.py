@@ -102,6 +102,10 @@ class PermissionMiddleware(BaseHTTPMiddleware):
         if any(path.startswith(prefix) for prefix in SKIP_PREFIXES):
             return await call_next(request)
 
+        # Uploading media is a standard right for every logged-in user.
+        if method == "POST" and path.rstrip("/") == "/api/media":
+            return await call_next(request)
+
         # Find matching feature for this route
         feature = None
 

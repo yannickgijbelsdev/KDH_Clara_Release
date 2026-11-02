@@ -124,6 +124,11 @@ async def require_editor_or_admin(request: Request = None, current_user: dict = 
     return current_user
 
 
+async def require_upload_access(current_user: dict = Depends(get_current_user)):
+    """Uploading audio, video and images is a standard right for every logged-in user."""
+    return current_user
+
+
 async def require_can_approve_content(request: Request = None, current_user: dict = Depends(get_current_user)):
     """Only Admins and News Admins can approve/reject content."""
     if request and getattr(request.state, 'permission_approved', False):
