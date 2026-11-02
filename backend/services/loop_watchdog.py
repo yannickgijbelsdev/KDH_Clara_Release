@@ -24,6 +24,8 @@ def _watch(loop_thread_id: int):
     reported = False
     while True:
         time.sleep(0.5)
+        if _beat_task is None or _beat_task.done():
+            return  # loop is shutting down (hot reload / stop): no false alarms
         lag = time.monotonic() - _last_beat
         if lag > STALL_SECONDS and not reported:
             frame = sys._current_frames().get(loop_thread_id)

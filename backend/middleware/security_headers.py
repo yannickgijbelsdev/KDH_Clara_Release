@@ -59,7 +59,13 @@ _PERMISSIONS_POLICY = ", ".join([
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
-        response: Response = await call_next(request)
+        try:
+            response: Response = await call_next(request)
+        except RuntimeError as e:
+            # Client disconnected before the response was produced (BaseHTTPMiddleware quirk).
+            if str(e) == "No response returned." and await request.is_disconnected():
+                return Response(status_code=499)
+            raise
 
         # Skip CSP on file streaming endpoints — they often need cross-origin
         path = request.url.path

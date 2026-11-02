@@ -650,3 +650,10 @@ grk.fm / mfy.fm players embed `<img src="/api/rds/grk/image.jpg">` directly. Whe
 - Fixed (testing agent + main): blocking smtplib calls in email_service now run in asyncio.to_thread (they froze the event loop).
 - Tested: iteration_183 (backend 11/11, frontend 100%).
 - Known: QR records created by downloads/inserts that are never saved stay as orphans (low impact).
+
+## 2026-06 — "White screen" fix (frozen server + no frontend fallback)
+- Root cause 1 (backend): synchronous work on the asyncio event loop froze ALL requests: smtplib (email retries), every boto3 S3 call in services/s3_storage.py (now asyncio.to_thread + one shared cached client), backup gzip/upload/restore (backup_service.py, backups.py), PIL presenter composites (rds.py `_compose_presenter_png`, `_square_avatar_png`), avatar compression (users.py `_compress_avatar`), audio trigger ffmpeg/librosa (`_analyze_chunk_sync`), /api/files object_storage get.
+- NEW services/loop_watchdog.py: logs "Event loop blocked for Xs" + the blocking stack in backend.err.log when the loop stalls >2s (no false alarms on shutdown).
+- Root cause 2 (frontend): no error boundary, no timeouts, blank loading divs, and /auth/me failures logged the user out. Added AppErrorBoundary (friendly screen + one auto-reload on ChunkLoadError), AppLoadingScreen (spinner → "taking longer" after 10s → "temporarily unreachable" with auto-retry every 15s), /auth/me timeout 15s with 3 retries and no logout on 5xx/network errors (only on 401/403), AbortSignal.timeout(8000) on subdomain-config / routes/public, and a safety resolve on subdomain redirects.
+- security_headers middleware: client disconnect no longer logs "No response returned." errors.
+- Tested: iteration_184 (backend 7/7, frontend 7/7 flows).

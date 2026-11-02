@@ -247,29 +247,8 @@ async def fetch_stream_chunk(station: str, duration: float = CHUNK_DURATION) -> 
         return None
 
 
-async def analyze_stream_for_trigger(station: str, trigger_fingerprint: np.ndarray,
-                                      threshold: float = DEFAULT_THRESHOLD,
-                                      trigger_name: str = "unknown") -> Tuple[bool, float]:
-    """Analyze a stream chunk and check for trigger audio.
-    
-    Returns (detected, similarity_score).
-    """
-    if not AUDIO_LIBS_AVAILABLE:
-        return False, 0.0
-    
-    if not FFMPEG_AVAILABLE:
-        logger.warning(f"[{trigger_name}] FFmpeg not available - cannot process audio stream")
-        return False, 0.0
-    
-    # Fetch stream chunk
-    logger.debug(f"[{trigger_name}] Fetching {CHUNK_DURATION}s audio from {station} stream...")
-    audio_bytes = await fetch_stream_chunk(station)
-    if not audio_bytes:
-        logger.warning(f"[{trigger_name}] Failed to fetch stream chunk from {station}")
-        return False, 0.0
-    
-    logger.debug(f"[{trigger_name}] Received {len(audio_bytes)} bytes from stream")
-    
+def _analyze_chunk_sync(audio_bytes: bytes, trigger_fingerprint: np.ndarray, threshold: float,
+                        trigger_name: str) -> Tuple[bool, float]:
     try:
         # Save to temp file for processing
         with tempfile.NamedTemporaryFile(suffix=".stream", delete=False) as tmp:
@@ -331,6 +310,33 @@ async def analyze_stream_for_trigger(station: str, trigger_fingerprint: np.ndarr
         import traceback
         logger.error(f"Error analyzing stream: {e}\n{traceback.format_exc()}")
         return False, 0.0
+
+
+async def analyze_stream_for_trigger(station: str, trigger_fingerprint: np.ndarray,
+                                      threshold: float = DEFAULT_THRESHOLD,
+                                      trigger_name: str = "unknown") -> Tuple[bool, float]:
+    """Analyze a stream chunk and check for trigger audio.
+    
+    Returns (detected, similarity_score).
+    """
+    if not AUDIO_LIBS_AVAILABLE:
+        return False, 0.0
+    
+    if not FFMPEG_AVAILABLE:
+        logger.warning(f"[{trigger_name}] FFmpeg not available - cannot process audio stream")
+        return False, 0.0
+    
+    # Fetch stream chunk
+    logger.debug(f"[{trigger_name}] Fetching {CHUNK_DURATION}s audio from {station} stream...")
+    audio_bytes = await fetch_stream_chunk(station)
+    if not audio_bytes:
+        logger.warning(f"[{trigger_name}] Failed to fetch stream chunk from {station}")
+        return False, 0.0
+    
+    logger.debug(f"[{trigger_name}] Received {len(audio_bytes)} bytes from stream")
+    
+    # ffmpeg + librosa + fingerprinting are blocking/CPU-heavy: run them off the event loop.
+    return await asyncio.to_thread(_analyze_chunk_sync, audio_bytes, trigger_fingerprint, threshold, trigger_name)
 
 
 class AudioTriggerScheduler:
