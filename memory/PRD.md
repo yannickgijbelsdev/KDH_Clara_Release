@@ -476,4 +476,5 @@ Chrome then silently blocked those `<img>` requests → the Programma's page sho
 - DONE: White screen fix (no more blocking calls on the event loop + error/loading screens with retry). Watch backend.err.log for "Event loop blocked" to find any new blockers.
 - DONE: Uploads for every user (audio/video/images) + article S3 files mirrored into the Media Library (Artikels/<article>).
 - DONE: Media Library shows in which articles each file is used; deleting is blocked while in use.
+- DONE: Media editor: audio/video multitrack (cut, move, volume, fades) and image editor (crop, rotate, flip, resize, colours, text); always asks new vs overwrite.
 - Backlog: P1 Radio Automation Phase 2, P1 Calendar integration (Google/Outlook), P2 Payments for License Manager, P2 Stream Monitor VU meters, P2 split large components, re-mount audio_trigger_router (decision needed), VDC auto-deploy upstream 404 (blocked).

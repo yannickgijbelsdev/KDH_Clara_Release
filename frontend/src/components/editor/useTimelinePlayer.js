@@ -21,7 +21,8 @@ export function useTimelinePlayer(clips, sources, videoRef) {
   const syncVideo = useCallback((t) => {
     const v = videoRef?.current;
     if (!v) return;
-    const c = clips.find((x) => x.track === 0 && sources[x.asset_id]?.kind === 'video' && t >= x.start && t < x.start + clipDur(x));
+    // Last matching clip wins, like the render (later clips are overlaid on top).
+    const c = [...clips].reverse().find((x) => x.track === 0 && sources[x.asset_id]?.kind === 'video' && t >= x.start && t < x.start + clipDur(x));
     if (!c) { v.style.opacity = 0; if (!v.paused) v.pause(); return; }
     const src = sources[c.asset_id].url;
     if (v.dataset.src !== src) { v.dataset.src = src; v.src = src; }

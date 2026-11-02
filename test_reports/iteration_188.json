@@ -1,0 +1,48 @@
+{
+  "summary": "Tested the Media Editor (audio and video timeline, image editor, save-mode dialog) on backend and frontend. Backend: 15 of 16 pytest tests pass. Passing: source-url/stream returns 200 and 206 with Range; a bad or expired sig returns 403; scope checks work; render validation returns 400 for 0 clips, more than 40 clips, out<=in, an asset from another site, a video project without a video clip on track 0, and an image asset in clips; the job endpoint returns 404; the audio mix renders a 7.0s MP3 with the right duration_seconds; the video edit renders 1920x1080 h264+aac at 7.0s; audio overwrite keeps the id and key and updates size and duration; overwrite with the wrong kind returns 400; image new/overwrite works and a png->jpeg overwrite returns 400. The one failure: POST /media-editor/image in 'new' mode accepts any content type, such as text/html. Frontend: every asset menu has the Edit audio/video/image item, which opens the dialog. Working in the audio editor: waveform clip, play (playhead and time move), ruler seek, Cut button and S key split, the Delete key, moving a clip across tracks, trim-start/trim-end, inspector volume/fades/mute, + Track, add from library, zoom, and Save as new (the progress label shows, then a toast, and the new 7.0s MP3 appears in the list). Working in the video editor: preview plays the video (readyState 4, currentTime advances, black in gaps), cut and move, add an mp3, Save as new with progress 0->25->67->99 gives a 12.0s 1920x1080 h264/aac file, and overwrite gives 3.0s with the same key. Working in the image editor: rotate (size swaps), flip, crop with 16:9 (360x203), width 300 -> 300x169, brightness, add/edit/colour/drag text; the save dialog shows the 'used in 1 article' warning; Save as new gives a 300x169 PNG and overwrite keeps the same key with the rotated file 169x300. All test assets were cleaned up.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/media-editor/image", "issue": "In mode=new, a non-image upload (content_type text/html) is accepted (200). It is stored with a .png key but mime_type text/html, so it gets uploaded to S3 as text/html. Allow only image/png, image/jpeg and image/webp (else 400), and preferably sniff the magic bytes with PIL."},
+      {"endpoint": "POST /api/media-editor/image", "issue": "original_asset_id is not checked to be kind=image. An audio or video asset id is accepted as the 'original', so overwrite could replace an mp3 key with image bytes if the extensions matched. Only the extension check protects against this today."},
+      {"endpoint": "POST /api/media-editor/render (overwrite)", "issue": "The output extension comes from the original key. For a .webm original, libx264+aac into webm makes ffmpeg fail, and .mkv/.avi map to the mime application/octet-stream. Not reproduced (there is no webm asset). Restrict video overwrite to mp4/mov or pick codecs by container."},
+      {"endpoint": "media upload (pre-existing)", "issue": "The EDITORTEST_* assets have mime_type application/octet-stream and duration_seconds null. The upload does not detect mime or duration, and /source streams with the octet-stream type. Playback still works through browser sniffing."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "TimelineEditor add-from-library Select", "issue": "The Select is uncontrolled and keeps the last value. Picking the same file again does not fire onValueChange, so you cannot add the same file twice in a row. Reset the value after adding (controlled value='' or a key).", "selector": "[data-testid='editor-add-from-library']", "priority": "MEDIUM"},
+      {"component": "TimelineEditor", "issue": "When you delete the last clip, loading = !clips.length shows 'Loading audio…' forever and disables Play and Save. Use a separate loading state.", "selector": "[data-testid='editor-timeline']", "priority": "LOW"},
+      {"component": "TimelineEditor (video)", "issue": "Adding a video from the library always puts it on track 0 at the playhead, even when that overlaps an existing video clip. The preview shows the first matching clip (clips.find), but the render overlays later clips on top, so preview and render differ. There is also no overlap prevention on any track.", "selector": "[data-testid^='timeline-clip-']", "priority": "LOW"},
+      {"component": "MediaLibrary card after overwrite", "issue": "After an image overwrite, the card thumbnail still shows the old image because the URL is the same (browser cache). Add cache-busting such as ?v=updated_at to s3_url in previews.", "selector": "[data-testid^='asset-menu-']", "priority": "LOW"},
+      {"component": "MediaEditorDialog", "issue": "Escape closes the editor and loses all edits with no confirmation. The window keydown handlers (S, Delete, Space) stay active while the Save dialog is open.", "selector": "[data-testid='media-editor-dialog']", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Media editor dialog header", "issues": ["The default Radix close 'X' (top-right) overlaps the top-right corner of the Save button, and it duplicates the 'Close' button. Hide the default close or add right padding.", "The timeline lanes only use max(800, (total+10)*pps) px, so on wide screens the tracks end at about 770px and leave a large empty area. The lanes should fill the container width.", "The 'Audio 1' label on track 0 of an audio project is hidden under the clip at 0s.", "The loading text says 'Loading audio…' for videos too."]},
+      {"screen": "Image editor", "issues": ["The preview canvas width follows the output width (e.g. 300px), so after resizing, the preview gets tiny in the big workspace. Scale the preview independently.", "The saved title is '<title> (edit)' with no title input, which gives names like 'image 1.png (edit).png'."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_media_editor.py", "/app/test_reports/pytest/pytest_media_editor.xml"],
+  "action_items": [
+    "Validate content type and magic bytes in POST /api/media-editor/image (png/jpeg/webp only) and require the original to be kind=image",
+    "Reset the add-from-library Select value after each pick so the same file can be added again",
+    "Use a separate loading flag in TimelineEditor so deleting all clips does not show 'Loading audio…'",
+    "Fix the dialog close X overlapping the Save button; make the timeline lanes fill the available width",
+    "Cache-bust thumbnails and preview URLs after an overwrite",
+    "Optional: restrict video overwrite containers (webm) or pick codecs per container; confirm before closing the editor with unsaved edits"
+  ],
+  "critical_code_review_comments": [
+    "media_editor.py: the ffmpeg subprocess has no timeout. With Semaphore(1), a hung render blocks all other renders.",
+    "media_editor.py: `import re` inside the except path. Move it to module level.",
+    "TimelineEditor.js: tracks are initialised with `kind === 'video' ? 3 : 3` (redundant ternary).",
+    "useTimelinePlayer: the preview and the ffmpeg render pick different clips when video clips overlap on track 0 (find-first vs. last overlay)."
+  ],
+  "updated_files": ["/app/backend/tests/test_media_editor.py"],
+  "success_rate": {"backend": "94% (15/16)", "frontend": "~90% (all core flows pass; minor UX bugs)"},
+  "seed_data_creation": "None persisted. TEST_* render outputs and the image edit created during tests were deleted (204).",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Use the EDITORTEST_ta.mp3 (9f6f547d...), tb.mp3 (dcc2f44f...) and tv.mp4 (70776953...) assets in site 63154708-3320-444c-932d-aa3642b5090c with X-Main-Site-ID. The library Select list is long, so click options with get_by_role('option', name=..., exact=True) and without force, otherwise the wrong option may be hit. A clip is 40px/s at the default zoom. The second admin credential (yannick) returns invalid credentials, so cross-user job ownership was not tested live (the code filters by user_id).",
+  "test_credentials": "Admin admkoodh@koodh.com / KYLovie13monx works. yannick.gijbels@koodh.com / test from test_credentials.md returns 'Invalid credentials'."
+}

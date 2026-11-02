@@ -44,6 +44,8 @@ export default function TimelineEditor({ asset, onClose, onSaved }) {
   const [library, setLibrary] = useState([]);
   const [saveOpen, setSaveOpen] = useState(false);
   const [rendering, setRendering] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [pick, setPick] = useState('');
   const videoRef = useRef(null);
   const { playing, time, total, play, pause, seek } = useTimelinePlayer(clips, sources, videoRef);
 
@@ -53,7 +55,7 @@ export default function TimelineEditor({ asset, onClose, onSaved }) {
       const id = newId();
       setClips([{ id, asset_id: asset.id, track: 0, start: 0, in: 0, out: round(s.duration || 10), volume: 1, fade_in: 0, fade_out: 0, muted: false }]);
       setSelected(id);
-    }).catch(() => toast.error('Could not load the file'));
+    }).catch(() => toast.error('Could not load the file')).finally(() => setLoading(false));
     Promise.all((kind === 'video' ? ['video', 'audio'] : ['audio']).map((k) => axios.get(`${EDITOR_API}/media`, { params: { kind: k } })))
       .then((rs) => setLibrary(rs.flatMap((r) => r.data))).catch(() => {});
   }, [asset, kind]);
@@ -88,26 +90,31 @@ export default function TimelineEditor({ asset, onClose, onSaved }) {
   }, [sel]);
 
   const addFromLibrary = async (id) => {
+    setPick(id);
     const a = library.find((x) => x.id === id);
-    if (!a) return;
+    if (!a) { setPick(''); return; }
     const s = sources[id] || await loadSource(a);
     setSources((ss) => ({ ...ss, [id]: s }));
+    setPick('');
     const track = a.kind === 'video' ? 0 : Math.max(1, sel?.track || 1);
-    const c = { id: newId(), asset_id: id, track: Math.min(track, tracks - 1), start: round(time), in: 0, out: round(s.duration || 10), volume: 1, fade_in: 0, fade_out: 0, muted: false };
+    // Videos never overlap on the video track: append after the last one when the playhead is inside a clip.
+    const vEnd = clips.filter((x) => x.track === 0 && sources[x.asset_id]?.kind === 'video').reduce((m, x) => (time >= x.start && time < x.start + x.out - x.in ? Math.max(m, x.start + x.out - x.in) : m), -1);
+    const at = a.kind === 'video' && vEnd >= 0 ? vEnd : time;
+    const c = { id: newId(), asset_id: id, track: Math.min(track, tracks - 1), start: round(at), in: 0, out: round(s.duration || 10), volume: 1, fade_in: 0, fade_out: 0, muted: false };
     setClips((cs) => [...cs, c]);
     setSelected(c.id);
   };
 
   useEffect(() => {
     const onKey = (e) => {
-      if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
+      if (saveOpen || ['INPUT', 'TEXTAREA'].includes(e.target.tagName) || e.target.closest?.('[role="dialog"] [role="dialog"]')) return;
       if (e.code === 'Space') { e.preventDefault(); playing ? pause() : play(); }
       if (e.key === 's' || e.key === 'S') split();
       if (e.key === 'Delete' || e.key === 'Backspace') remove();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [playing, play, pause, split, remove]);
+  }, [playing, play, pause, split, remove, saveOpen]);
 
   const save = async (mode) => {
     setSaveOpen(false);
@@ -133,10 +140,9 @@ export default function TimelineEditor({ asset, onClose, onSaved }) {
     const step = pps >= 80 ? 1 : pps >= 30 ? 5 : pps >= 10 ? 10 : 30;
     return Array.from({ length: Math.ceil(width / pps / step) }, (_, i) => i * step);
   }, [pps, width]);
-  const loading = !clips.length;
 
   return (
-    <div className="flex h-full flex-col gap-3" data-testid="timeline-editor">
+    <div className="flex h-full flex-col gap-3 overflow-y-auto" data-testid="timeline-editor">
       <div className="flex items-center gap-3">
         <Input value={title} onChange={(e) => setTitle(e.target.value)} className="max-w-md" data-testid="editor-title-input" />
         <div className="ml-auto flex gap-2">
@@ -147,7 +153,7 @@ export default function TimelineEditor({ asset, onClose, onSaved }) {
         </div>
       </div>
       {kind === 'video' && (
-        <div className="mx-auto aspect-video w-full max-w-2xl overflow-hidden rounded-lg bg-black" data-testid="editor-video-preview">
+        <div className="mx-auto aspect-video w-full max-w-2xl shrink-0 overflow-hidden rounded-lg bg-black" style={{ maxWidth: 'min(42rem, 56vh)' }} data-testid="editor-video-preview">
           <video ref={videoRef} muted playsInline className="h-full w-full object-contain" />
         </div>
       )}
@@ -159,7 +165,7 @@ export default function TimelineEditor({ asset, onClose, onSaved }) {
         <Button size="sm" variant="outline" onClick={split} data-testid="editor-split-btn"><Scissors className="mr-1.5 h-3.5 w-3.5" />Cut (S)</Button>
         <Button size="sm" variant="outline" onClick={remove} disabled={!sel} data-testid="editor-delete-clip-btn"><Trash2 className="mr-1.5 h-3.5 w-3.5" />Delete clip</Button>
         <Button size="sm" variant="outline" onClick={() => setTracks((t) => Math.min(8, t + 1))} data-testid="editor-add-track-btn"><Plus className="mr-1.5 h-3.5 w-3.5" />Track</Button>
-        <Select onValueChange={addFromLibrary}>
+        <Select value={pick} onValueChange={addFromLibrary}>
           <SelectTrigger className="h-8 w-56" data-testid="editor-add-from-library"><SelectValue placeholder="Add file at playhead…" /></SelectTrigger>
           <SelectContent className="z-[1400] max-h-72">
             {library.map((a) => <SelectItem key={a.id} value={a.id}><span className="inline-flex items-center gap-1.5">{a.kind === 'video' ? <Film className="h-3.5 w-3.5" /> : <Music className="h-3.5 w-3.5" />}{a.title}</span></SelectItem>)}
@@ -169,9 +175,9 @@ export default function TimelineEditor({ asset, onClose, onSaved }) {
           <Slider min={5} max={200} step={5} value={[pps]} onValueChange={([v]) => setPps(v)} data-testid="editor-zoom-slider" />
         </div>
       </div>
-      <div className="relative flex-1 overflow-auto rounded-lg border border-zinc-200 bg-zinc-50" data-testid="editor-timeline">
-        {loading && <div className="flex h-40 items-center justify-center text-sm text-zinc-500"><Loader2 className="mr-2 h-4 w-4 animate-spin" />Loading audio…</div>}
-        <div className="relative" style={{ width, height: 24 + tracks * TRACK_H }}>
+      <div className="relative min-h-[150px] flex-1 overflow-auto rounded-lg border border-zinc-200 bg-zinc-50" data-testid="editor-timeline">
+        {loading && <div className="flex h-40 items-center justify-center text-sm text-zinc-500"><Loader2 className="mr-2 h-4 w-4 animate-spin" />Loading {kind}…</div>}
+        <div className="relative min-w-full" style={{ width, height: 24 + tracks * TRACK_H }}>
           <div className="sticky top-0 z-30 h-6 cursor-pointer border-b border-zinc-200 bg-white"
             onPointerDown={(e) => seek((e.clientX - e.currentTarget.getBoundingClientRect().left) / pps)} data-testid="editor-ruler">
             {ticks.map((t) => <span key={t} className="absolute top-0 h-full border-l border-zinc-300 pl-1 text-[10px] text-zinc-400" style={{ left: t * pps }}>{fmtTime(t).replace(/\.\d$/, '')}</span>)}
@@ -179,7 +185,7 @@ export default function TimelineEditor({ asset, onClose, onSaved }) {
           <div className="relative" style={{ height: tracks * TRACK_H }} onPointerDown={() => setSelected(null)}>
             {Array.from({ length: tracks }, (_, i) => (
               <div key={i} className={`absolute left-0 right-0 border-b border-zinc-200 ${i % 2 ? 'bg-white' : 'bg-zinc-50'}`} style={{ top: i * TRACK_H, height: TRACK_H }}>
-                <span className="sticky left-1 text-[10px] uppercase tracking-wide text-zinc-400">{kind === 'video' && i === 0 ? 'Video' : `Audio ${kind === 'video' ? i : i + 1}`}</span>
+                <span className="sticky left-1 float-right mr-2 text-[10px] uppercase tracking-wide text-zinc-400">{kind === 'video' && i === 0 ? 'Video' : `Audio ${kind === 'video' ? i : i + 1}`}</span>
               </div>
             ))}
             {clips.map((c) => (

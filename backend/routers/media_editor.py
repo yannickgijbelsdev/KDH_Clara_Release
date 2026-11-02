@@ -89,8 +89,10 @@ async def stream_source(asset_id: str, exp: int, sig: str, request: Request):
     headers = {"Accept-Ranges": "bytes", "Content-Length": str(obj["ContentLength"]), "Cache-Control": "private, max-age=3600"}
     if obj.get("ContentRange"):
         headers["Content-Range"] = obj["ContentRange"]
-    return StreamingResponse(chunks(), status_code=206 if rng else 200,
-                             media_type=asset.get("mime_type") or obj.get("ContentType"), headers=headers)
+    import mimetypes
+    mime = next((m for m in (asset.get("mime_type"), obj.get("ContentType"))
+                 if m and m not in ("application/octet-stream", "binary/octet-stream")), None) or mimetypes.guess_type(key)[0]
+    return StreamingResponse(chunks(), status_code=206 if rng else 200, media_type=mime, headers=headers)
 
 
 class Clip(BaseModel):
@@ -186,6 +188,10 @@ async def start_render(body: RenderRequest, request: Request, current_user: dict
         original = await _asset_for(body.original_asset_id or "", current_user, request)
         if original["kind"] != body.kind:
             raise HTTPException(status_code=400, detail="The original must be of the same type")
+        oext = original["file_storage_key"].rsplit(".", 1)[-1].lower()
+        ok = {"video": ("mp4", "mov", "m4v"), "audio": ("mp3", "wav", "m4a", "aac", "ogg", "flac", "opus", "aif", "aiff", "wma")}[body.kind]
+        if oext not in ok:
+            raise HTTPException(status_code=400, detail=f"Overwriting .{oext} files is not supported. Save as a new file instead.")
     job = {"id": str(uuid4()), "user_id": current_user["id"], "team_id": current_user.get("team_id"),
            "request": body.model_dump(by_alias=True), "status": "queued", "progress": 0, "created_at": _now(), "updated_at": _now()}
     await db.media_render_jobs.insert_one({**job})
@@ -242,7 +248,8 @@ async def _render(job_id: str, body: RenderRequest, assets: dict, original: Opti
                     import re as _re
                     raise RuntimeError(_re.sub(r"https?://\S+", "<source file>", err)[-400:] or f"ffmpeg exited with {rc}")
                 size = os.path.getsize(out_path)
-                mime = {"mp4": "video/mp4", "mov": "video/quicktime", "webm": "video/webm", "mp3": "audio/mpeg", "wav": "audio/wav",
+                mime = {"mp4": "video/mp4", "mov": "video/quicktime", "m4v": "video/x-m4v", "mp3": "audio/mpeg", "wav": "audio/wav",
+                        "opus": "audio/opus", "aif": "audio/aiff", "aiff": "audio/aiff", "wma": "audio/x-ms-wma",
                         "m4a": "audio/mp4", "aac": "audio/aac", "ogg": "audio/ogg", "flac": "audio/flac"}.get(ext, "application/octet-stream")
                 key = original["file_storage_key"] if original else f"media/{user.get('team_id') or 'shared'}/{uuid4()}.{ext}"
                 url = await asyncio.to_thread(s3.upload_local_file_to_s3, out_path, key, mime)
@@ -272,10 +279,22 @@ async def save_edited_image(
 ):
     """Store an image edited in the browser: as a new asset or replacing the original file."""
     original = await _asset_for(original_asset_id, current_user, request)
+    if original["kind"] != "image":
+        raise HTTPException(status_code=400, detail="The original must be an image")
     data = await file.read()
     if not data or len(data) > 50 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="Invalid image")
-    mime = file.content_type or "image/png"
+    mime = (file.content_type or "").lower()
+    if mime not in ("image/png", "image/jpeg", "image/webp"):
+        raise HTTPException(status_code=400, detail="Only PNG, JPEG or WebP images can be saved")
+    try:
+        from io import BytesIO
+        from PIL import Image
+        fmt = await asyncio.to_thread(lambda: Image.open(BytesIO(data)).format)
+    except Exception:
+        fmt = None
+    if fmt not in ("PNG", "JPEG", "WEBP") or fmt.lower() != {"image/png": "png", "image/jpeg": "jpeg", "image/webp": "webp"}[mime]:
+        raise HTTPException(status_code=400, detail="The file is not a valid image of the declared type")
     ext = {"image/png": "png", "image/jpeg": "jpg", "image/webp": "webp"}.get(mime, "png")
     if mode == "overwrite":
         key = original["file_storage_key"]

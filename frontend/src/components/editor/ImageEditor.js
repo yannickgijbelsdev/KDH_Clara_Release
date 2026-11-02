@@ -85,7 +85,8 @@ export default function ImageEditor({ asset, onClose, onSaved }) {
 
   useEffect(() => {
     if (!base || !canvasRef.current) return;
-    const w = Math.min(cropMode ? base.width : outW, 1100);
+    // Preview resolution is independent of the output width (the output size only matters on save).
+    const w = Math.min(cropMode ? base.width : (crop?.w || 1) * base.width, 1100);
     draw(canvasRef.current, base, { crop, adj, texts }, w, cropMode);
   });
 
@@ -153,7 +154,7 @@ export default function ImageEditor({ asset, onClose, onSaved }) {
         onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp}>
         {!img && <Loader2 className="h-6 w-6 animate-spin text-[#7380b6]" />}
         <div className="relative">
-          <canvas ref={canvasRef} onPointerDown={onDown} className={`max-h-[70vh] max-w-full ${cropMode ? 'cursor-crosshair' : 'cursor-default'}`} data-testid="image-editor-canvas" />
+          <canvas ref={canvasRef} onPointerDown={onDown} className={`max-h-[70vh] max-w-full w-auto ${cropMode ? 'cursor-crosshair' : 'cursor-default'}`} data-testid="image-editor-canvas" />
           {cropMode && crop && (
             <div className="pointer-events-none absolute border-2 border-white shadow-[0_0_0_9999px_rgba(0,0,0,.45)]" data-testid="image-crop-rect"
               style={{ left: `${crop.x * 100}%`, top: `${crop.y * 100}%`, width: `${crop.w * 100}%`, height: `${crop.h * 100}%` }} />

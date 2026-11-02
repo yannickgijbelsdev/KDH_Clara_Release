@@ -739,7 +739,8 @@ const MediaLibraryPage = () => {
   const getFileUrl = (asset) => {
     // Use direct S3 URL when available (faster, no proxy needed)
     if (asset.s3_url) {
-      return asset.s3_url;
+      // Cache-bust so an overwritten file shows its new version.
+      return asset.updated_at ? `${asset.s3_url}?v=${encodeURIComponent(asset.updated_at)}` : asset.s3_url;
     }
     // Fallback to proxy endpoint for local files
     return `${API}/media/serve/${asset.id}`;
