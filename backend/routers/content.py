@@ -689,6 +689,7 @@ async def get_pending_approval_content(
 
 
 @content_router.delete("/{content_id}")
+@syncs_article_media
 async def delete_content_item(
     content_id: str,
     request: Request,
@@ -883,6 +884,7 @@ async def get_deleted_content(
 
 
 @content_router.delete("/{content_id}/permanent")
+@syncs_article_media
 async def permanent_delete_content_item(
     content_id: str,
     request: Request,

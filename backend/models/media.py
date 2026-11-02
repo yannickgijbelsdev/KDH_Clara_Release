@@ -20,6 +20,7 @@ class MediaAssetResponse(BaseModel):
     folder_id: Optional[str] = None
     source: Optional[str] = None       # "article" when mirrored from an article
     content_id: Optional[str] = None   # article the file belongs to
+    used_in: List[dict] = []           # articles that still use this file
     created_at: str
     updated_at: str
 

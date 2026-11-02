@@ -23,6 +23,8 @@ ARTICLES_FOLDER = "Artikels"
 S3_PREFIX = f"{S3_ENDPOINT}/{S3_BUCKET}/"
 SRC_RE = re.compile(r'<(?:img|video|audio|source|a)\b[^>]*?\b(?:src|href)=["\']([^"\']+)["\']', re.I)
 KIND_BY_MIME = {"image": "image", "video": "video", "audio": "audio"}
+S3_URL_RE = re.compile(re.escape(S3_PREFIX) + r'[^"\'\s<>)]+')
+SERVE_RE = re.compile(r'/api/media/serve/([0-9a-fA-F-]{36})')
 _tasks: set = set()
 _locks: dict = {}
 GENERIC_MIMES = {None, "", "application/octet-stream", "binary/octet-stream"}
@@ -84,6 +86,55 @@ def _collect_files(item: dict, entries: list) -> dict:
     return files
 
 
+def _collect_refs(item: dict, entries: list, files: dict) -> tuple:
+    """Every S3 key (also Media Library files) and library asset id an article uses."""
+    texts = [item.get("body") or ""] + [e.get("body") or "" for e in entries]
+    keys = set(files)
+    asset_ids = set()
+    for t in texts:
+        for url in S3_URL_RE.findall(t):
+            key = unquote(urlparse(url).path.split(f"/{S3_BUCKET}/", 1)[-1])
+            if key:
+                keys.add(key)
+        asset_ids.update(m.lower() for m in SERVE_RE.findall(t))
+    for fi in [item.get("featured_image")] + list((item.get("featured_images") or {}).values()):
+        if isinstance(fi, dict) and fi.get("file_storage_key"):
+            keys.add(fi["file_storage_key"])
+    for e in entries:
+        for m in (e.get("images") or []) + (e.get("videos") or []):
+            if isinstance(m, dict) and m.get("key"):
+                keys.add(m["key"])
+    return sorted(keys), sorted(asset_ids)
+
+
+async def _update_refs(item: dict, entries: list, files: dict):
+    keys, asset_ids = _collect_refs(item, entries, files)
+    await db.article_media_refs.update_one({"content_id": item["id"]}, {"$set": {
+        "content_id": item["id"], "main_site_id": item.get("main_site_id"), "team_id": item.get("team_id"),
+        "title": item.get("title") or "Untitled article", "deleted": bool(item.get("deleted_at")),
+        "keys": keys, "asset_ids": asset_ids, "updated_at": _now(),
+    }}, upsert=True)
+
+
+async def get_media_usage(assets: list) -> dict:
+    """asset id -> [{content_id, title, in_trash}] for every article that still uses the file."""
+    if not assets:
+        return {}
+    keys = [a["file_storage_key"] for a in assets if a.get("file_storage_key")]
+    ids = [a["id"].lower() for a in assets]
+    refs = await db.article_media_refs.find(
+        {"$or": [{"keys": {"$in": keys}}, {"asset_ids": {"$in": ids}}]},
+        {"_id": 0, "content_id": 1, "title": 1, "deleted": 1, "keys": 1, "asset_ids": 1, "main_site_id": 1},
+    ).to_list(5000)
+    usage = {}
+    for a in assets:
+        hits = [r for r in refs
+                if (a.get("file_storage_key") in r["keys"] or a["id"].lower() in r["asset_ids"])
+                and (not a.get("main_site_id") or not r.get("main_site_id") or r["main_site_id"] == a["main_site_id"])]
+        usage[a["id"]] = [{"content_id": r["content_id"], "title": r["title"], "in_trash": r.get("deleted", False)} for r in hits]
+    return usage
+
+
 async def _ensure_folder(scope: dict, name: str, parent_id: Optional[str], created_by: str, content_id: Optional[str] = None) -> str:
     query = {**scope, "parent_id": parent_id}
     query.update({"article_content_id": content_id} if content_id else {"name": name})
@@ -113,9 +164,11 @@ async def sync_article_media(content_id: str) -> int:
 async def _sync_article_media(content_id: str) -> int:
     item = await db.content_items.find_one({"id": content_id}, {"_id": 0})
     if not item:
+        await db.article_media_refs.delete_one({"content_id": content_id})
         return 0
     entries = await db.liveblog_entries.find({"content_id": content_id}, {"_id": 0, "body": 1, "images": 1, "videos": 1}).to_list(2000)
     files = _collect_files(item, entries)
+    await _update_refs(item, entries, files)
     if not files:
         return 0
     main_site_id, team_id = item.get("main_site_id"), item.get("team_id")
@@ -189,9 +242,10 @@ def syncs_article_media(fn):
     return wrapper
 
 
-async def backfill_article_media(force: bool = False, main_site_id: Optional[str] = None) -> dict:
+async def backfill_article_media(force: bool = False, main_site_id: Optional[str] = None,
+                                 flag_id: str = "article_media_backfill_v1") -> dict:
     """One-time import of files from all existing articles (or re-scan of one site)."""
-    flag = await db.system_flags.find_one({"id": "article_media_backfill_v1"})
+    flag = await db.system_flags.find_one({"id": flag_id})
     if flag and not force:
         return {"skipped": True}
     added = articles = 0
@@ -206,7 +260,7 @@ async def backfill_article_media(force: bool = False, main_site_id: Optional[str
         added += n
     if main_site_id:
         return {"added": added, "articles": articles}
-    await db.system_flags.update_one({"id": "article_media_backfill_v1"},
-                                     {"$set": {"id": "article_media_backfill_v1", "done_at": _now(), "added": added}}, upsert=True)
+    await db.system_flags.update_one({"id": flag_id},
+                                     {"$set": {"id": flag_id, "done_at": _now(), "added": added}}, upsert=True)
     logger.info("Article media backfill: %s assets from %s articles", added, articles)
     return {"added": added, "articles": articles}

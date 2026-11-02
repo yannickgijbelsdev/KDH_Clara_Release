@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import ImageResizeDialog from '../components/ImageResizeDialog';
 import { isImageFile, isOversized } from '../utils/imageResize';
 import { uploadLargeVideo, needsServerCompression } from '../utils/videoUpload';
+import { MediaUsageBadge } from '../components/MediaUsageBadge';
 import {
   DndContext,
   DragOverlay,
@@ -311,7 +312,13 @@ const MediaLibraryPage = () => {
     setPendingFiles([]);
   };
 
+  const blockedMessage = (used) => `Still used in ${used.length} article${used.length === 1 ? '' : 's'}: ${used.slice(0, 3).map((u) => u.title + (u.in_trash ? ' (in trash)' : '')).join(', ')}${used.length > 3 ? '…' : ''}. Remove it from the article first.`;
+
   const handleDeleteAsset = async (asset) => {
+    if (asset.used_in?.length) {
+      toast.error(`Can't delete "${asset.title}"`, { description: blockedMessage(asset.used_in) });
+      return;
+    }
     if (!confirm(`Delete "${asset.title}"? This will remove it from all attached shows.`)) {
       return;
     }
@@ -321,7 +328,13 @@ const MediaLibraryPage = () => {
       toast.success('Asset deleted');
       setAssets(assets.filter(a => a.id !== asset.id));
     } catch (error) {
-      toast.error('Failed to delete asset');
+      const used = error.response?.data?.detail?.used_in;
+      if (error.response?.status === 409 && used) {
+        toast.error(`Can't delete "${asset.title}"`, { description: blockedMessage(used) });
+        setAssets(assets.map((a) => (a.id === asset.id ? { ...a, used_in: used } : a)));
+      } else {
+        toast.error('Failed to delete asset');
+      }
     }
   };
 
@@ -970,16 +983,7 @@ const MediaLibraryPage = () => {
                       <p className="text-xs text-zinc-500 truncate">
                         {asset.original_filename}
                       </p>
-                      {asset.source === 'article' && asset.content_id && (
-                        <a
-                          href={mainSiteSlug ? `/${mainSiteSlug}/content/${asset.content_id}` : `/content/${asset.content_id}`}
-                          onClick={(e) => e.stopPropagation()}
-                          className="mt-1 inline-flex items-center gap-1 rounded-full bg-[#7380b6]/10 px-2 py-0.5 text-[11px] font-medium text-[#5f6ba3] hover:bg-[#7380b6]/20"
-                          data-testid={`media-article-link-${asset.id}`}
-                        >
-                          <ExternalLink className="w-3 h-3" /> From article
-                        </a>
-                      )}
+                      <MediaUsageBadge asset={asset} mainSiteSlug={mainSiteSlug} />
                       <div className="flex items-center gap-2 mt-1 text-xs text-zinc-400">
                         <span>{formatFileSize(asset.size)}</span>
                         <span>•</span>

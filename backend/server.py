@@ -1230,7 +1230,13 @@ async def startup_db_client():
     await db.qr_scans.create_index([("qr_id", 1), ("visitor", 1)])
     app.state.video_upload_janitor = asyncio.create_task(video_upload_janitor())
     from services.article_media import backfill_article_media
-    app.state.article_media_backfill = asyncio.create_task(backfill_article_media())
+    async def _article_media_startup():
+        await backfill_article_media()
+        await backfill_article_media(flag_id="article_media_refs_v1")  # usage index for existing articles
+    app.state.article_media_backfill = asyncio.create_task(_article_media_startup())
+    await db.article_media_refs.create_index("content_id", unique=True)
+    await db.article_media_refs.create_index("keys")
+    await db.article_media_refs.create_index("asset_ids")
     await db.media_assets.create_index([("main_site_id", 1), ("file_storage_key", 1)])
     await db.media_folders.create_index("article_content_id", sparse=True)
 

@@ -96,7 +96,10 @@ async def get_media_assets(
         {"_id": 0}
     ).sort("created_at", -1).to_list(1000)
     
+    from services.article_media import get_media_usage
+    usage = await get_media_usage(assets)
     for asset in assets:
+        asset["used_in"] = usage.get(asset["id"], [])
         user = await db.users.find_one({"id": asset["uploaded_by"]}, {"name": 1})
         asset["uploaded_by_name"] = user.get("name") if user else "Unknown"
     
@@ -316,6 +319,14 @@ async def delete_media_asset(
         raise HTTPException(status_code=404, detail="Media asset not found")
     if asset.get("uploaded_by") != current_user.get("id"):
         await require_can_edit_content(request, current_user)
+    from services.article_media import get_media_usage
+    used_in = (await get_media_usage([asset])).get(asset["id"], [])
+    if used_in:
+        names = ", ".join(f'"{u["title"]}"' + (" (in trash)" if u["in_trash"] else "") for u in used_in[:5])
+        raise HTTPException(status_code=409, detail={
+            "message": f"This file is still used in {len(used_in)} article(s): {names}. Remove it there first.",
+            "used_in": used_in,
+        })
     if asset.get("source") == "article":
         # Still used by the article: keep the S3 file, just don't mirror it again.
         await db.media_sync_ignore.update_one(
