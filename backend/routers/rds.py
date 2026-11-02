@@ -1,5 +1,6 @@
 """RDS Integration routes for MagicRDS and external systems."""
 import asyncio
+from io import BytesIO
 from fastapi import APIRouter, Depends, Request
 from typing import List, Optional
 from datetime import datetime, timezone
@@ -1350,6 +1351,38 @@ def _placeholder_image_response():
     return _empty_image_response()
 
 
+def _compose_presenter_png(raw_avatars: list) -> bytes:
+    """Side-by-side 768px square avatars on a transparent 1024px-high canvas (empty slots stay transparent)."""
+    from PIL import Image
+    canvas_h, avatar_size = 1024, 768
+    canvas = Image.new("RGBA", (avatar_size * len(raw_avatars), canvas_h), (0, 0, 0, 0))
+    for i, data in enumerate(raw_avatars):
+        if not data:
+            continue
+        try:
+            avatar = Image.open(BytesIO(data)).convert("RGBA")
+        except Exception:
+            continue
+        side = min(avatar.size)
+        left, top = (avatar.width - side) // 2, (avatar.height - side) // 2
+        avatar = avatar.crop((left, top, left + side, top + side)).resize((avatar_size, avatar_size), Image.LANCZOS)
+        canvas.paste(avatar, (i * avatar_size, (canvas_h - avatar_size) // 2), avatar)
+    buf = BytesIO()
+    canvas.save(buf, format="PNG", optimize=True)
+    return buf.getvalue()
+
+
+def _square_avatar_png(data: bytes) -> bytes:
+    from PIL import Image
+    img = Image.open(BytesIO(data)).convert("RGBA")
+    side = min(img.size)
+    left, top = (img.width - side) // 2, (img.height - side) // 2
+    img = img.crop((left, top, left + side, top + side)).resize((1024, 1024), Image.LANCZOS)
+    buf = BytesIO()
+    img.save(buf, format="PNG")
+    return buf.getvalue()
+
+
 async def _build_presenter_composite_response(presenter_ids: list[str]):
     """Build a Response with the PIL-composited overlapping-circles PNG for
     an arbitrary list of presenter_ids. Shared by the live-station endpoint
@@ -1357,7 +1390,6 @@ async def _build_presenter_composite_response(presenter_ids: list[str]):
     from fastapi.responses import Response
     from io import BytesIO
     import httpx
-    from PIL import Image
 
     if not presenter_ids:
         return _placeholder_image_response()
@@ -1401,49 +1433,26 @@ async def _build_presenter_composite_response(presenter_ids: list[str]):
     # (grk.fm, player) can round their corners via CSS.
     # 768-px slots (bumped from 384 feb 2026) give grk.fm's hero enough
     # pixels to downsample cleanly instead of showing a blurry image.
-    canvas_h = 1024
-    avatar_size = 768
-    canvas_w = avatar_size * len(ordered_urls)
-    canvas = Image.new("RGBA", (canvas_w, canvas_h), (0, 0, 0, 0))
-
     from pathlib import Path
     UPLOADS_ROOT = Path(__file__).parent.parent / "uploads"
 
-    async def _load_avatar(url: str):
+    async def _load_avatar_bytes(url: str):
         if url.startswith("/uploads/"):
             path = UPLOADS_ROOT / url[len("/uploads/"):]
-            if path.exists():
-                return Image.open(path).convert("RGBA")
-            return None
+            return await asyncio.to_thread(path.read_bytes) if path.exists() else None
         try:
             r = await client.get(url)
             r.raise_for_status()
-            return Image.open(BytesIO(r.content)).convert("RGBA")
+            return r.content
         except Exception:
             return None
 
     async with httpx.AsyncClient(timeout=6.0, follow_redirects=True) as client:
-        for i, url in enumerate(ordered_urls):
-            x = i * avatar_size
-            y = (canvas_h - avatar_size) // 2
-            if not url:
-                continue
-            avatar = await _load_avatar(url)
-            if avatar is None:
-                continue
-            side = min(avatar.size)
-            left = (avatar.width - side) // 2
-            top = (avatar.height - side) // 2
-            avatar = avatar.crop((left, top, left + side, top + side)).resize(
-                (avatar_size, avatar_size), Image.LANCZOS
-            )
-            # Paste as a plain square — no circular mask. Keeps the avatar's
-            # own transparency (if any) intact so the grk.fm hero and other
-            # consumers can style the shape themselves (border-radius in CSS).
-            canvas.paste(avatar, (x, y), avatar if avatar.mode == "RGBA" else None)
+        raw = await asyncio.gather(*[_load_avatar_bytes(u) if u else asyncio.sleep(0) for u in ordered_urls])
 
-    buf = BytesIO()
-    canvas.save(buf, format="PNG", optimize=True)
+    # PIL work is CPU-heavy (~0.3s); run it off the event loop so the API stays responsive.
+    png = await asyncio.to_thread(_compose_presenter_png, raw)
+    buf = BytesIO(png)
     return Response(
         content=buf.getvalue(),
         media_type="image/png",
@@ -1502,7 +1511,6 @@ async def _build_single_presenter_image_response(presenter_ids: list[str], slot:
     from fastapi.responses import Response
     from io import BytesIO
     import httpx
-    from PIL import Image
 
     url = await _resolve_slot_avatar_url(presenter_ids, slot)
     if not url:
@@ -1520,20 +1528,12 @@ async def _build_single_presenter_image_response(presenter_ids: list[str], slot:
             resp = await client.get(url)
             if resp.status_code != 200:
                 return _placeholder_image_response()
-            img = Image.open(BytesIO(resp.content)).convert("RGBA")
+            data = resp.content
+        # Center-crop + 1024px resize off the event loop.
+        buf = BytesIO(await asyncio.to_thread(_square_avatar_png, data))
     except Exception:
         return _placeholder_image_response()
 
-    # Center-crop to a square then resize to 1024×1024 for a predictable
-    # consumer size (matches the per-slot size inside the composite — bumped
-    # from 512 feb 2026 so grk.fm's hero can downsample cleanly).
-    side = min(img.size)
-    left = (img.width - side) // 2
-    top = (img.height - side) // 2
-    img = img.crop((left, top, left + side, top + side)).resize((1024, 1024), Image.LANCZOS)
-
-    buf = BytesIO()
-    img.save(buf, format="PNG")
     return Response(
         content=buf.getvalue(),
         media_type="image/png",

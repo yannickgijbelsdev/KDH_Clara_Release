@@ -401,6 +401,27 @@ async def reset_user_password(
     return {"message": "Password reset successfully"}
 
 
+def _compress_avatar(content: bytes) -> tuple:
+    """Downscale to a 1024px box; PNG when there is alpha, else progressive JPEG q85."""
+    from PIL import Image
+    from io import BytesIO
+    try:
+        import pillow_heif  # type: ignore
+        pillow_heif.register_heif_opener()
+    except Exception:
+        pass
+    img = Image.open(BytesIO(content))
+    img.load()
+    has_alpha = (img.mode in ("RGBA", "LA")) or (img.mode == "P" and "transparency" in img.info)
+    img.thumbnail((1024, 1024), Image.LANCZOS)
+    out = BytesIO()
+    if has_alpha:
+        img.convert("RGBA").save(out, format="PNG", optimize=True)
+        return out.getvalue(), "image/png", ".png"
+    img.convert("RGB").save(out, format="JPEG", quality=85, optimize=True, progressive=True)
+    return out.getvalue(), "image/jpeg", ".jpg"
+
+
 @users_router.post("/{user_id}/avatar")
 async def upload_avatar(
     user_id: str,
@@ -451,39 +472,8 @@ async def upload_avatar(
     # upload still succeeds for exotic formats.
     file_ext_override = None
     try:
-        from PIL import Image
-        from io import BytesIO
-        # Opt-in HEIC/HEIF support if the pillow-heif plugin is installed.
-        try:
-            import pillow_heif  # type: ignore
-            pillow_heif.register_heif_opener()
-        except Exception:
-            pass
-
-        img = Image.open(BytesIO(content))
-        img.load()
-        has_alpha = (img.mode in ("RGBA", "LA")) or (img.mode == "P" and "transparency" in img.info)
-
-        # Downscale to a 1024×1024 bounding box while keeping aspect ratio.
-        # 1024 is a good trade-off between hero-sharpness on grk.fm and file
-        # size — a JPEG q=85 of a square 1024 photo lands around 150 KB,
-        # which the composite/per-slot endpoints can downsample cleanly
-        # (bug: previous 512 cap gave a visibly blurry hero image).
-        img.thumbnail((1024, 1024), Image.LANCZOS)
-
-        out = BytesIO()
-        if has_alpha:
-            img = img.convert("RGBA")
-            img.save(out, format="PNG", optimize=True)
-            content = out.getvalue()
-            content_type = "image/png"
-            file_ext_override = ".png"
-        else:
-            img = img.convert("RGB")
-            img.save(out, format="JPEG", quality=85, optimize=True, progressive=True)
-            content = out.getvalue()
-            content_type = "image/jpeg"
-            file_ext_override = ".jpg"
+        # CPU-heavy (big phone photos): keep it off the event loop.
+        content, content_type, file_ext_override = await asyncio.to_thread(_compress_avatar, content)
     except Exception:
         # Keep the original bytes if PIL couldn't decode — Global Protect
         # below will still enforce its own ceiling.

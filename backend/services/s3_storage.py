@@ -2,6 +2,7 @@
 
 Handles all file uploads and downloads to/from S3-compatible storage.
 """
+import asyncio
 import os
 import boto3
 from botocore.exceptions import ClientError
@@ -69,8 +70,18 @@ S3_REGION = os.environ.get('S3_REGION', 'eu-central')
 S3_ACCESS_KEY = os.environ.get('S3_ACCESS_KEY', '')
 S3_SECRET_KEY = os.environ.get('S3_SECRET_KEY', '')
 
-# Initialize S3 client
+_s3_client = None
+
+
 def get_s3_client():
+    """Shared (thread-safe) boto3 client; creating one per call is slow."""
+    global _s3_client
+    if _s3_client is None:
+        _s3_client = _make_s3_client()
+    return _s3_client
+
+
+def _make_s3_client():
     """Get configured S3 client for Hetzner Object Storage."""
     return boto3.client(
         's3',
@@ -126,7 +137,8 @@ async def upload_file_to_s3(
             content_type = mimetypes.guess_type(file_key)[0] or 'application/octet-stream'
         
         # Upload to S3
-        s3_client.put_object(
+        await asyncio.to_thread(
+            s3_client.put_object,
             Bucket=S3_BUCKET,
             Key=file_key,
             Body=file_content,
@@ -163,7 +175,7 @@ async def delete_file_from_s3(file_key: str) -> bool:
     
     try:
         s3_client = get_s3_client()
-        s3_client.delete_object(Bucket=S3_BUCKET, Key=file_key)
+        await asyncio.to_thread(s3_client.delete_object, Bucket=S3_BUCKET, Key=file_key)
         logger.info(f"Deleted file from S3: {file_key}")
         return True
     except ClientError as e:
@@ -185,8 +197,9 @@ async def get_file_from_s3(file_key: str) -> bytes:
     
     try:
         s3_client = get_s3_client()
-        response = s3_client.get_object(Bucket=S3_BUCKET, Key=file_key)
-        return response['Body'].read()
+        def _read():
+            return s3_client.get_object(Bucket=S3_BUCKET, Key=file_key)['Body'].read()
+        return await asyncio.to_thread(_read)
     except ClientError as e:
         logger.error(f"S3 get error: {e}")
         raise Exception(f"Failed to get from S3: {str(e)}")
@@ -229,7 +242,7 @@ async def check_s3_connection() -> dict:
     try:
         s3_client = get_s3_client()
         # Try to list objects (limit 1) to test connection
-        s3_client.list_objects_v2(Bucket=S3_BUCKET, MaxKeys=1)
+        await asyncio.to_thread(s3_client.list_objects_v2, Bucket=S3_BUCKET, MaxKeys=1)
         return {'connected': True, 'bucket': S3_BUCKET, 'endpoint': S3_ENDPOINT}
     except ClientError as e:
         return {'connected': False, 'error': str(e)}

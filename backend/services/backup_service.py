@@ -5,6 +5,7 @@ Backups are stored as gzipped JSON in S3 under the key:
 
 Metadata is stored in the MongoDB 'backups' collection.
 """
+import asyncio
 import uuid
 import gzip
 import json
@@ -180,9 +181,10 @@ async def create_backup(
                 total_docs += len(docs)
 
         # Compress and upload to S3
-        compressed = _serialize_data(data)
+        compressed = await asyncio.to_thread(_serialize_data, data)
         s3_client = get_s3_client()
-        s3_client.put_object(
+        await asyncio.to_thread(
+            s3_client.put_object,
             Bucket=S3_BUCKET,
             Key=s3_key,
             Body=compressed,
@@ -243,9 +245,9 @@ async def restore_backup(
     try:
         # Download backup from S3
         s3_client = get_s3_client()
-        response = s3_client.get_object(Bucket=S3_BUCKET, Key=backup["s3_key"])
-        compressed = response["Body"].read()
-        data = _deserialize_data(compressed)
+        compressed = await asyncio.to_thread(
+            lambda: s3_client.get_object(Bucket=S3_BUCKET, Key=backup["s3_key"])["Body"].read())
+        data = await asyncio.to_thread(_deserialize_data, compressed)
 
         team_ids = await _get_team_ids(main_site_id)
 
@@ -435,7 +437,7 @@ async def cleanup_expired_backups():
     for backup in expired:
         try:
             s3_client = get_s3_client()
-            s3_client.delete_object(Bucket=S3_BUCKET, Key=backup["s3_key"])
+            await asyncio.to_thread(s3_client.delete_object, Bucket=S3_BUCKET, Key=backup["s3_key"])
         except Exception as e:
             logger.warning(f"Failed to delete S3 object {backup['s3_key']}: {e}")
         await db.backups.delete_one({"id": backup["id"]})

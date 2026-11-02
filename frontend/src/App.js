@@ -68,6 +68,8 @@ import CallWidget from './components/Call/CallWidget';
 import ForcePasswordChangeModal from './components/Auth/ForcePasswordChangeModal';
 import { useSubdomainRouter } from './hooks/useSubdomainRouter';
 import './App.css';
+import { AppErrorBoundary } from './components/AppErrorBoundary';
+import { AppLoadingScreen } from './components/AppLoadingScreen';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -82,7 +84,7 @@ const ProtectedRoute = ({ children }) => {
   }, []);
   
   if (loading || !configLoaded) {
-    return <div className="min-h-screen bg-[#F0F0F2]" />;
+    return <AppLoadingScreen />;
   }
   
   if (!user) {
@@ -105,11 +107,14 @@ const ProtectedRoute = ({ children }) => {
 };
 
 const AppRoutes = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, connectionError, retryConnection } = useAuth();
   const { resolved } = useSubdomainRouter();
   
+  if (connectionError && !user) {
+    return <AppLoadingScreen unreachable onRetry={retryConnection} />;
+  }
   if (loading || !resolved) {
-    return <div className="min-h-screen bg-[#F0F0F2]" />;
+    return <AppLoadingScreen />;
   }
   
   return (
@@ -332,6 +337,7 @@ function ClaraNavigationListener() {
 
 function App() {
   return (
+    <AppErrorBoundary>
     <BrowserRouter>
       <AuthProvider>
         <TopLoaderProvider>
@@ -357,6 +363,7 @@ function App() {
         </TopLoaderProvider>
       </AuthProvider>
     </BrowserRouter>
+    </AppErrorBoundary>
   );
 }
 

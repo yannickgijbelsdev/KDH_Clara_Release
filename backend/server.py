@@ -198,7 +198,7 @@ async def serve_file(path: str, auth: str = None):
     from fastapi import Response
     from services.object_storage import get_object
     try:
-        data, content_type = get_object(path)
+        data, content_type = await asyncio.to_thread(get_object, path)
         return Response(content=data, media_type=content_type)
     except Exception:
         raise HTTPException(status_code=404, detail="File not found")
@@ -1211,6 +1211,8 @@ async def startup_db_client():
     """Migrate legacy data and ensure bootstrap admin exists on startup."""
     from services.auth import hash_password
     from routers.video_uploads import video_upload_janitor
+    from services.loop_watchdog import start_loop_watchdog
+    start_loop_watchdog()
     await db.qr_codes.create_index("code", unique=True)
     await db.qr_scans.create_index([("qr_id", 1), ("scanned_at", 1)])
     await db.qr_scans.create_index([("qr_id", 1), ("visitor", 1)])

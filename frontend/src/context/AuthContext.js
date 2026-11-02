@@ -14,6 +14,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
+  const [connectionError, setConnectionError] = useState(false);
   const [impersonating, setImpersonating] = useState(null); // Original user when impersonating
   const [sessionExpiresAt, setSessionExpiresAt] = useState(null);
   const [showSessionWarning, setShowSessionWarning] = useState(false);
@@ -165,9 +166,22 @@ export const AuthProvider = ({ children }) => {
   const fetchUser = async (opts = {}) => {
     const { silent = false } = opts;
     try {
-      const response = await axios.get(`${API}/auth/me`, {
-        headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
-      });
+      let response;
+      // Retry transient failures (timeouts / 5xx / network) instead of logging the user out.
+      for (let attempt = 1; ; attempt += 1) {
+        try {
+          response = await axios.get(`${API}/auth/me`, {
+            headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' },
+            timeout: 15000,
+          });
+          break;
+        } catch (err) {
+          const st = err?.response?.status;
+          if (st === 401 || st === 403 || attempt >= 3) throw err;
+          await new Promise((r) => setTimeout(r, 1500 * attempt));
+        }
+      }
+      setConnectionError(false);
       setUser(response.data);
       
       // Check if we're impersonating (stored in localStorage)
@@ -182,16 +196,22 @@ export const AuthProvider = ({ children }) => {
       // during impersonation must NOT redirect the admin to the login page.
       if (status === 401 || status === 403) {
         logout();
+      } else if (!silent) {
+        // Server unreachable or overloaded: keep the session and show a retry screen.
+        setConnectionError(true);
       } else if (silent) {
         // Keep whatever user we already have (switchToUser already set it)
         // so the UI doesn't flash the loading state.
-      } else {
-        logout();
       }
     } finally {
       setLoading(false);
     }
   };
+
+  const retryConnection = useCallback(() => {
+    fetchUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const login = async (email, password, totpCode = null, backupCode = null) => {
     const response = await axios.post(`${API}/auth/login`, { 
@@ -379,6 +399,8 @@ export const AuthProvider = ({ children }) => {
       user, 
       token, 
       loading, 
+      connectionError,
+      retryConnection,
       login, 
       register, 
       logout,

@@ -77,7 +77,7 @@ async def delete_backup(
     try:
         from services.s3_storage import get_s3_client, S3_BUCKET
         s3_client = get_s3_client()
-        s3_client.delete_object(Bucket=S3_BUCKET, Key=backup["s3_key"])
+        await asyncio.to_thread(s3_client.delete_object, Bucket=S3_BUCKET, Key=backup["s3_key"])
     except Exception:
         pass
     await db.backups.delete_one({"id": backup_id})

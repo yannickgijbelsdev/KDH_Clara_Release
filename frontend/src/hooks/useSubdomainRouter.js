@@ -42,7 +42,7 @@ export function useSubdomainRouter() {
       try {
         // Use RELATIVE URL — so it goes through the Cloudflare Worker
         // login.koodh.com/api/... → Worker → clara.koodh.com/api/...
-        const res = await fetch('/api/domains/routes/public');
+        const res = await fetch('/api/domains/routes/public', { signal: AbortSignal.timeout(8000) });
         if (!res.ok) { setResolved(true); return; }
         const data = await res.json();
         routesRef.current = data;
@@ -90,7 +90,9 @@ export function useSubdomainRouter() {
             const subdomainUrl = `https://${matchingRoute.subdomain}.${baseDomain}${location.pathname.replace(matchingRoute.target_path, '') || '/'}`;
             hasRedirected.current = true;
             window.location.href = subdomainUrl;
-            return; // Don't resolve — browser is navigating away
+            // Safety net: if navigation doesn't happen, don't leave a blank page.
+            setTimeout(() => setResolved(true), 5000);
+            return;
           }
         }
       } catch {

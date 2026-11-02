@@ -51,7 +51,7 @@ export function isOnAppSubdomain(config) {
  */
 export async function fetchSubdomainConfig() {
   try {
-    const res = await fetch(`${API}/api/auth/subdomain-config`);
+    const res = await fetch(`${API}/api/auth/subdomain-config`, { signal: AbortSignal.timeout(8000) });
     if (res.ok) return await res.json();
   } catch {
     // Silently fail - subdomain routing is optional
