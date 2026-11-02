@@ -212,10 +212,17 @@ async def upload_media_asset(
 
 
 @media_router.post("/sync-articles")
-async def sync_article_media_now(current_user: dict = Depends(require_can_edit_content)):
-    """Re-scan all articles and add their S3 files to the Media Library (Artikels folder)."""
+async def sync_article_media_now(request: Request, current_user: dict = Depends(get_current_user)):
+    """Re-scan this site's articles and add their S3 files to the Media Library (Artikels folder). Admins only."""
     from services.article_media import backfill_article_media
-    return await backfill_article_media(force=True)
+    main_site_id = await get_main_site_id_from_header(request)
+    if not main_site_id:
+        raise HTTPException(status_code=400, detail="X-Main-Site-ID header is required")
+    if current_user.get("role") != "admin" and not current_user.get("is_network_admin"):
+        site_role = await db.main_site_users.find_one({"user_id": current_user["id"], "main_site_id": main_site_id}, {"_id": 0, "role": 1})
+        if (site_role or {}).get("role") != "admin":
+            raise HTTPException(status_code=403, detail="Admins only")
+    return await backfill_article_media(force=True, main_site_id=main_site_id)
 
 
 @media_router.get("/serve/{asset_id}")

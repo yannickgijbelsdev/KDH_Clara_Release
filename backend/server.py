@@ -1232,6 +1232,7 @@ async def startup_db_client():
     from services.article_media import backfill_article_media
     app.state.article_media_backfill = asyncio.create_task(backfill_article_media())
     await db.media_assets.create_index([("main_site_id", 1), ("file_storage_key", 1)])
+    await db.media_folders.create_index("article_content_id", sparse=True)
 
     # Ensure MongoDB indexes for fast queries
     try:

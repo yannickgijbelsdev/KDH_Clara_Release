@@ -161,6 +161,19 @@ const MediaLibraryPage = () => {
     }
   };
 
+  // Path from the root to a (nested) folder, used for the header and breadcrumb.
+  const folderPath = (nodes, id, trail = []) => {
+    for (const f of nodes || []) {
+      if (f.id === id) return [...trail, f];
+      const hit = folderPath(f.children, id, [...trail, f]);
+      if (hit) return hit;
+    }
+    return null;
+  };
+  const currentPath = currentFolder ? (folderPath(folders, currentFolder) || []) : [];
+  const currentNode = currentPath[currentPath.length - 1];
+  const currentChildren = currentNode?.children || [];
+
   const fetchFolders = async () => {
     try {
       const response = await axios.get(`${API}/media/folders/tree`);
@@ -756,7 +769,7 @@ const MediaLibraryPage = () => {
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 mb-1 sm:mb-2">Media Library</h1>
           <p className="text-xs sm:text-sm text-zinc-400">
-            {currentFolder ? folders.find(f => f.id === currentFolder)?.name || 'Folder' : 'All files and folders'}
+            {currentFolder ? currentNode?.name || 'Folder' : 'All files and folders'}
           </p>
         </div>
 
@@ -868,15 +881,40 @@ const MediaLibraryPage = () => {
                 >
                   All Files
                 </button>
-                <ChevronRight className="w-4 h-4 text-zinc-600" />
-                <span className="text-[#7380b6]0">
-                  {folders.find(f => f.id === currentFolder)?.name || 'Folder'}
-                </span>
+                {currentPath.map((f, i) => (
+                  <span key={f.id} className="flex items-center gap-2 min-w-0">
+                    <ChevronRight className="w-4 h-4 shrink-0 text-zinc-600" />
+                    {i < currentPath.length - 1 ? (
+                      <button onClick={() => setCurrentFolder(f.id)} className="truncate text-zinc-400 hover:text-zinc-700" data-testid={`breadcrumb-folder-${f.id}`}>{f.name}</button>
+                    ) : (
+                      <span className="truncate text-[#7380b6]" data-testid="breadcrumb-current-folder">{f.name}</span>
+                    )}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Subfolders of the open folder */}
+            {currentChildren.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mb-6" data-testid="subfolder-grid">
+                {currentChildren.map((f) => (
+                  <button
+                    key={f.id}
+                    onClick={() => setCurrentFolder(f.id)}
+                    title={f.name}
+                    className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-left text-sm text-zinc-700 hover:border-[#7380b6]/40 hover:bg-[#7380b6]/5"
+                    data-testid={`subfolder-tile-${f.id}`}
+                  >
+                    <Folder className="w-4 h-4 shrink-0 text-[#7380b6]" />
+                    <span className="truncate flex-1">{f.name}</span>
+                    {f.asset_count > 0 && <span className="text-xs text-zinc-400">{f.asset_count}</span>}
+                  </button>
+                ))}
               </div>
             )}
 
             {/* Assets Grid */}
-        {filteredAssets.length === 0 ? (
+        {filteredAssets.length === 0 && currentChildren.length === 0 ? (
           <div className="glass-card rounded-xl p-12 text-center">
             <File className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-zinc-900 mb-2">No media files</h3>
@@ -1773,7 +1811,7 @@ const DroppableFolderItem = ({
           <span className="w-4" />
         )}
         {isSelected ? <FolderOpen className="w-4 h-4 flex-shrink-0" /> : <Folder className="w-4 h-4 flex-shrink-0" />}
-        <span className="truncate flex-1 text-sm">{folder.name}</span>
+        <span className="truncate flex-1 text-sm" title={folder.name} data-testid={`folder-tree-item-${folder.id}`}>{folder.name}</span>
         <span className="text-xs text-zinc-500">{folder.asset_count}</span>
         
         {canEdit && (

@@ -24,6 +24,8 @@ S3_PREFIX = f"{S3_ENDPOINT}/{S3_BUCKET}/"
 SRC_RE = re.compile(r'<(?:img|video|audio|source|a)\b[^>]*?\b(?:src|href)=["\']([^"\']+)["\']', re.I)
 KIND_BY_MIME = {"image": "image", "video": "video", "audio": "audio"}
 _tasks: set = set()
+_locks: dict = {}
+GENERIC_MIMES = {None, "", "application/octet-stream", "binary/octet-stream"}
 
 
 def _now() -> str:
@@ -38,8 +40,9 @@ def _key_from_url(url: str) -> Optional[str]:
     return key if key and not key.startswith(("tmp/", "media/")) else None
 
 
-def _kind_and_mime(key: str, mime: Optional[str] = None) -> tuple:
-    mime = mime or mimetypes.guess_type(key)[0] or "application/octet-stream"
+def _kind_and_mime(key: str, *mimes: Optional[str]) -> tuple:
+    # First specific type wins; generic octet-stream falls back to the file extension.
+    mime = next((m for m in mimes if m not in GENERIC_MIMES), None) or mimetypes.guess_type(key)[0] or "application/octet-stream"
     return KIND_BY_MIME.get(mime.split("/")[0], "document"), mime
 
 
@@ -91,12 +94,23 @@ async def _ensure_folder(scope: dict, name: str, parent_id: Optional[str], creat
         return folder["id"]
     doc = {"id": str(uuid.uuid4()), **scope, "name": name, "parent_id": parent_id, "color": None,
            "created_by": created_by, "article_content_id": content_id, "created_at": _now(), "updated_at": _now()}
-    await db.media_folders.insert_one({**doc})
-    return doc["id"]
+    # Upsert so concurrent syncs never create the same folder twice.
+    await db.media_folders.update_one(query, {"$setOnInsert": {k: v for k, v in doc.items() if k not in query}}, upsert=True)
+    return (await db.media_folders.find_one(query, {"_id": 0, "id": 1}))["id"]
 
 
 async def sync_article_media(content_id: str) -> int:
     """Add the article's S3 files to the Media Library. Returns the number of new assets."""
+    lock = _locks.setdefault(content_id, asyncio.Lock())
+    try:
+        async with lock:
+            return await _sync_article_media(content_id)
+    finally:
+        if not lock.locked():
+            _locks.pop(content_id, None)
+
+
+async def _sync_article_media(content_id: str) -> int:
     item = await db.content_items.find_one({"id": content_id}, {"_id": 0})
     if not item:
         return 0
@@ -110,10 +124,13 @@ async def sync_article_media(content_id: str) -> int:
     ignored = {d["file_storage_key"] async for d in db.media_sync_ignore.find({**scope, "file_storage_key": {"$in": list(files)}}, {"_id": 0, "file_storage_key": 1})}
     existing = {d["file_storage_key"] async for d in db.media_assets.find({**scope, "file_storage_key": {"$in": list(files)}}, {"_id": 0, "file_storage_key": 1})}
     todo = {k: v for k, v in files.items() if k not in ignored and k not in existing}
+    title = (item.get("title") or "Untitled article").strip()[:120]
     if not todo:
+        # Nothing new, but keep the article's subfolder name in sync with its title.
+        await db.media_folders.update_one({**scope, "article_content_id": content_id, "name": {"$ne": title}},
+                                          {"$set": {"name": title, "updated_at": _now()}})
         return 0
     root = await _ensure_folder(scope, ARTICLES_FOLDER, None, owner)
-    title = (item.get("title") or "Untitled article").strip()[:120]
     sub = await _ensure_folder(scope, title, root, owner, content_id)
     now = _now()
     known = {d["file_storage_key"]: d async for d in db.editor_uploads.find(
@@ -125,7 +142,7 @@ async def sync_article_media(content_id: str) -> int:
         k = known.get(key, {})
         h = heads.get(key, {})
         head_mime = h.get("mime") if h.get("mime") not in (None, "binary/octet-stream", "application/octet-stream") else None
-        kind, mime = _kind_and_mime(key, f["mime"] or k.get("mime_type") or head_mime)
+        kind, mime = _kind_and_mime(key, f["mime"], k.get("mime_type"), head_mime)
         f["size"] = f["size"] or k.get("size") or h.get("size")
         counters[kind] = counters.get(kind, 0) + 1
         ext = key.rsplit(".", 1)[-1] if "." in key.rsplit("/", 1)[-1] else ""
@@ -138,8 +155,12 @@ async def sync_article_media(content_id: str) -> int:
             "source": "article", "source_detail": f["source"], "content_id": content_id,
             "created_at": item.get("created_at") or now, "updated_at": now,
         })
-    await db.media_assets.insert_many(docs)
-    return len(docs)
+    added = 0
+    for d in docs:
+        r = await db.media_assets.update_one({**scope, "file_storage_key": d["file_storage_key"]},
+                                             {"$setOnInsert": d}, upsert=True)
+        added += 1 if r.upserted_id else 0
+    return added
 
 
 def schedule_article_media_sync(content_id: Optional[str]):
@@ -168,13 +189,14 @@ def syncs_article_media(fn):
     return wrapper
 
 
-async def backfill_article_media(force: bool = False) -> dict:
-    """One-time import of files from all existing articles."""
+async def backfill_article_media(force: bool = False, main_site_id: Optional[str] = None) -> dict:
+    """One-time import of files from all existing articles (or re-scan of one site)."""
     flag = await db.system_flags.find_one({"id": "article_media_backfill_v1"})
     if flag and not force:
         return {"skipped": True}
     added = articles = 0
-    async for item in db.content_items.find({}, {"_id": 0, "id": 1}):
+    query = {"main_site_id": main_site_id} if main_site_id else {}
+    async for item in db.content_items.find(query, {"_id": 0, "id": 1}):
         try:
             n = await sync_article_media(item["id"])
         except Exception as e:
@@ -182,6 +204,8 @@ async def backfill_article_media(force: bool = False) -> dict:
             continue
         articles += 1 if n else 0
         added += n
+    if main_site_id:
+        return {"added": added, "articles": articles}
     await db.system_flags.update_one({"id": "article_media_backfill_v1"},
                                      {"$set": {"id": "article_media_backfill_v1", "done_at": _now(), "added": added}}, upsert=True)
     logger.info("Article media backfill: %s assets from %s articles", added, articles)

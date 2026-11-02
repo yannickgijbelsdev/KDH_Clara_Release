@@ -1,0 +1,39 @@
+{
+  "summary": "Tested mirroring article S3 files into the Media Library: backfill, auto-sync (create/update/featured image/liveblog), delete->ignore, uploader-delete/folder_id fixes and the frontend 'Artikels' tree and 'From article' pill. Backend: 12 of 14 pytest tests pass. Backfill is correct: 31 assets in 22 subfolders, no duplicates, and sync-articles is idempotent (added 0). Two real bugs: (1) audio uploaded as application/octet-stream (AIFF) is mirrored as kind='document', mime='application/octet-stream'; (2) changing only the article title does NOT rename its subfolder. Frontend: the Artikels tree expands into 22 article subfolders, the pill links to /radiogroep/content/<id>, and clicking it opens the article.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "services/article_media.sync_article_media (PUT /api/content/{id} with octet-stream audio)", "issue": "The mime comes from f['mime'] or editor_uploads.mime_type ('application/octet-stream' is stored as-is by upload_editor_file) or the head_object mime. That generic value wins over mimetypes.guess_type(key), so a .aiff uploaded as octet-stream becomes kind='document', mime='application/octet-stream'. The Media Library then shows it as a file, not audio. Fix: treat application/octet-stream / binary/octet-stream from editor_uploads the same as the S3 head mime (ignore it), or let the guessed type from the extension win."},
+      {"endpoint": "services/article_media.sync_article_media (rename)", "issue": "The function returns early ('if not todo: return 0') before _ensure_folder runs, so a title-only rename (no new files) leaves the subfolder with the old name. Reproduced: PUT {title: '<t> renamed'} -> folder still '<t>'. It is only renamed when the same save also adds a new file. Fix: when files exist, look up and rename the subfolder even if todo is empty."},
+      {"endpoint": "POST /api/media/sync-articles", "issue": "This calls backfill_article_media(force=True) over ALL content_items of ALL main sites (no scope), synchronously in the request. Any user with editor/presenter-level rights on one site can trigger a cross-tenant rescan with S3 HEADs. Consider scoping it to the X-Main-Site-ID or restricting it to admins."},
+      {"endpoint": "services/article_media (concurrency)", "issue": "There is no unique index on media_assets (main_site_id, file_storage_key) or media_folders (article_content_id). Two quick saves of the same article (autosave) run 2 background tasks that can both pass the 'existing' check and insert duplicate assets/subfolders. Suggest unique indexes or upserts."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Media Library, nested article subfolder", "issues": ["The page subtitle and breadcrumb show 'All Files > Folder' instead of 'Artikels > <article title>'. At the root Artikels folder it correctly shows 'Artikels'.", "Selecting 'Artikels' shows 'No media files / Upload documents...' because the main pane does not list subfolders. Users may think the folder is empty.", "Subfolder names are truncated heavily in the narrow tree (e.g. 'Pilootproject o...'). Consider a tooltip (title attr) or a wider sidebar.", "Folder tree rows have no data-testid (only folder-menu-<id>)."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_article_media_library.py", "/app/test_reports/pytest/iteration_186.xml"],
+  "action_items": [
+    "article_media: don't let 'application/octet-stream' from editor_uploads.mime_type override the extension guess (octet-stream AIFF/AAC currently mirrored as kind=document)",
+    "article_media: rename the article subfolder on sync even when there are no new files (title-only edits currently don't rename it)",
+    "Scope /api/media/sync-articles to the current main site (or admin-only); it currently rescans every tenant",
+    "Optional: unique index or upsert on media_assets(main_site_id,file_storage_key) to avoid duplicates from concurrent saves",
+    "Optional UI: show the folder name instead of 'Folder' in the breadcrumb/subtitle for nested folders; list subfolders in the main pane when 'Artikels' is selected"
+  ],
+  "critical_code_review_comments": [
+    "Delete endpoint finds the asset by {'id', 'team_id': current_user.team_id}. Mirrored assets get team_id=item.team_id (None on radiogroep). A user with a non-null team_id trying to delete a mirrored asset (team_id None) will get 404, even with RBAC delete rights (same pre-existing team-scoping pattern in GET/PUT /media/{id}).",
+    "syncs_article_media takes the result's 'id' when there's no content_id kwarg. That is correct for create_content_item, but fragile for any future endpoint that returns a non-content id.",
+    "The delete branch for mirrored assets (keys editor/, content/, liveblog/) falls into the 'local storage' else branch, which is harmless but misleading; an explicit skip would be clearer."
+  ],
+  "updated_files": ["/app/backend/tests/test_article_media_library.py"],
+  "success_rate": {"backend": "86% (12/14)", "frontend": "100% of tested flows"},
+  "seed_data_creation": "None kept. Test articles/assets/folders/ignore keys were cleaned up. NOTE: an early run of my cleanup wrongly deleted 3 real article subfolders (articles titled TEST_PubBlock_c178e6, TEST_QR article, TEST_NewsInject_221a8a). They were re-created with the same IDs; Artikels again has 22 subfolders and 31 assets.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Run: REACT_APP_BACKEND_URL=... pytest backend/tests/test_article_media_library.py. It uses /tmp/at/*.(png,aiff,aac) and /tmp/mint.py (role JWTs). The 'viewer' user e7058f69 is site-role 'presenter' on radiogroep (so it is allowed by RBAC). The 'redactie' role has media_library.delete=True, so redactie deleting someone else's asset returning 204 is expected by RBAC. The presentator user gets 403/404 as expected. Main site radiogroep id 63154708-3320-444c-932d-aa3642b5090c. The admin team_id is None.",
+  "rca of the issue": "Octet-stream: upload_editor_file stores file.content_type verbatim in editor_uploads; _kind_and_mime only falls back to the extension guess when mime is falsy. Rename: the early return `if not todo` in sync_article_media comes before _ensure_folder, so the rename logic in _ensure_folder never runs for edits without new files."
+}
