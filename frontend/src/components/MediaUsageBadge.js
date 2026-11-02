@@ -32,7 +32,7 @@ export const MediaUsageBadge = ({ asset, mainSiteSlug }) => {
               <a href={articleHref(mainSiteSlug, u.content_id)} className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50" data-testid={`media-usage-article-${u.content_id}`}>
                 {u.in_trash ? <Trash2 className="w-3.5 h-3.5 shrink-0 text-zinc-400" /> : <FileText className="w-3.5 h-3.5 shrink-0 text-[#7380b6]" />}
                 <span className="truncate flex-1">{u.title}</span>
-                {u.in_trash && <span className="text-[10px] text-zinc-400">in trash</span>}
+                {u.in_trash && <span className="rounded-full bg-amber-50 px-1.5 py-0.5 text-[11px] text-amber-700">in trash</span>}
               </a>
             </li>
           ))}

@@ -664,3 +664,9 @@ grk.fm / mfy.fm players embed `<img src="/api/rds/grk/image.jpg">` directly. Whe
 - NEW services/article_media.py: mirrors every S3 file used in articles (body img/audio/video/source/a, featured images, liveblog photos/videos) into Media Library folder "Artikels/<article title>" (`source: article`, `content_id`). Runs via the @syncs_article_media decorator on content create/update/restore/rollback/featured-image and liveblog entry create/update. One-time startup backfill (system_flags `article_media_backfill_v1`), plus POST /api/media/sync-articles (site admins, scoped to X-Main-Site-ID). Deleting a mirrored asset keeps the S3 file and adds the key to media_sync_ignore. Names come from editor_uploads (original filename) or "<title> – image N"; sizes come from S3 head. A per-article lock plus upserts prevent duplicates.
 - UI: "From article" pill links to the article; nested breadcrumb; subfolder tiles in the main pane.
 - Tested: iteration_185, iteration_186 (+ fixes verified by curl and a screenshot).
+
+## 2026-06 — "Used in article" + blocked deletes in the Media Library
+- `article_media_refs` (one per article: keys = all S3 keys incl. media/, asset_ids from /api/media/serve/<id>, deleted flag) is updated by the article sync (also on soft/permanent/bulk delete). Startup backfill flag `article_media_refs_v1`.
+- GET /api/media returns `used_in` [{content_id, title, in_trash}]. DELETE /api/media/{id} returns 409 {message, used_in} while the file is used (also by trashed articles). Folder delete only moves assets (safe).
+- UI: MediaUsageBadge ("Used in N articles" popover with links / "Not used"); delete is blocked with a toast listing the articles.
+- Tested: iteration_187 + tests/test_media_usage.py (9/9 after the bulk-delete fix).

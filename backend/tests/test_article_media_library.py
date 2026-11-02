@@ -189,7 +189,11 @@ class TestDeleteMirrored:
         cid = STATE["cid"]
         a = DB.media_assets.find_one({"content_id": cid, "file_storage_key": _key(STATE["url_img"])})
         r = requests.delete(f"{API}/media/{a['id']}", headers=admin, timeout=30)
-        assert r.status_code == 204, r.text
+        # Iteration 187: deleting a file still used by an article is blocked (409)
+        assert r.status_code == 409, r.text
+        assert r.json()["detail"]["used_in"][0]["content_id"] == cid
+        assert DB.media_assets.find_one({"id": a["id"]}) is not None
+        return
         assert DB.media_assets.find_one({"id": a["id"]}) is None
         assert requests.get(STATE["url_img"], timeout=30).status_code == 200
         assert DB.media_sync_ignore.find_one({"file_storage_key": a["file_storage_key"]})

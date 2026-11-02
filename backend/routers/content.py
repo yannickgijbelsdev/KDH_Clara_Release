@@ -2288,6 +2288,11 @@ async def bulk_delete_content_items(
         }}
     )
 
+    from services.article_media import schedule_article_media_sync
+    for cid in found_ids:
+        schedule_article_media_sync(cid)  # mark their media usage as "in trash"
+
+
     # Audit + activity log per item
     for it in items:
         try:

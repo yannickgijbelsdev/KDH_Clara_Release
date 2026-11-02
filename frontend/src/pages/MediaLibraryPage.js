@@ -998,6 +998,7 @@ const MediaLibraryPage = () => {
                           size="sm"
                           className="opacity-0 group-hover:opacity-100 transition-opacity"
                           onClick={(e) => e.stopPropagation()}
+                          data-testid={`asset-menu-${asset.id}`}
                         >
                           <MoreVertical className="w-4 h-4" />
                         </Button>
@@ -1050,6 +1051,7 @@ const MediaLibraryPage = () => {
                               Rename
                             </DropdownMenuItem>
                             <DropdownMenuItem
+                              data-testid={`delete-asset-${asset.id}`}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleDeleteAsset(asset);

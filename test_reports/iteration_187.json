@@ -1,0 +1,38 @@
+{
+  "summary": "Tested the Media Library usage index (article_media_refs), used_in on GET /api/media, and blocking deletes with 409, on both backend and frontend. Backend: 8 of 9 new tests pass. The one failure is bulk-delete not updating the in_trash flag. Insert/remove via s3_url, /api/media/serve/<id> usage, 409 for a used asset, 204 for an unused one, blocking while the article is in the trash, restore clearing in_trash, and permanent delete unblocking all work. Backfill flag found; 31 of 35 assets are used. Frontend: the 'Used in N article' and 'Not used' pills render on all 37 cards. The popover lists links to /radiogroep/content/<id>, a trashed article shows 'in trash', and clicking the pill does not open the asset preview. Deleting a used asset shows the toast \"Can't delete ...\" with the article name, no confirm dialog and no DELETE request. Deleting an unused asset shows the confirm dialog, then DELETE returns 204, the card is removed and the toast 'Asset deleted' appears.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/content/bulk-delete", "issue": "Missing @syncs_article_media / schedule_article_media_sync, so article_media_refs.deleted stays false after a bulk soft-delete. The delete is still blocked (safe), but used_in shows in_trash=false and the 409 message has no '(in trash)'. Reproduced: test_media_usage.py::TestBulkDelete. Fix: call schedule_article_media_sync(cid) for each found_id after update_many."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Media Library usage popover", "issues": ["The 'in trash' label is text-[10px] text-zinc-400 on white, which has low contrast and is hard to read. Consider text-zinc-500 with 11px, or an amber pill."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_media_usage.py", "/app/backend/tests/test_article_media_library.py", "/app/test_reports/pytest/iteration_187.xml"],
+  "action_items": [
+    "Add the article media sync to POST /api/content/bulk-delete so in_trash is correct for bulk-trashed articles.",
+    "Optional: raise the contrast of the 'in trash' label in MediaUsageBadge."
+  ],
+  "critical_code_review_comments": [
+    "GET /api/media still makes one db.users.find_one per asset (N+1). Batch it with a single $in query, since the list now also runs get_media_usage.",
+    "get_media_usage loads up to 5000 refs and filters in Python with list membership (O(assets*refs*keys)). Fine at the current size, but consider building a key->refs dict.",
+    "main_sites.py site deletion: check that article_media_refs is included in the collections that get cleaned up (refs are only removed by the per-article sync).",
+    "The folder sidebar shows 'Artikels 0' while mirrored assets exist inside its subfolders. The count probably excludes subfolders, which may confuse users (pre-existing behaviour)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_media_usage.py (new)",
+    "/app/backend/tests/test_article_media_library.py (test_delete_keeps_s3_and_not_readded now expects 409 under the new block rule)",
+    "/app/frontend/src/pages/MediaLibraryPage.js (added data-testid asset-menu-<id> and delete-asset-<id>)"
+  ],
+  "success_rate": {"backend": "89% (8/9)", "frontend": "100%"},
+  "test_credentials": "admkoodh@koodh.com / KYLovie13monx (from /app/memory/test_credentials.md)",
+  "seed_data_creation": "Created TEST_usage_* and TEST_ui_* assets and articles; all removed afterwards.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Run: REACT_APP_BACKEND_URL=... pytest backend/tests/test_media_usage.py (it uses /tmp/at/s.png). The sync is async, so the tests poll GET /api/media for up to 8s. Main site radiogroep is 63154708-3320-444c-932d-aa3642b5090c. The card menu uses data-testid asset-menu-<id> (only visible on hover, so click with force=True) and delete-asset-<id>. The delete confirm is a native window.confirm."
+}
